@@ -1,0 +1,1 @@
+<img src="<?=ROOT?>/assets/images/logo.png" alt="logo" height="100%">
