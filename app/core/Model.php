@@ -62,17 +62,31 @@ class Model
 
     public function insert($data)
     {
-        //INSERT INTO $table(keys) VALUES (), ();
+        $query = "INSERT INTO $this->table(".implode(", ", array_keys($data)).") VALUES ( :".implode(", :", array_keys($data)).")";
+        $result = $this->query($query, $data);
+
     }
 
     public function update($id, $data, $id_column = 'id')
     {
-        
+        $query = "UPDATE $this->table SET ";
+
+        foreach (array_keys($data) as $column) {
+            $query .= "$column = :$column, ";
+        }
+
+        $query = trim($query, ", ");
+        $query .= " WHERE $id_column = '$id'";
+
+        echo $query;
+
+        $this->query($query, $data);
     }
 
-    public function delete($id, $id_column)
+    public function delete($id, $id_column = 'id')
     {
-        
+        $query = "DELETE FROM $this->table WHERE $id_column = '$id'";
+        $this->query($query);
     }
 
 }

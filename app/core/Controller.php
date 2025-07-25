@@ -4,7 +4,8 @@ class Controller
 {
     public function view($name)
     {
-        // $model = new Model;
+        $model = new Model;
+        $model->update("sama", ["password"=>"5678"], "username");
         // show($model->first(["password" => "1234"], ["username" => "amara"]));
 
         $filename = "../app/views/".$name.".view.php";
