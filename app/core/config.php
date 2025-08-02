@@ -3,7 +3,7 @@
 if ($_SERVER["SERVER_NAME"] == "localhost")
 {
     /** database config **/
-    define('DBNAME', 'openmind_test');
+    define('DBNAME', 'openminds');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
     define('DBPASS', '1234');
@@ -11,6 +11,7 @@ if ($_SERVER["SERVER_NAME"] == "localhost")
 
     /** file structure config**/
     define('ROOT', "http://localhost/Openminds/public/");
+    define('APP_ROOT', "http://localhost/Openminds/app/");
     define('HOST', "localhost");
 
 }else
@@ -24,6 +25,7 @@ if ($_SERVER["SERVER_NAME"] == "localhost")
 
     /** file structure config**/
     define('ROOT', "https://www.openminds.org");
+    define('APP_ROOT', "http://localhost/Openminds/app/");
     define('HOST', "https://www.openminds.org");
 }
 

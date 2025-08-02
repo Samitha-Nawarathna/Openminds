@@ -2,12 +2,8 @@
 
 class Controller
 {
-    public function view($name)
+    public function view($name, $data = [''])
     {
-        $model = new Model;
-        $model->update("sama", ["password"=>"5678"], "username");
-        // show($model->first(["password" => "1234"], ["username" => "amara"]));
-
         $filename = "../app/views/".$name.".view.php";
         
         if (file_exists($filename)) {

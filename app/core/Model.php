@@ -1,9 +1,8 @@
 <?php
 
-class Model
+trait Model
 {
     use Database;
-    protected $table = 'profile';
 
     public function test()
     {

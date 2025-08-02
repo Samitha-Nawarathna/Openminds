@@ -1,0 +1,26 @@
+.message-container
+{
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    gap: var(--space-sm);
+}
+
+.message-container p
+{
+    font-size: var(--font-size-base);
+}
+
+.background
+{
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: var(--color-primary);
+    opacity: 70%;
+    position: fixed;
+    z-index: 9998;
+}
