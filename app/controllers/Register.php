@@ -59,26 +59,43 @@ class Register extends Controller
 
     public function register()
     {
+
         $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $errors = implode("\n", $errors);
-            $this->view("register", ["message" => $errors, "username" => $_POST["username"], "password" => $_POST["password"], "email" => $_POST["email"],]);
+
+            $this->view("register", [
+                "message" => $errors,
+                "username" => $_POST["username"],
+                "password" => $_POST["password"],
+                "email" => $_POST["email"]
+            ]);
+
             return;
         }
 
-        $this->createUser($_POST);
+        $_SESSION['user_data'] = $_POST;
+        $_SESSION['user_data']['type'] = 'registration';
 
-        $this->view("register_successful");
-    }
+        $otp_service = new OtpService;
+        $is_generated = $otp_service->generate($_SESSION['user_data']);
 
-    public function createUser($data)
-    {
-        $user = new User();
-        $user->insert([
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT)
-        ]);
+        if (!$is_generated)
+        {
+            $this->view("register", [
+                    "message" => "Error in OTP generation. Please try again!.",
+                    "username" => $_POST["username"],
+                    "password" => $_POST["password"],
+                    "email" => $_POST["email"]
+                ]
+            );
+
+            return;
+        }
+
+        $this->view("otp");
+        // $this->createUser($_POST);
+
     }
 }

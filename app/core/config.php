@@ -29,6 +29,8 @@ if ($_SERVER["SERVER_NAME"] == "localhost")
     define('HOST', "https://www.openminds.org");
 }
 
+define('APP_PASSWORD', "yqyw rzsi iklf boyd");
+
 /** sessions config**/
 ini_set('session.use_only_cookies', 1);
 ini_set('session.use_use_strict_mode', 1);
