@@ -11,7 +11,7 @@ class Otppage extends Controller
     {
         $user_data = $_SESSION['user_data'];
 
-        $otp_service = new OtpService;
+        $otp_services = new OtpServices;
         $successful = $otp_service->generate($user_data);
         show($successful);
 
@@ -31,23 +31,24 @@ class Otppage extends Controller
     {
         $user_data = $_SESSION['user_data'];
 
-        $code = htmlspecialchars($_POST['otp']);
-        $otp = new Otp;
+        $otp_services = new OtpServices;
+        $result = $otp_services->verify($user_data);
 
-        $result = $otp->find($code, $user_data['username']);
+        if ($result === 1) {
+            $view = $otp_services->process_forward($user_data);
+            
+            $this->view($view);
+            show($_SESSION);
+            exit;
+
+        }
+
+        
 
         $message;
 
-        if ($result === 1) {
-            $message = 'OTP found!';
-            
-            $register_services = new RegisterServices;
-            $register_services->create_user($user_data);
 
-            $this->view('login');
-            exit;
-
-        } elseif ($result === 0){
+        if ($result === 0){
             $message = 'invalid OTP. please try again.';
         } elseif ($result === -1){
             $message = 'OTP expired. please try again.';
@@ -56,5 +57,7 @@ class Otppage extends Controller
         $this->view('otp', [
             'message'=> $message
         ]);
+        return 0;
+
     }
 }

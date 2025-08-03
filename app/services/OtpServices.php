@@ -1,6 +1,6 @@
 <?php
 
-class OtpService
+class OtpServices
 {
     private $code;
     private $created_at;
@@ -57,8 +57,40 @@ class OtpService
         ]);
     }
 
-    public function verifiy()
+    public function verify($user_data)
     {
 
+        $code = htmlspecialchars($_POST['otp']);
+        $otp = new Otp;
+
+        $result = $otp->find($code, $user_data['username']);
+
+        return $result;
+    }
+
+    public function process_forward($user_data)
+    {
+        $type = $user_data['type'];
+
+        switch ($type) {
+            case 'login':
+                #login
+                $login_services = new LoginServices;
+                $login_services->set_session($user_data);
+                $login_services->unset_user_data();
+        
+                return 'dashboard';
+
+            case 'resetpassword':
+                # code...
+                break;            
+            default:
+                # registration
+                $register_services = new RegisterServices;
+                $register_services->create_user($user_data);
+                $register_services->unset_user_data();
+                
+                return 'login';
+        }
     }
 }

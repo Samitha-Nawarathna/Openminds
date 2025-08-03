@@ -1,3 +1,12 @@
+<?php
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: ".ROOT."index.php");
+    exit;
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

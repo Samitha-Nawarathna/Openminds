@@ -12,22 +12,24 @@
     --color-border: #CCCCCC;
     --color-placeholder: #888888;
     --color-text: #222;
+    --color-success: rgb(52, 165, 125);
   
     /* Font */
     --font-body: 'Inter', sans-serif;
   
     /* Font Sizes */
+    --font-size-xs: 0.7rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
     --font-size-lg: 1.5rem;
     --font-size-xl: 3rem;
   
     /* Spacing */
-    --space-xs: 0.5rem;
-    --space-sm: 1rem;
-    --space-md: 1.5rem;
-    --space-lg: 2rem;
-    --space-xl: 3rem;
+    --space-xs: 0.7rem;
+    --space-sm: 1.2rem;
+    --space-md: 1.7rem;
+    --space-lg: 2.2rem;
+    --space-xl: 3.2rem;
   
     /* Radius */
     --radius-sm: 4px;
@@ -88,4 +90,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .intro
+  {
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    margin-top: -0.8rem;
+    justify-self: left;
   }

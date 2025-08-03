@@ -24,7 +24,7 @@ class App
     
         $filename = $URL[0];
         $filename = $this->CONTROLLERS_DIR.ucfirst($filename).".php";
-        if (isset($URL[1]) && $URL[1] != "")
+        if (isset($URL[1]) && ($URL[1] != "" || $URL[1] != "index") &&  $_SERVER['REQUEST_METHOD'] === 'POST')
         {
             $this->method = $URL[1];
         }

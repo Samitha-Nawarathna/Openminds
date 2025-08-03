@@ -1,3 +1,13 @@
+<?php
+
+    if (isset($_SESSION['user_id']))
+    {
+        header('Location: '.ROOT.'dashboard');
+        exit;
+    }
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
