@@ -6,6 +6,8 @@
         <button class="button" onclick="dismissMessage()">Back</button>
     </div>
 </div>
+
+
 <script>
     function dismissMessage() {
         const box = document.getElementById('message-content');

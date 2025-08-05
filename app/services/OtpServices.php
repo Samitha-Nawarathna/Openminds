@@ -79,7 +79,7 @@ class OtpServices
                 $login_services->set_session($user_data);
                 $login_services->unset_user_data();
         
-                return 'dashboard';
+                return 'login';
 
             case 'resetpassword':
                 # code...
@@ -87,7 +87,10 @@ class OtpServices
             default:
                 # registration
                 $register_services = new RegisterServices;
+                $login_services = new LoginServices;
+                
                 $register_services->create_user($user_data);
+                $login_services->set_session($user_data);
                 $register_services->unset_user_data();
                 
                 return 'login';

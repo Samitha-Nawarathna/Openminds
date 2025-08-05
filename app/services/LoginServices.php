@@ -16,7 +16,7 @@ class LoginServices
         $_SESSION['user_data']['is_email'] = 1;
 
         if (!filter_var($user_data['username'], FILTER_VALIDATE_EMAIL)) {
-            if (!$this->isUsernameUnique($user_data['username'])) {
+            if ($this->isUsernameUnique($user_data['username'])) {
                 $errors[] = "Invalid credentials.";   
             }else
             {
@@ -37,14 +37,14 @@ class LoginServices
             $errors[] = "Invalid credentials.";
         }
 
-        if(empty($error))
+        if(empty($errors))
         {
             $user = new User;
 
             if($_SESSION['user_data']['is_email'])
             {
                 $_SESSION['user_data']['email'] = $_SESSION['user_data']['username'];
-                $result = $user->first(['email' => $_SESSION['user_data']['username']]);
+                $result = $user->first(['email' => $_SESSION['user_data']['email']]);
                 $_SESSION['user_data']['username'] = $result->username;
             }else
             {

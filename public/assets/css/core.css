@@ -6,7 +6,7 @@
 :root {
     /* Colors */
     --color-primary: #6375F1;
-    --color-error: #91150C;
+    --color-error: #F27970;
     --color-surface: #ffffff;
     --color-background: #EEDCE9;
     --color-border: #CCCCCC;
@@ -25,7 +25,7 @@
     --font-size-xl: 3rem;
   
     /* Spacing */
-    --space-xs: 0.7rem;
+    --space-xs: 0.5rem;
     --space-sm: 1.2rem;
     --space-md: 1.7rem;
     --space-lg: 2.2rem;
@@ -96,6 +96,15 @@
   {
     color: var(--color-primary);
     font-size: var(--font-size-xs);
-    margin-top: -0.8rem;
+    margin-top: calc(var(--space-xs)*-1);
     justify-self: left;
+  }
+
+  .error
+  {
+    color: var(--color-error);
+    font-size: var(--font-size-xs);
+    margin-top: var(--space-xs);
+    justify-self: left;
+    display: none;
   }

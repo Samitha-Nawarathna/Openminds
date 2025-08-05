@@ -12,17 +12,19 @@ class Otppage extends Controller
         $user_data = $_SESSION['user_data'];
 
         $otp_services = new OtpServices;
-        $successful = $otp_service->generate($user_data);
+        $successful = $otp_services->generate($user_data);
         show($successful);
 
         if ($successful) {
             $this->view('otp', [
-                'message'=> 'OTP sent successfully.'
+                'message'=> 'OTP sent successfully.',
+                'email'=> $user_data['email']
             ]);
             
         }else{
             $this->view('otp', [
-                'message'=> 'Error in OTP generation. please try again.'
+                'message'=> 'Error in OTP generation. please try again.',
+                'email'=> $user_data['email']
             ]);
         }
     }
@@ -55,7 +57,8 @@ class Otppage extends Controller
         }
 
         $this->view('otp', [
-            'message'=> $message
+            'message'=> $message,
+            'email'=> $user_data['email']
         ]);
         return 0;
 

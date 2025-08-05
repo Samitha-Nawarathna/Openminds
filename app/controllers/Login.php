@@ -16,6 +16,8 @@ class Login extends Controller
         $login_services = new LoginServices;
         $errors = $login_services->validate($user_data);
 
+        $user_data = $_SESSION['user_data'];
+
         if(!empty($errors))
         {
             $errors = implode("\n", $errors);
@@ -44,7 +46,7 @@ class Login extends Controller
             return;
         }
 
-        $this->view("otp"); 
+        $this->view("otp", ['email' => $user_data['email']]); 
 
     }
 }

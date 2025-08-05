@@ -45,5 +45,6 @@
     }
 
     ?>
+    <script src="<?=ROOT?>/assets/js/login.view.js"></script>
 </body>
 </html>

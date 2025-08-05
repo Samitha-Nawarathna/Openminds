@@ -74,6 +74,11 @@
     text-decoration: none;
     font-size: var(--font-size-sm);
   }
+
+  .introduction {
+    color: var(--color-placeholder);
+    font-size: var(--font-size-xs);
+  }
   
   /* -----------------------------
      📱 RESPONSIVE
