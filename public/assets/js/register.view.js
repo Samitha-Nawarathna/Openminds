@@ -131,6 +131,7 @@ button.addEventListener('mouseover', () => {
     {
         button.value = 'Fill all fields.';
         button.style.backgroundColor = 'var(--color-error)';
+        // button.style.color = 'var(--color-error)';
     }
     else
     {
@@ -138,6 +139,7 @@ button.addEventListener('mouseover', () => {
             {
                 button.value = 'Problem with inputs.';
                 button.style.backgroundColor = 'var(--color-error)';
+                // button.style.color = 'var(--color-error)';
             }
             else
             {
@@ -152,4 +154,5 @@ button.addEventListener('mouseover', () => {
 button.addEventListener('mouseleave', () => {
     button.value = 'Register';
     button.style.backgroundColor = 'var(--color-primary)';
+    button.style.color = 'var(--color-surface)';
 })

@@ -45,7 +45,7 @@ class Register extends Controller
             return;
         }
 
-        $this->view("otp");
+        $this->view("otp", ['email' => $_SESSION['user_data']['email']]);
         // $this->createUser($_POST);
 
     }
