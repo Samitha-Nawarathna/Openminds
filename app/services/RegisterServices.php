@@ -59,7 +59,8 @@ class RegisterServices
         $user->insert([
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT)
+            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
+            'display_name' => $data['username']
         ]);
     }
 

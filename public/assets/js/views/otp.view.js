@@ -24,7 +24,7 @@ button.addEventListener('mouseover', () => {
     }
     else
     {
-        button.value = 'Log in';
+        button.value = 'Send';
         button.style.backgroundColor = 'var(--color-primary)';
         button.disabled = false;            
 
@@ -32,6 +32,6 @@ button.addEventListener('mouseover', () => {
 })
 
 button.addEventListener('mouseleave', () => {
-    button.value = 'Log in';
+    button.value = 'Send';
     button.style.backgroundColor = 'var(--color-primary)';
 })

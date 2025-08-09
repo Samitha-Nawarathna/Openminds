@@ -68,6 +68,7 @@ trait Model
 
     public function update($id, $data, $id_column = 'id')
     {
+        $data[$id_column] = $id;
         $query = "UPDATE $this->table SET ";
 
         foreach (array_keys($data) as $column) {
@@ -75,11 +76,11 @@ trait Model
         }
 
         $query = trim($query, ", ");
-        $query .= " WHERE $id_column = '$id'";
+        $query .= " WHERE $id_column = :$id_column";
 
         echo $query;
 
-        $this->query($query, $data);
+        return $this->query($query, $data);
     }
 
     public function delete($id, $id_column = 'id')

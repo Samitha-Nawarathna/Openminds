@@ -4,7 +4,7 @@ let fields = document.querySelectorAll('.field input');
 
 function validate_email(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    is_valid = emailRegex.test(email.trim());
+    let is_valid = emailRegex.test(email.trim());
 
     if (!is_valid)
     {
@@ -19,7 +19,7 @@ function validate_username(username) {
 
 function validate_password(password) {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    is_valid = passwordRegex.test(password.trim());
+    let is_valid = passwordRegex.test(password.trim());
 
     if (!is_valid)
         {
@@ -30,7 +30,7 @@ function validate_password(password) {
 }
 
 function validate_confirm_password(confirm_password, original_password) {
-    is_valid = (confirm_password.trim() === original_password.trim());
+    let is_valid = (confirm_password.trim() === original_password.trim());
     
     console.log(confirm_password, original_password, is_valid);
 
@@ -43,12 +43,13 @@ function validate_confirm_password(confirm_password, original_password) {
 
 function update_style(element, validator)
 {
+    let name = element.getAttribute('name');
     element.addEventListener('input',() =>{
 
         if (name === "confirm_password") {
-            confirm_password = element.value;
-            password = '';
-            error = '';
+            let confirm_password = element.value;
+            let password = '';
+            let error = '';
 
             document.querySelectorAll('.field input').forEach(element => {
                 if (element.getAttribute('name') === 'password') {
@@ -60,15 +61,16 @@ function update_style(element, validator)
             });
 
             error = validator(confirm_password, password);
+            console.log(error);
         }else
         {
-            value = element.value;
+            let value = element.value;
             error = validator(value);
         }
 
-        group = element.closest('.input-group');
-        warning = group.closest('.field').querySelector('.error');
-        console.log(group, warning);
+        let group = element.closest('.input-group');
+        let warning = group.closest('.field').querySelector('.error');
+        // console.log(group, warning);
 
         if (error !== '') {
             group.style.borderColor = 'var(--color-error)';
@@ -91,17 +93,17 @@ function update_style(element, validator)
     return error;
 }
 
-validators = {
+let validators = {
     'email': validate_email,
     'username': validate_username,
     'password': validate_password,
     'confirm_password': validate_confirm_password
 }
 
-error = ''
+let error = '';
 
 fields.forEach(element => {
-    name = element.getAttribute('name');
+    let name = element.getAttribute('name');
 
     error = update_style(element, validators[name]);
 
@@ -111,9 +113,9 @@ fields.forEach(element => {
 function is_empty_fields()
 {
     let fields = document.querySelectorAll('.field input');
-    is_empty = false;
+    let is_empty = false;
     fields.forEach(element => {
-        console.log(element.value);
+        // console.log(element.value);
         if(!element.value)
         {
             is_empty = true;

@@ -23,6 +23,7 @@ Trait Database
             {
                 return $result;
             }
+            return [];
         }
 
         return false;

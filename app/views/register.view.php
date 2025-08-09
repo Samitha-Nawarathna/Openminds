@@ -1,25 +1,21 @@
-<?php
 
+<?php
+    //guard from unnessesary accesses
     if (isset($_SESSION['user_id']))
     {
         header('Location: '.ROOT.'dashboard');
         exit;
     }
 
+    //setting page variables
+    $title = 'Register: Openminds';
+    $filename = 'register';
+
+    //put header
+    include_once('../app/views/partials/header.view.php');
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/core.css">
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/register.view.css">
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/partials/message.view.css">
-</head>
-<body>
     <div class="body-container">
         <div class="form-container container">
             <h1 class="heading">Register</h1>
@@ -56,15 +52,7 @@
         </div>
 
     </div>
-    <?php
 
-    if (isset($data["message"])) {
-        $message = $data["message"];
-        include_once('../app/views/partials/message.view.php');
-    }
-
-    ?>
-
-<script src="<?=ROOT?>assets/js/register.view.js"></script>
-</body>
-</html>
+<?php 
+    include_once('../app/views/partials/footer.view.php');
+?>

@@ -1,0 +1,1 @@
+const ROOT = "http://localhost/Openminds/public/";

@@ -37,24 +37,26 @@ class LoginServices
             $errors[] = "Invalid credentials.";
         }
 
-        if(empty($errors))
-        {
-            $user = new User;
+        return $errors;
+    }
 
-            if($_SESSION['user_data']['is_email'])
-            {
-                $_SESSION['user_data']['email'] = $_SESSION['user_data']['username'];
-                $result = $user->first(['email' => $_SESSION['user_data']['email']]);
-                $_SESSION['user_data']['username'] = $result->username;
-            }else
-            {
-                $result = $user->first(['username' => $_SESSION['user_data']['username']]);
-                $_SESSION['user_data']['email'] = $result->email;
-            }
-    
+    public function update_session_user_data()
+    {
+        $user = new User;
+
+        if($_SESSION['user_data']['is_email'])
+        {
+            $_SESSION['user_data']['email'] = $_SESSION['user_data']['username'];
+            $result = $user->first(['email' => $_SESSION['user_data']['email']]);
+            $_SESSION['user_data']['username'] = $result->username;
+        }else
+        {
+            $result = $user->first(['username' => $_SESSION['user_data']['username']]);
+            $_SESSION['user_data']['email'] = $result->email;
         }
 
-        return $errors;
+        return $_SESSION['user_data'];
+
     }
 
     protected function isEmailUnique($email): bool
@@ -98,6 +100,7 @@ class LoginServices
 
         $_SESSION['user_id'] = $results->id;
         $_SESSION['password'] = $results->password;
+        $_SESSION['role'] = $results->role;
 
         return 1;
     }

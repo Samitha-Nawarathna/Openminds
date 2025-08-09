@@ -30,7 +30,7 @@ class Register extends Controller
         $_SESSION['user_data']['type'] = 'registration';
 
         $otp_service = new OtpServices;
-        $is_generated = $otp_service->generate($_SESSION['user_data']);
+        $is_generated = $otp_service->send_otp($_SESSION['user_data']);
 
         if (!$is_generated)
         {
@@ -45,8 +45,8 @@ class Register extends Controller
             return;
         }
 
-        $this->view("otp", ['email' => $_SESSION['user_data']['email']]);
-        // $this->createUser($_POST);
+        header("Location: ".ROOT."otppage");
+        // $this->view("otp", ['email' => $_SESSION['user_data']['email']]);
 
     }
 }

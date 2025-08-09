@@ -8,12 +8,10 @@ class OtpServices
     private $expire_from = 300;
     private $expires_at;
 
-    public function generate($user_data)
-    {
-        $this->otp = new Otp;
 
-        $this->code = random_int(100000, 999999);
-        $this->expires_at = date("Y-m-d H:i:s", time() + $this->expire_from);
+    public function send_otp($user_data)
+    {
+        $this->generate($user_data);
         
         $is_sent = $this->send($user_data['email']);
 
@@ -25,7 +23,16 @@ class OtpServices
         $this->insert_to_db($user_data);
 
         return 1;
-    }
+    }// use generate, update table,  and then send 
+
+    public function generate($user_data)
+    {
+        $this->otp = new Otp;
+
+        $this->code = random_int(100000, 999999);
+        $this->expires_at = date("Y-m-d H:i:s", time() + $this->expire_from);
+        
+    }// keep only generation logic
 
     private function send($email)
     {
@@ -60,7 +67,7 @@ class OtpServices
     public function verify($user_data)
     {
 
-        $code = htmlspecialchars($_POST['otp']);
+        $code = htmlspecialchars($_POST['otp']);//sould be guardad!!!!!!!
         $otp = new Otp;
 
         $result = $otp->find($code, $user_data['username']);
@@ -68,7 +75,7 @@ class OtpServices
         return $result;
     }
 
-    public function process_forward($user_data)
+    public function process_forward($user_data) // rename as redirect_forward
     {
         $type = $user_data['type'];
 
@@ -79,8 +86,7 @@ class OtpServices
                 $login_services->set_session($user_data);
                 $login_services->unset_user_data();
         
-                return 'login';
-
+                return 'login';//redirect to dashboard page
             case 'resetpassword':
                 # code...
                 break;            
@@ -91,9 +97,10 @@ class OtpServices
                 
                 $register_services->create_user($user_data);
                 $login_services->set_session($user_data);
-                $register_services->unset_user_data();
+                // $register_services->unset_user_data();
                 
-                return 'login';
+                header("Location: ".ROOT."profilesetup");
+                exit;
         }
     }
 }

@@ -1,24 +1,19 @@
 <?php
+    //guard from unnessesary accesses
+    if (!isset($_SESSION['user_data']) || !isset($_SESSION['user_data']['type']))
+    {
+        header('Location: '.ROOT.'dashboard');
+        exit;
+    }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ".ROOT."index.php");
-    exit;
-}
+    //setting page variables
+    $title = 'Login: Openminds';
+    $filename = 'otp';
+
+    //put header
+    include_once('../app/views/partials/header.view.php');
 
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/core.css">
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/otp.view.css">
-    <link rel="stylesheet" href="<?php echo ROOT?>assets/css/partials/message.view.css">
-</head>
-<body>
     <div class="body-container">
         <div class="form-container container">
             <h1 class="heading">Enter otp code</h1>

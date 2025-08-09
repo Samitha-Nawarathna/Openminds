@@ -21,6 +21,7 @@
     {
       align-self: center;
       justify-self: center;
+      width: clamp(300px, 40%, 500px);
     }
     
     form {

@@ -19,6 +19,7 @@ body
   {
     align-self: center;
     justify-self: center;
+    width: clamp(400px, 30%, 800px);
   }
   
   form {
@@ -85,6 +86,7 @@ body
   @media (max-width: 600px) {
     .form-container {
       padding: var(--space-md);
+      width: clamp(300px, 30%, 800px);
     }
   
     .heading {
