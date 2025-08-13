@@ -40,3 +40,16 @@ h1
 {
     padding-bottom: var(--space-sm);
 }
+
+.form-container
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.update-password-wrapper
+{
+    padding-top: var(--space-sm);
+
+}

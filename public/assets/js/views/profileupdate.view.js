@@ -10,9 +10,9 @@ const send_button = document.querySelector(".submit");
 
 
 
-upload_button.addEventListener("click", ()=>{
-    upload_content.style.display = 'block';
-})
+// upload_button.addEventListener("click", ()=>{
+//     upload_content.style.display = 'block';
+// })
 
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];

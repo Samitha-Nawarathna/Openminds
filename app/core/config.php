@@ -30,6 +30,9 @@ if ($_SERVER["SERVER_NAME"] == "localhost")
 }
 
 define('APP_PASSWORD', "yqyw rzsi iklf boyd");
+define('HEADER_PATH', "../app/views/partials/header.view.php");
+define('FOOTER_PATH', "../app/views/partials/footer.view.php");
+define('DEFAULT_PROFILE_PICTURE', ROOT."\uploads\\0\profile.avif");
 
 /** sessions config**/
 ini_set('session.use_only_cookies', 1);

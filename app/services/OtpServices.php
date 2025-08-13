@@ -85,8 +85,19 @@ class OtpServices
                 $login_services = new LoginServices;
                 $login_services->set_session($user_data);
                 $login_services->unset_user_data();
-        
+    
                 return 'login';//redirect to dashboard page
+
+            case 'accountverification':
+                #accountverification
+                $verification_services = new AccountVerificationServices;
+                $_SESSION['verified_deletion'] = 1;
+                $verification_services->process_forward($_SESSION['verification_for']);
+
+                $login_services = new LoginServices;
+                $login_services->unset_user_data();
+                exit;
+
             case 'resetpassword':
                 # code...
                 break;            

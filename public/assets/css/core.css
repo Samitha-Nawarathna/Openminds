@@ -8,11 +8,15 @@
     --color-primary: #6375F1;
     --color-error: #F27970;
     --color-surface: #ffffff;
-    --color-background: #EEDCE9;
+    --color-secondary-background: #EEDCE9;
+    --color-background: #FAFCFF;
     --color-border: #CCCCCC;
     --color-placeholder: #888888;
     --color-text: #222;
     --color-success: rgb(52, 165, 125);
+    --color-green: #B9EAC0;
+    --color-yellow: #FFF9D1;
+    --color-red: #91150C;
   
     /* Font */
     --font-body: 'Inter', sans-serif;
@@ -153,6 +157,14 @@
     transition: all 0.2s ease;
   }
 
+  .tile
+  {
+    padding: var(--space-sm);
+    background-color: var(--color-secondary-background);
+    border-radius: var(--radius-md);
+    color: var(--color-red);
+  }
+
   .intro
   {
     color: var(--color-primary);
@@ -168,4 +180,32 @@
     margin-top: var(--space-xs);
     justify-self: left;
     display: none;
+  }
+
+  .bg-primary
+  {
+    background-color: var(--color-primary);
+  }
+
+  .btn-none
+  {
+    background: none;
+    color: var(--color-primary);
+    border: 1px solid var(--color-border)
+  }
+
+  .btn-none:hover
+  {
+    background-color: var(--color-border);
+  }
+
+  .btn-error
+  {
+    background-color: var(--color-error);
+    color: var(--color-surface);
+  }
+
+  .btn-error:hover
+  {
+    background-color: var(--color-red);
   }
