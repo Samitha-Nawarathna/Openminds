@@ -10,8 +10,13 @@ Trait Database
         return $con;
     }
 
-    public function query($query, $data = [])
+    public function query($query, $data = [], $limit = Null, $offset = 0)
     {
+
+        if ($limit) {
+            $query .= " LIMIT ".$offset." ,".$limit;
+        }
+
         $con = $this->connect();
         $stm = $con->prepare($query);
 

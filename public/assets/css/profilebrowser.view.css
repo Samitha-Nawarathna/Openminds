@@ -1,0 +1,42 @@
+.profilebrowser-container
+{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.profilebrowser-container .title
+{
+    font-weight: 600;
+    font-size: calc(1.5*var(--font-size-xl));
+    padding: var(--space-md);
+}
+
+.profilebrowser-wrapper
+{
+    width: 50vw;
+    height: auto;
+    /* justify-self: center; */
+    /* align-self: center; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profilebrowser-container .content-tabs
+{
+    margin-top: var(--space-xl);
+}
+
+.profilebrowser-container .content-tab .card .username
+{
+    padding-left: var(--space-sm);
+}
+
+.profilebrowser-container .content-tab .card .tile
+{
+    padding: calc(1.5*var(--space-xs));
+}

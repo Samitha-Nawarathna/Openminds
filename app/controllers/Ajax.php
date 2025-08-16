@@ -75,4 +75,23 @@ class Ajax extends Controller
         // $this->view("dashboard");
         exit;
     }
+
+    public function retrive_user_profiles()
+    {
+        $sent_data = json_decode(file_get_contents("php://input"));
+
+        // show($sent_data);
+
+        $data = (array) $sent_data->data;
+        $offset = $sent_data->offset;
+        $limit = $sent_data->limit;
+
+        $user = new User;
+
+        $results = $user->where($data, $offset, $limit, ["id", "username", "profile_picture", "role"]);
+
+
+        echo json_encode($results);
+
+    }
 }
