@@ -13,7 +13,8 @@ class App
     private function split_url()
     {
         $URL = $_GET["url"] ?? "home";
-        $URL = explode("/", $URL);
+        $URL = explode("/", $URL); 
+    
         return $URL;
     }
     
@@ -23,6 +24,10 @@ class App
     
         $filename = $URL[0];
         $filename = $this->CONTROLLERS_DIR.ucfirst($filename).".php";
+        if (isset($URL[1]) && ($URL[1] != "" || $URL[1] != "index"))
+        {
+            $this->method = $URL[1];
+        }
     
         if (file_exists($filename)) {
             require $filename;
@@ -34,6 +39,10 @@ class App
         }
 
         $controller = new $this->controller;
+        if(!method_exists($controller, $this->method))
+        {
+            $this->method = "index";
+        }
         call_user_func_array([$controller, $this->method], []);
     
     }

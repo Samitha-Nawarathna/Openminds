@@ -1,9 +1,8 @@
 <?php
 
-class Model
+trait Model
 {
     use Database;
-    protected $table = 'profile';
 
     public function test()
     {
@@ -11,11 +10,27 @@ class Model
         return $result;
     }
 
-    public function where($data, $data_not = [])
+    public function where($data, $offset = 0, $limit = Null, $columns = [], $data_not = [])
     {
         //SELECT * FROM $table WHERE id = :id && id != :id;
 
-        $query = "SELECT * FROM $this->table WHERE ";
+        $query = "";
+
+        if (!$columns)
+        {
+            $query = "SELECT * FROM $this->table WHERE ";
+        }else
+        {
+            $query = "SELECT ";
+
+            foreach ($columns as $key => $column) {
+                $query .= "`$column`,";
+            }
+
+            $query = trim($query, ",");
+
+            $query .= " FROM $this->table WHERE ";
+        }
 
         foreach (array_keys($data) as $key)
         {
@@ -27,9 +42,9 @@ class Model
         }
         $query = trim($query, " &&");
 
-        show($query);
+        // show($query);
 
-        $result = $this->query($query, array_merge($data, $data_not));
+        $result = $this->query($query, array_merge($data, $data_not), $limit, $offset);
         
         return $result;    
 
@@ -62,17 +77,32 @@ class Model
 
     public function insert($data)
     {
-        //INSERT INTO $table(keys) VALUES (), ();
+        $query = "INSERT INTO $this->table(".implode(", ", array_keys($data)).") VALUES ( :".implode(", :", array_keys($data)).")";
+        $result = $this->query($query, $data);
+
     }
 
     public function update($id, $data, $id_column = 'id')
     {
-        
+        $data[$id_column] = $id;
+        $query = "UPDATE $this->table SET ";
+
+        foreach (array_keys($data) as $column) {
+            $query .= "$column = :$column, ";
+        }
+
+        $query = trim($query, ", ");
+        $query .= " WHERE $id_column = :$id_column";
+
+        echo $query;
+
+        return $this->query($query, $data);
     }
 
-    public function delete($id, $id_column)
+    public function delete($id, $id_column = 'id')
     {
-        
+        $query = "DELETE FROM $this->table WHERE $id_column = '$id'";
+        $this->query($query);
     }
 
 }

@@ -1,0 +1,55 @@
+body
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: var(--color-secondary-background);
+}
+
+.container
+{
+    width: clamp(300px, 90%, 500px);
+}
+
+img
+{
+    display: block;
+    width: calc(var(--space-xl)*3);
+    height: calc(var(--space-xl)*3);
+    border-radius: 50%;
+}
+
+.field
+{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.field label
+{
+    justify-self: left;
+    padding: var(--space-sm);
+    padding-left: 0;
+    padding-bottom: calc(0.5*var(--space-sm));
+    color: var(--color-placeholder);
+}
+
+h1
+{
+    padding-bottom: var(--space-sm);
+}
+
+.form-container
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.update-password-wrapper
+{
+    padding-top: var(--space-sm);
+
+}

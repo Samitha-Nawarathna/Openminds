@@ -1,0 +1,41 @@
+.content
+{
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(300px, 90%, 500px);
+    gap: var(--space-sm);
+}
+
+.content .container
+{
+    width: clamp(200px, 100%, 500px);
+}
+
+
+.profiledelete-container
+{
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: var(--color-error);
+    opacity: 100%;
+    position: fixed;
+    z-index: 9998;
+    display: flex;
+}
+
+
+.profiledelete-container .btns
+{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    width: 100%;
+    gap: var(--space-xs);
+}
