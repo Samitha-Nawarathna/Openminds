@@ -143,10 +143,10 @@ include_once '../app/views/partials/header.view.php';
         <div class="section section1">
             <div class="title">Mark analysis</div>
             <div class="analysis-content">
-                <div class="graph-container container top-marks-questions">
+                <div class="graph-container container top-marks-subjects">
 
                 </div>
-                <div class="graph-container container worst-marks-questions">
+                <div class="graph-container container worst-marks-subjects">
 
                 </div>    
             </div>
@@ -154,10 +154,7 @@ include_once '../app/views/partials/header.view.php';
         <div class="section section2">
             <div class="analysis-content">
                 <div class="search-container container">
-                    <input type="text" placeholder="Search user profiles" class="search-input">
-                        <button class="search-btn">
-                            filter
-                        </button> 
+
                 </div>
             </div>
         </div>     

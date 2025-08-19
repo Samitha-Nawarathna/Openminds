@@ -1,10 +1,7 @@
 <?php
     //setting page variables
-    $title = 'All Profiles';
-    $filename = 'requestbrowser';
-
-    //variables
-    $profile_picture_url = ROOT."/uploads/0/profile.avif";
+    $title = 'All requests';
+    $filename = 'expertrequests/requestbrowser';
 
     //put header
     include_once('../app/views/partials/header.view.php');
@@ -13,21 +10,24 @@
 <div class="requestbrowser-container background-gradient">
     <div class="requestbrowser-wrapper">
         <div class="title">
-            Profiles
+            Your Requests
         </div>
         <div class="search-container">
-            <input type="text" placeholder="Search user profiles" class="search-input">
+            <input type="text" placeholder="Search your requests" class="search-input">
             <button class="search-btn">
                 filter
             </button>
         </div>
         <div class="tab-btns">
             <div class="button" data-index="0">
-                active
+                pending
             </div>
             <div class="btn-none button" data-index="1">
-                banned
-            </div>        
+                rejected
+            </div>
+            <div class="btn-none button" data-index="2">
+                approved
+            </div>                    
         </div>
         <div class="content-tabs">
             <div class="content-tab container active"></div>

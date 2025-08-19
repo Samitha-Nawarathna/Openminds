@@ -89,6 +89,11 @@ class Ajax extends Controller
         $user = new User;
 
         $results = $user->where($data, $offset, $limit, ["id", "username", "profile_picture", "role"]);
+        
+        foreach ($results as $key => $record) {
+            $id = $record->id;
+            $results[$key]->role = $user->get_role($id);
+        }
 
 
         echo json_encode($results);

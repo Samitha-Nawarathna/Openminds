@@ -1,0 +1,55 @@
+body {
+  background-color: var(--color-secondary-background);
+}
+
+.edit-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-wrapper form {
+    width: 50vw;
+}
+
+form .input-group textarea{
+    border: none;
+    overflow: hidden;
+    transition: height 0.2s ease;
+}
+
+form .input-group textarea::placeholder{
+    color: var(--color-placeholder);
+    font-family: 'Inter', sans-serif;
+    font-size: var(--font-size-base);
+}
+
+form .input-group textarea:focus{
+    outline: none;
+    color: var(--color-primary);
+}
+
+.upload-wrapper
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    width: 100%;
+    height: 100%;
+}
+
+.upload-wrapper .btn-delete
+{
+    color: var(--color-error);
+    width: 30%;
+}
+
+.upload-wrapper .btn-delete:hover
+{
+    background-color: var(--color-error);
+    color: var(--color-surface);
+}

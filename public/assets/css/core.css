@@ -6,9 +6,11 @@
 :root {
     /* Colors */
     --color-primary: #6375F1;
+    --color-primary-rgb: rgb(99, 117, 241);
     --color-error: #F27970;
     --color-surface: #ffffff;
     --color-secondary-background: #EEDCE9;
+    --color-secondary-background-rgb: rgb(238, 220, 233);
     --color-background: #FAFCFF;
     --color-border: #CCCCCC;
     --color-placeholder: #888888;
@@ -16,7 +18,9 @@
     --color-success: rgb(52, 165, 125);
     --color-green-text: #1F4424;
     --color-green: #B9EAC0;
+    --color-blue: #A9C2E3;
     --color-yellow: #FFF9D1;
+    --color-deep-yellow: #F3E483;
     --color-red: #91150C;
   
     /* Font */
@@ -110,6 +114,45 @@
     outline: none;
     color: var(--color-primary);
   }
+
+  form .input-group textarea{
+    border: none;
+    overflow: hidden;
+    transition: height 0.2s ease;
+}
+
+.display-group {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+
+.upload-wrapper
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    width: 100%;
+    height: 100%;
+}
+
+.upload-wrapper .btn-delete
+{
+    color: var(--color-error);
+    width: min(30%, fit-content);
+}
+
+.upload-wrapper .btn-delete:hover
+{
+    background-color: var(--color-error);
+    color: var(--color-surface);
+}
 
   /* -----------------------------
      ✨ COMPONENTS

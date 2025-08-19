@@ -1,12 +1,12 @@
 <?php
 
-class Profilebrowser extends Controller
+class requestbrowser extends Controller
 {
     public function index()
     {
         $this->guard_admin();
 
-        $this->view("profilebrowser");
+        $this->view("requestbrowser");
     }
 
     public function guard_admin()

@@ -189,3 +189,127 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Inject canvases for each graph
+    document.querySelector(".top-marks-subjects").innerHTML = '<canvas id="topMarksSubjects"></canvas>';
+    document.querySelector(".worst-marks-subjects").innerHTML = '<canvas id="worstMarksSubjects"></canvas>';
+    document.querySelector(".top-subject-graph").innerHTML = '<canvas id="topSubjectGraph"></canvas>';
+    document.querySelector(".top-marks-exercises").innerHTML = '<canvas id="topMarksExercises"></canvas>';
+    document.querySelector(".top-marks-questions").innerHTML = '<canvas id="topMarksQuestions"></canvas>';
+    document.querySelector(".exercise-vote-graph").innerHTML = '<canvas id="exerciseVoteGraph"></canvas>';
+
+    // CSS variable colors
+    const rootStyles = getComputedStyle(document.documentElement);
+    const colors = {
+        primary: rootStyles.getPropertyValue('--color-primary').trim() || '#6375F1',
+        success: rootStyles.getPropertyValue('--color-success').trim() || '#34A57D',
+        error: rootStyles.getPropertyValue('--color-error').trim() || '#F27970',
+        text: rootStyles.getPropertyValue('--color-text').trim() || '#222'
+    };
+
+    // Graph 1: Top marks per subject (bar)
+    new Chart(document.getElementById('topMarksSubjects').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Math', 'Physics', 'Chemistry', 'Biology', 'History'],
+            datasets: [{
+                label: 'Top Marks',
+                data: [95, 92, 90, 88, 85],
+                backgroundColor: colors.primary
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Graph 2: Worst marks per subject (bar)
+    new Chart(document.getElementById('worstMarksSubjects').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Math', 'Physics', 'Chemistry', 'Biology', 'History'],
+            datasets: [{
+                label: 'Worst Marks',
+                data: [45, 50, 48, 40, 35],
+                backgroundColor: colors.error
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // Graph 3: Top subjects for created exercises (pie)
+    new Chart(document.getElementById('topSubjectGraph').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['Math', 'Physics', 'Chemistry', 'Biology', 'History'],
+            datasets: [{
+                data: [12, 9, 8, 6, 5],
+                backgroundColor: [colors.primary, colors.success, colors.error, '#F6C26B', '#B9EAC0']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: colors.text } },
+                datalabels: {
+                    color: colors.text,
+                    formatter: (value) => value
+                }
+            }
+        },
+        // plugins: [ChartDataLabels]
+    });
+
+    // Graph 4: Top marks per exercise (bar)
+    new Chart(document.getElementById('topMarksExercises').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Exercise 1', 'Exercise 2', 'Exercise 3', 'Exercise 4', 'Exercise 5'],
+            datasets: [{
+                label: 'Top Marks',
+                data: [98, 95, 92, 90, 88],
+                backgroundColor: colors.primary
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // Graph 5: Top marks per question (bar)
+    new Chart(document.getElementById('topMarksQuestions').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+            datasets: [{
+                label: 'Top Marks',
+                data: [10, 9, 9, 8, 7],
+                backgroundColor: colors.success
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // Graph 6: Exercise vote analysis (pie)
+    new Chart(document.getElementById('exerciseVoteGraph').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['Votes'],
+            datasets: [{
+                data: [5],
+                backgroundColor: colors.primary
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: { color: colors.text, formatter: (value) => value }
+            }
+        },
+        // plugins: [ChartDataLabels]
+    });
+});

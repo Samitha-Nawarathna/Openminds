@@ -19,5 +19,22 @@ class Controller
         if (!isset($_SESSION["user_id"])) {
             header("Location: ".ROOT."login");
         }
-    }   
+    }
+    
+    public function post_guard()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: ".ROOT."home");
+        }
+    }
+
+    public function is_get()
+    {
+        return $_SERVER['REQUEST_METHOD'] === 'GET';
+    }
+
+    public function is_post()
+    {
+        return $_SERVER['REQUEST_METHOD'] === 'POST';
+    }
 }
