@@ -1,4 +1,4 @@
-import { get_content } from '../ajax/requestbrowser.ajax.js';
+import { get_content } from '../ajax/profilebrowser.ajax.js';
 
 let btns = document.querySelectorAll('.tab-btns .button');
 let cards = document.querySelectorAll('.content-tab');

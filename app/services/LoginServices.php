@@ -100,7 +100,7 @@ class LoginServices
 
         $_SESSION['user_id'] = $results->id;
         $_SESSION['password'] = $results->password;
-        $_SESSION['role'] = $results->role;
+        $_SESSION['role'] = $user->get_role($results->role);
 
         return 1;
     }

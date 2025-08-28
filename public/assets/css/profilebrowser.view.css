@@ -1,4 +1,4 @@
-.requestbrowser-container
+.profilebrowser-container
 {
     width: 100vw;
     height: 100vh;
@@ -8,14 +8,14 @@
     overflow: hidden;
 }
 
-.requestbrowser-container .title
+.profilebrowser-container .title
 {
     font-weight: 600;
     font-size: calc(1.5*var(--font-size-xl));
     padding: var(--space-md);
 }
 
-.requestbrowser-wrapper
+.profilebrowser-wrapper
 {
     width: 50vw;
     height: auto;
@@ -26,23 +26,23 @@
     align-items: center;
 }
 
-.requestbrowser-container .content-tabs
+.profilebrowser-container .content-tabs
 {
     margin-top: var(--space-xl);
 }
 
-.requestbrowser-container .content-tab .card
+.profilebrowser-container .content-tab .card
 {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06),
             0 2px 8px rgba(0, 0, 0, 0.08);
 
 }
-.requestbrowser-container .content-tab .card .username
+.profilebrowser-container .content-tab .card .username
 {
     padding-left: var(--space-sm);
 }
 
-.requestbrowser-container .content-tab .card .tile
+.profilebrowser-container .content-tab .card .tile
 {
     padding: calc(1.5*var(--space-xs));
 }

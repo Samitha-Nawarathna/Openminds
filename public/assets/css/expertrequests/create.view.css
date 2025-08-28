@@ -34,7 +34,7 @@ form .input-group textarea:focus{
 
 .upload-wrapper
 {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: var(--space-xs);

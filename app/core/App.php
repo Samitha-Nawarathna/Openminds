@@ -13,6 +13,7 @@ class App
     private function split_url()
     {
         $URL = $_GET["url"] ?? "home";
+        $URL = explode("?", $URL)[0]; 
         $URL = explode("/", $URL); 
     
         return $URL;

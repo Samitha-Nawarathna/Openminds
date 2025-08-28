@@ -16,9 +16,15 @@ nav
     box-shadow: var(--shadow-md);    
     background-color: var(--color-surface);
     margin: var(--space-md) 0;
-    transform: translateX(50vh);
+    /* transform: translateX(50vh); */
     padding: var(--space-md);
+    transition: all 0.3s ease;
     z-index: 1000;
+}
+
+.hover-reveal:hover
+{
+    transform: translateY(0);
 }
 
 nav > .name
@@ -532,6 +538,8 @@ nav > .btns > a
 }
 .fqa-section .question-section .question .card
 {
+    flex-direction: row;
+    justify-content: space-between;
     padding: var(--space-md);
     background-color: var(--color-surface);
 }

@@ -23,10 +23,10 @@
                 pending
             </div>
             <div class="btn-none button" data-index="1">
-                rejected
+                approved
             </div>
             <div class="btn-none button" data-index="2">
-                approved
+                rejected
             </div>                    
         </div>
         <div class="content-tabs">

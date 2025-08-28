@@ -1,12 +1,13 @@
  <?php  
     $title = "Openminds";
     $filename = "home";
+    $no_navbar = true;
 
     include_once "../app/views/partials/header.view.php";
  ?>
 <div class="home-background background-gradient">
     
-    <nav class="">
+    <nav class="nav-bar">
         <div class="name">Openminds</div>
         <div class="btns">
             <a href="<?=ROOT?>/login">log in</a>

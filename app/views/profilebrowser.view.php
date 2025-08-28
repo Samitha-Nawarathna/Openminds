@@ -1,7 +1,7 @@
 <?php
     //setting page variables
     $title = 'All Profiles';
-    $filename = 'requestbrowser';
+    $filename = 'profilebrowser';
 
     //variables
     $profile_picture_url = ROOT."/uploads/0/profile.avif";
@@ -10,8 +10,8 @@
     include_once('../app/views/partials/header.view.php');
 
 ?>
-<div class="requestbrowser-container background-gradient">
-    <div class="requestbrowser-wrapper">
+<div class="profilebrowser-container background-gradient">
+    <div class="profilebrowser-wrapper">
         <div class="title">
             Profiles
         </div>

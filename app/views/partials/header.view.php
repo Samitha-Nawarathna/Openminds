@@ -13,3 +13,10 @@
 
 </head>
 <body>
+
+<?php 
+    if (!isset($no_navbar) || $no_navbar === false) {
+        include_once('../app/views/partials/navbar.view.php');
+    }
+
+?>

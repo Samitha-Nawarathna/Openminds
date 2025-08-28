@@ -1,3 +1,5 @@
+import { ROOT } from '../core/config.js';
+
 const window_height = window.innerHeight;
 
 function hex_to_rgb(hex) {
@@ -80,21 +82,44 @@ document.addEventListener('mousemove', (e) => {
 //   console.log(interpolate_three_colors(0.2, 0.3, 0.5));
   
 
+let philosophy_section = document.querySelector('.philosophy-section');
+
 let feature_section = document.querySelector('.feature-section');
 const feature_section_start = feature_section.offsetTop;
 const feature_section_height = feature_section.offsetHeight;
+const feature_section_end = feature_section_start + feature_section_height;
+const nav_bar_hidden_start = philosophy_section.offsetTop - window_height/10;
 
 let feature_square = document.querySelector('.feature-section .image-section .square');
 let feature_leaves = document.querySelectorAll('.feature-section .image-section .icon > *');
+let feature_image = document.querySelector('.feature-section .image-section .image');
+let nav_bar = document.querySelector('.nav-bar');
+
 let num_movings = 3;
 
 document.addEventListener('scroll', () => {
     let scroll_position = window.scrollY;
 
+    if (scroll_position > nav_bar_hidden_start && scroll_position < feature_section_end) {
+        nav_bar.style.transform = `translateY(-100%)`;
+        nav_bar.addEventListener('mouseover', () => {
+            nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
+        });
+    }
+    else
+    {
+        nav_bar.style.transform = `translateY(0)`;
+        nav_bar.addEventListener('mouseover', () => {
+            nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
+        });
+
+    }
+
     if (scroll_position < feature_section_start + feature_section_height*0.25)
     {
             feature_square.style.transform = `translateY(0) translateX(0)`;
             feature_square.style.backgroundColor = `var(--color-secondary-background)`;
+            feature_image.style.background = `url("${ROOT}/assets/images/notes.jpg") center center / cover no-repeat`;
             for (let i = 0; i < num_movings; i++) {
                 feature_leaves[i].style.transform = `translateY(${300 - i*100}%) translateX(0)`;
             }
@@ -102,8 +127,10 @@ document.addEventListener('scroll', () => {
 
     if (scroll_position > feature_section_start + feature_section_height*0.25 && scroll_position < feature_section_start + feature_section_height*0.5)
     {
+
         feature_square.style.transform = `rotate(45deg)`;
         feature_square.style.backgroundColor = `var(--color-green)`;
+        feature_image.style.background = `url("${ROOT}/assets/images/questions.jpg") center center / cover no-repeat`;
         for (let i = 0; i < num_movings - 1; i++) {
             feature_leaves[i].style.transform = `translateY(${200 - i*100}%) translateX(0)`;
         }
@@ -113,6 +140,7 @@ document.addEventListener('scroll', () => {
     {
         feature_square.style.transform = `rotate(90deg)`;
         feature_square.style.backgroundColor = `var(--color-secondary-background)`;
+        feature_image.style.background = `url("${ROOT}/assets/images/exercises.jpg") center center / cover no-repeat`;
         for (let i = 0; i < num_movings - 2; i++) {
             feature_leaves[i].style.transform = `translateY(${100 - i*100}%) translateX(0)`;
         }
@@ -122,14 +150,12 @@ document.addEventListener('scroll', () => {
     {
         feature_square.style.transform = `rotate(135deg)`;
         feature_square.style.backgroundColor = `var(--color-blue)`;
+        feature_image.style.background = `url("${ROOT}/assets/images/analysis.png") center center / cover no-repeat`;
     }
         
     
 });
 
-
-
-let philosophy_section = document.querySelector('.philosophy-section');
 
 const philosophy_start = philosophy_section.offsetTop - window_height;  
 const philosophy_end = philosophy_start + philosophy_section.offsetHeight + window_height;
@@ -165,3 +191,4 @@ questions.forEach(element => {
     }
     );
 });
+

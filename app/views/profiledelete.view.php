@@ -3,6 +3,7 @@
     //setting page variables
     $title = 'Confirm Deletion: Openminds';
     $filename = 'profiledelete';
+    $no_navbar = true;
 
     //put header
     include_once('../app/views/partials/header.view.php');

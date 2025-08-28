@@ -4,6 +4,7 @@
     //setting page variables
     $title = 'Verify Account: Openminds';
     $filename = 'accountverification';
+    $no_navbar = true;
 
     //put header
     include_once('../app/views/partials/header.view.php');

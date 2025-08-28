@@ -73,6 +73,231 @@
     background: linear-gradient(to left, #F7F9FC, #EDF1F8);
   }
 
+  /* -----------------------------
+     🧭 NAVBAR
+  ------------------------------ */  
+  
+nav
+{
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0;
+    width: 90vw;
+    justify-self: center;
+    transform: translateY(10%);
+    /* height: 10vh; */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);    
+    background-color: var(--color-surface);
+    padding: var(--space-sm);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.nav-hidden
+{
+    transform: translateY(-220%);
+}
+
+.nav-trigger-hidden
+{
+  transform: translateY(-220%);
+}
+
+.nav-trigger
+{
+  position: fixed;
+  justify-self: center;
+  padding: var(--space-xs) var(--space-md);
+  transform: translateY(-10%);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  margin: 0;
+  font-size: 28px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease; 
+
+
+}
+
+nav .left-side
+{
+    flex: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    list-style: none;
+}
+
+nav .right-side, .middle-side
+{
+    /* flex: 1; */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    list-style: none;
+}
+
+nav .left-side .name
+{
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+
+}
+
+nav .middle-side .nav-links
+{
+  width: 100%;
+}
+
+.nav-links> ul
+{
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--space-sm);
+    list-style: none;
+}
+
+nav .middle-side .nav-links ul > li:hover
+{
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+
+nav .right-side ul .profile-pic
+{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.nav-placeholder
+{
+  display: block;
+  width: 100%;
+  height: 80px;
+}
+
+/* Style the dropdown */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%; /* below parent */
+  right: 0;
+  display: none; /* hidden by default */
+  background: white;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ddd;
+  min-width: 150px;
+  z-index: 1000;
+}
+
+.dropdown-menu li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background: #f0f0f0;
+}
+
+/* Show on hover */
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+/* Hamburger button default hidden */
+.hamburger {
+  display: none;
+  font-size: 28px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    position: absolute;
+    top: 100%; /* below parent */
+    right: 70%;
+    display: none; /* hidden by default */
+    background: white;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ddd;
+    min-width: 150px;
+    z-index: 1000;
+  }
+  nav .right-side {
+    position: relative;
+    justify-self: end;
+  }
+
+  /* Show hamburger */
+  .hamburger {
+    display: block;
+
+    /* padding-right: var(--space-sm); */
+  }
+
+  /* Hide nav links initially */
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;   /* below nav bar */
+    right: 0;
+    width: 200px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md);
+  }
+
+  .nav-links ul {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-sm);
+  }
+
+  .nav-links ul li {
+    width: 100%;
+    padding: 10px 15px;
+  }
+
+  /* When active, show it */
+  .nav-links.active {
+    display: block;
+  }
+
+  .nav-hidden
+  {
+      transform: translateY(10%);
+  }
+
+  .nav-trigger
+  {
+    display: none;
+  }
+}
+
+
+
    
   /* -----------------------------
      🗒️ FORMS
@@ -374,20 +599,37 @@
 
   .card
   {
-    display: flex;
-    justify-content: space-between;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: calc(1.5*var(--space-xs));
     border-radius: var(--space-sm);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     margin: calc(0.5*var(--space-xs));
+  }
+  .card a
+  {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 
+
+
+  }
+
+  .card a
+  {
+    text-decoration: none;
+    color: var(--color-text);
   }
 
   .card .left-align
   {
     display: flex;
     align-items: center;
+    gap: var(--space-sm);
   }
 
   .card .right-align

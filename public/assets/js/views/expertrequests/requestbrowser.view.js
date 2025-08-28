@@ -1,4 +1,4 @@
-import { get_content } from '../ajax/requestbrowser.ajax.js';
+import { get_content } from '../../ajax/expertrequests/requestbrowser.ajax.js';
 
 let btns = document.querySelectorAll('.tab-btns .button');
 let cards = document.querySelectorAll('.content-tab');
@@ -17,7 +17,7 @@ btns.forEach(btn => {
   });
 });
 
-let index2type = {0: "active", 1: "banned"};
+let index2type = {0: "pending", 1: "approved", 2: "rejected"};
 
 let currentIndex = 0;
 let type = index2type[currentIndex];

@@ -10,6 +10,7 @@
     //setting page variables
     $title = 'Register: Openminds';
     $filename = 'register';
+    $no_navbar = true;
 
     //put header
     include_once('../app/views/partials/header.view.php');

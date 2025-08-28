@@ -6,19 +6,20 @@
 ?>
 
 <div class="edit-wrapper">
-    <form action="<?=ROOT?>expertrequests/create" class="container" method="post">
+    <form action="<?=ROOT?>expertrequest/update" class="container" method="post">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($data['id']) ?>">
         <div class="input-group">
             <input type="text" placeholder="Subject Name" name="subject" value="<?= htmlspecialchars($data['subject'] ?? '') ?>">
         </div>
         <div class="input-group">
-            <textarea name="" placeholder="Description" id="" cols="30" rows="10" value = "<?= htmlspecialchars($data['description'] ?? '') ?>"></textarea>
+            <textarea name="description" placeholder="Description" id="" cols="30" rows="10" value = ""><?= htmlspecialchars($data['description'] ?? '') ?></textarea>
         </div>
-        <div class='button-secondary upload-section'><div class="button-text"><?php if (isset($data['file_url'])) {
+        <div class='button-secondary upload-section'><div class="button-text"><?php if ($data['proof_link']) {
             echo "Update the file";
         }else
         {
             echo "Upload a file";
-        }?></div> <input type='file' class='upload-box' name='image' id='fileInput' accept='pdf/*'></div>
+        }?></div> <input type='file' class='upload-box' name='proof_link' id='fileInput' accept='pdf/*'></div>
 
         <div class="upload-wrapper">
             <div class="input-group">

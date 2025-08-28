@@ -14,7 +14,7 @@ export async function get_content(review, limit, offset)
     send_data["limit"] = limit;
     send_data["offset"] = offset;
 
-    let res = await fetch(ROOT + 'ajax/retrive_user_expertrequests', {  
+    let res = await fetch(ROOT + 'ajax/retrive_user_expertrequests_admin', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json' 
@@ -32,7 +32,7 @@ export async function get_content(review, limit, offset)
         const item = res[i];
       
         content +=
-        `<div class="card"><a href="${ROOT}/expertrequest/show?id=${item['id']}">
+        `<div class="card"><a href="${ROOT}/expertrequestadmin/show?id=${item['id']}">
                     <div class="left-align">
                         <img src="`+ROOT+item["profile_picture_url"]+`" alt="profile-picture" class="profile-picture-xs">
                         <div class="desription">`+item["description"].substring(0, max_chars)+`...</div>

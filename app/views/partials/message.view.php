@@ -1,6 +1,7 @@
 
 <?php
-    $message = $data['message'] ?? '';
+    $get_message = $_GET['message'] ?? '';
+    $message = $data['message'] ?? $get_message;
     $display = 'none';
     $classname = 'message-wrapper';
 
@@ -13,4 +14,5 @@
 
     include("../app/views/partials/popup.view.php");
 ?>
+
 

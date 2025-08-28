@@ -1,13 +1,13 @@
 <?php
     //setting page variables
     $title = 'All requests';
-    $filename = 'expertrequests/requestbrowser';
+    $filename = 'expertrequestsadmin/browser';
 
     //put header
     include_once('../app/views/partials/header.view.php');
 
 ?>
-<div class="requestbrowser-container background-gradient">
+<div class="requestbrowser-container">
     <div class="requestbrowser-wrapper">
         <div class="title">
             All Requests
@@ -23,10 +23,10 @@
                 pending
             </div>
             <div class="btn-none button" data-index="1">
-                rejected
+                approved
             </div>
             <div class="btn-none button" data-index="2">
-                approved
+                rejected
             </div>                    
         </div>
         <div class="content-tabs">
