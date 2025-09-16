@@ -156,4 +156,31 @@ class Ajax extends Controller
         // }
 
     }
+
+    public function retrive_user_notifications()
+    {
+        $sent_data = json_decode(file_get_contents("php://input"));
+
+        // show($sent_data);
+
+        $data = (array) $sent_data->data;
+        $offset = $sent_data->offset;
+        $limit = $sent_data->limit;
+
+        $user_id = $_SESSION['user_id'];
+
+        $data['receiver_id'] = $user_id;
+
+        $notifications = new NotificationServices();
+
+        $retrive_notifcation_results = $notifications->retrive($user_id, 0);
+        if (!$retrive_notifcation_results->is_success()) {
+            echo json_encode(['success' => false, 'error' => 'Could not retrieve notifications']);
+            exit;
+        }
+
+        $results = $retrive_notifcation_results->get_data();
+        
+        echo json_encode($results);   
+    }
 }

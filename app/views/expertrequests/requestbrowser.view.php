@@ -12,11 +12,18 @@
         <div class="title">
             Your Requests
         </div>
-        <div class="search-container">
-            <input type="text" placeholder="Search your requests" class="search-input">
-            <button class="search-btn">
-                filter
-            </button>
+        <div class="option-container">
+            <div class="search-container">
+                <input type="text" placeholder="Search your requests" class="search-input">
+                <button class="search-btn">
+                    filter
+                </button>
+            </div>
+            <form action="<?=ROOT?>expertrequest/create" method="get">
+                <button class="button create-btn">
+                    + Create
+                </button>
+            </form>
         </div>
         <div class="tab-btns">
             <div class="button" data-index="0">

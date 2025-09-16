@@ -77,6 +77,11 @@
      🧭 NAVBAR
   ------------------------------ */  
   
+.no-style-link
+{
+  text-decoration: none;
+  color: inherit;
+}
 nav
 {
     position: fixed;
@@ -104,6 +109,17 @@ nav
 .nav-trigger-hidden
 {
   transform: translateY(-220%);
+}
+
+.notification-header
+{
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.notification-item
+{
+  font-size: var(--font-size-sm);
 }
 
 .nav-trigger

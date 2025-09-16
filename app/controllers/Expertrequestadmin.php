@@ -52,14 +52,20 @@ final class Expertrequestadmin extends Controller
         $feedback = $_POST['feedback'] ?? null;
         
         if ($request_id === false) {
-            header("Location: ".ROOT."_404");
+            header("Location: ".ROOT."expertrequestadmin/show?id=".$request_id."&message=invalid request id");
+            exit;
         }
+        
+        if ($feedback === null || trim($feedback) === '') {
+            header("Location: ".ROOT."expertrequestadmin/show?id=".$request_id."&message=feedback cannot be empty!");
+            exit;
+        }        
 
         $expert_requests_service = new ExpertRequestsServices();
         $reject_result = $expert_requests_service->reject_request($request_id, $feedback);
 
         if (!$reject_result->is_success()) {
-            header("Location: ".ROOT."expertrequestsadmin/show?id=".$request_id."&message=".$reject_result->get_message());
+            header("Location: ".ROOT."expertrequestadmin/show?id=".$request_id."&message=".$reject_result->get_message());
             exit;
         }
 
@@ -69,7 +75,7 @@ final class Expertrequestadmin extends Controller
 
     public function undo_rejection()
     {
-        $request_id = $_POST['request_id'] ?? null;
+        $request_id = $_POST['id'] ?? null;
         
         if ($request_id === false) {
             header("Location: ".ROOT."_404");

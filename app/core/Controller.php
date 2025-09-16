@@ -4,6 +4,10 @@ class Controller
 {
     public function view($name, $data = [''])
     {
+        if ($_SESSION) {
+            $data['session'] = $_SESSION;
+        }
+
         $filename = "../app/views/".$name.".view.php";
         
         if (file_exists($filename)) {
@@ -12,6 +16,7 @@ class Controller
         }else{
             require "../app/views/404.view.php"; 
         }
+
     }
 
     public function login_guard()

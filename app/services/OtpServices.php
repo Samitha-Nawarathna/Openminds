@@ -78,13 +78,19 @@ class OtpServices
     public function process_forward($user_data) // rename as redirect_forward
     {
         $type = $user_data['type'];
+        show($user_data);
 
         switch ($type) {
             case 'login':
                 #login
                 $login_services = new LoginServices;
                 $login_services->set_session($user_data);
+
+                $notification_services = new NotificationServices;
+                $notification_services->send_notification(0, 'You have successfully logged in.', $_SESSION['user_id']);
+
                 $login_services->unset_user_data();
+
     
                 return 'login';//redirect to dashboard page
 

@@ -9,6 +9,7 @@
     //setting page variables
     $title = 'Set up your profile';
     $filename = 'profilesetup';
+    $no_navbar = 'true';
 
     //put header
     include_once('../app/views/partials/header.view.php');

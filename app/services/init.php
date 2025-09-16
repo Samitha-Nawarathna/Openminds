@@ -7,3 +7,4 @@ require "AnalysisServices.php";
 require "AccountVerificationServices.php";
 require "ProfileServices.php";
 require "ExpertRequestServices.php";
+require "NotificationServices.php";

@@ -106,7 +106,7 @@
         </div>
     </div>
     <div class="button-section">
-        <form action="<?=ROOT?>expert_request" method="post" class="button-wrapper btn1">
+        <form action="<?=ROOT?>expertrequest" method="post" class="button-wrapper btn1">
             <input class="button btn-primary" type="submit" value = "Become an Expert">
         </form>
         <form action="<?=ROOT?>profileupdate" method="post" class="button-wrapper btn2">

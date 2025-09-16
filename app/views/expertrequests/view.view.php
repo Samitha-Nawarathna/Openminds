@@ -33,6 +33,7 @@
 
 <div class="view-wrapper">
     <div class="container request-content">
+        <h1>View Request</h1>
         <img class='preview' src="<?=ROOT.$data['image_url']?>" alt="profile picture" >
         <div class="name">by <a href="#"></a><?=$data['display_name']?></div>
         <div class="display-group">
@@ -55,6 +56,13 @@
                 <input type="submit" class="button btn-none btn-edit" value="Edit">
             </form>
         <input type="button" class="button btn-error btn-delete" value="Delete">  
+        </div>
+
+        <div class="status">
+            <div class="approved display-group" style="display:<?=$approved_show?>">Congrad: Your request has been approved!</div>
+            <div class="rejected display-group" style="display:<?=$rejected_show?>">Your request has been reject. here is why?</div>
+            <div class="pending display-group" style="display:<?=$pending_show?>">Pending for approval.</div>
+
         </div>
 
         <div class="display-group" style="display: <?=$rejected_show?>">
@@ -81,26 +89,6 @@
     <div class="background"></div>
 </div>
 
-<div class="popup feedback" style='display:none'>
-    <div class="content container">
-            <p class='message'></p>
-            
-
-                <form class='confirmation-btn' action='' method='post'>
-                    <div class="input-group">
-                        <textarea name="feedback"  id="" cols="30" rows="10"></textarea>
-                    </div>
-                    <input type="hidden" name="id" value="<?=$data['id']?>">
-                    <div class="btns">
-                        <button type= 'button' class='button btn-none btn-dismiss' onclick=''>Back</button>
-                        <input type='submit' class='button btn-error' value='Send feedback'>
-                    </div>
-                </form>
-
-        
-    </div>
-    <div class="background"></div>
-</div>
 
 <?php
 

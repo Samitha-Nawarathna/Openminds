@@ -32,7 +32,9 @@
 ?>
 
 <div class="view-wrapper">
+    
     <div class="container request-content">
+        <h1>View Request</h1>
         <img class='preview' src="<?=ROOT.$data['image_url']?>" alt="profile picture" >
         <div class="name">by <a href="#"></a><?=$data['display_name']?></div>
         <div class="display-group">
@@ -54,14 +56,19 @@
         <input type="button" class="button btn-error btn-reject" value="Reject">  
         </div>
 
+        <div class="status">
+            <div class="approved display-group" style="display:<?=$approved_show?>">request has been approved!</div>
+            <div class="rejected display-group" style="display:<?=$rejected_show?>">request has been reject. here is why</div>
+            <div class="pending display-group" style="display:<?=$pending_show?>">Pending for approval.</div>
+
+        </div>
+
         <div class="display-group" style="display: <?=$rejected_show?>">
             <?= htmlspecialchars($data['feedback'] ?? '') ?>
         </div>
 
-        <form action="<?=ROOT?>expertrequestadmin/undo_rejection" method="post" style="display: <?=$rejected_show?>">
-                <input type="hidden" name="request_id" value="<?=$data['id']?>">
-                <input type="submit" class="button btn-undo" value="Undo Rejection">
-            </form>
+        <input type="submit" class="button btn-undo" value="Undo Rejection" style="display: <?=$rejected_show?>">
+
         </div>
 
 

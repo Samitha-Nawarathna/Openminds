@@ -7,6 +7,7 @@
 
 <div class="edit-wrapper">
     <form action="<?=ROOT?>expertrequest/update" class="container" method="post">
+        <h1>Edit Request</h1>
         <input type="hidden" name="id" value="<?= htmlspecialchars($data['id']) ?>">
         <div class="input-group">
             <input type="text" placeholder="Subject Name" name="subject" value="<?= htmlspecialchars($data['subject'] ?? '') ?>">

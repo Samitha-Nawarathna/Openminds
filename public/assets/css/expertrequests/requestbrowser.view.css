@@ -6,6 +6,7 @@
     align-items: start;
     justify-content: center;
     overflow: hidden;
+    padding-top: var(--space-xl);
 }
 
 .requestbrowser-container .title
@@ -45,4 +46,27 @@
 .requestbrowser-container .content-tab .card .tile
 {
     padding: calc(1.5*var(--space-xs));
+}
+
+.option-container
+{
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: var(--space-md);
+    width: 53vw;
+}
+.option-container .search-container
+{
+    width: 100%;
+}
+.option-container form
+{
+    justify-self: center;
+    align-self: center;
+    width: 100%;
+}
+
+.option-container .create-btn
+{
+    padding: var(--space-md);
 }

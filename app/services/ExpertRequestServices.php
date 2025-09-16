@@ -59,7 +59,9 @@ class ExpertRequestsServices
             return ServiceResult::failure(['Request not found.']);
         }
 
-        return ServiceResult::success(["id"=>$request->id, "subject"=>$request->subject, "description"=>$request->description, "proof_link"=>$request->proof_link, "image_url"=>$user_info->profile_picture, "display_name" => $user_info->display_name, "review"=>$request->review, "feedback"=>$request->feedback]);
+        $display_name = $user_info->display_name ?? $user_info->username;
+
+        return ServiceResult::success(["id"=>$request->id, "subject"=>$request->subject, "description"=>$request->description, "proof_link"=>$request->proof_link, "image_url"=>$user_info->profile_picture, "display_name" => $display_name, "review"=>$request->review, "feedback"=>$request->feedback]);
     }
 
     public function download($filePath)

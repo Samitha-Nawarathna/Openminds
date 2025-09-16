@@ -9,6 +9,7 @@
     //setting page variables
     $title = 'Update Profile: Openminds';
     $filename = 'profileupdate';
+    $no_navbar = 'true';
 
     //put header
     include_once('../app/views/partials/header.view.php');
