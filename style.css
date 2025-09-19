@@ -1,0 +1,23 @@
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F4F5F7;
+            transition: background-color 0.3s ease;
+        }
+        /* Class to change BG for the form view */
+        body.form-view-active {
+            background-color: #F5F3FF;
+        }
+
+        /* Custom styles for subject tags */
+        .tag-science { background-color: #FEE2E2; color: #DC2626; }
+        .tag-physics { background-color: #FEE2E2; color: #DC2626; }
+        .tag-maths { background-color: #D1FAE5; color: #059669; }
+        .tag-quantum { background-color: #FEF3C7; color: #D97706; }
+        .tag-psychology { background-color: #DBEAFE; color: #2563EB; }
+        .tag-design { background-color: #FCE7F3; color: #DB2777; }
+
+        /* Custom styles for user tags in modal */
+        .user-tag-red { background-color: #FEE2E2; color: #991B1B; }
+        .user-tag-blue { background-color: #DBEAFE; color: #1E40AF; }
+        .user-tag-green { background-color: #D1FAE5; color: #065F46; }
