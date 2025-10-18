@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTag(tagName) {
         const tagPill = document.createElement('span');
         tagPill.classList.add('tag-pill');
-        tagPill.innerHTML = `${tagName}<span class="tag-removal" data-tag="${tagName}">&times;</span>`;
+        tagPill.innerHTML = `${tagName} <span class="tag-removal" data-tag="${tagName}">&times;</span>`;
         
         tagPill.querySelector('.tag-removal').addEventListener('click', (e) => {
             const tagToRemove = e.target.dataset.tag;

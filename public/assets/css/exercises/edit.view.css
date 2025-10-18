@@ -139,7 +139,7 @@ body {
 /* --- Controls and Save Button --- */
 .editor-controls {
     text-align: center;
-    margin-bottom: 30px;
+    /* margin-bottom: 30px; */
 }
 
 .btn-add-question, .btn-save-exercise {
@@ -248,4 +248,15 @@ body {
     border-radius: 15px;
     font-size: 0.9em;
     margin: 3px;
+}
+
+.tag-input
+{
+    display: flex;
+    gap: 10px;
+}
+
+.tag-removal:hover
+{
+    cursor: pointer;
 }

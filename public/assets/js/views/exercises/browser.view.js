@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.setAttribute('data-id', exercise.id);
 
             item.innerHTML = `
+                <a class="no-style-link" herf=${ROOT}/exercises/attempt?id=${exercise.id}>
                 <span class="exercise-title-list">${exercise.title}</span>
                 <span class="subject-pill" data-subject="${exercise.subject}">
                     ${exercise.subject}

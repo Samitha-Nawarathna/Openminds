@@ -75,7 +75,7 @@ $data = [
                     <input type="text" id="exercise-subject-input" name="subject_name" value="<?= htmlspecialchars($data['subject_name']) ?>" placeholder="e.g., Physics, Maths, Art">
                 </div>
 
-                <div class="input-group">
+                <div class="input-group tag-input">
                     <label for="tags-input">Tags (Type and Enter)</label>
                     <input type="hidden" id="hidden-tags-field" name="tags" value="<?= htmlspecialchars(implode(',', $data['current_tags'])) ?>">
                     
@@ -115,11 +115,11 @@ $data = [
             </div>
 
             <div class="editor-controls">
-                <button type="button" class="btn-add-question" id="btn-add-question">add another question</button>
+                <button type="button" class=" button btn-primary" id="btn-add-question">add another question</button>
             </div>
             
             <div class="save-button-container">
-                <button type="submit" class="btn-save-exercise">Save Exercise</button>
+                <button type="submit" class="button btn-primary">Save Exercise</button>
             </div>
 
         </form>

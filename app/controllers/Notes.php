@@ -148,11 +148,71 @@ class Notes extends Controller
 
     public function create()
     {
+
+        $current_user_id = $_SESSION['user_id'] ?? null;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle form submission to create a new note
             $title = $_POST['title'] ?? '';
             $content = $_POST['content'] ?? '';
-            $tags = $_POST['tags'] ?? [];
+            $tag_list = explode(",", $_POST['tags']) ?? [];
+            $topic = $_POST['topic'] ?? '';
+
+            //check validity of inputs
+            if (empty($title) || empty($content)) {
+                // Handle error - missing required fields
+                exit('Title and content are required.');
+            }
+
+            //import required models
+            $notes = new NoteModel;
+            $note_tags = new NoteTags;
+            $topics = new Topics;
+            $tags = new Tags;
+
+            // Check if topic exists, if not create it
+            $topic_data = $topics->first(['name' => $topic]);
+
+            if (!$topic_data) {
+                $topic_id = $topics->insert(['name' => $topic, 'creator_id' => $current_user_id]);
+            } else {
+                $topic_id = $topic_data->id;
+            }
+
+            // Create the new note
+
+            $note_id = $notes->insert([
+                'title' => $title,
+                'content' => $content,
+                'owner_id' => $current_user_id,
+                'topic_id' => $topic_id
+            ]);
+
+            // Handle tags
+
+            foreach ($tag_list as $tag_name) {
+                $tag_name = trim($tag_name);
+                if (empty($tag_name)) continue;
+
+                // Check if tag exists, if not create it
+                $tag_data = $tags->first(['name' => $tag_name]);
+                if (!$tag_data) {
+                    $tag_id = $tags->insert(['name' => $tag_name]);
+                } else {
+                    $tag_id = $tag_data->id;
+                }
+
+                // Associate tag with note
+                $note_tags->insert([
+                    'note_id' => $note_id,
+                    'tag_id' => $tag_id
+                ]);
+            }
+
+            //redirect to note view page
+            header("Location: ".ROOT."/notes/show?id=" . $note_id);
+
+
+
 
             exit();
         }

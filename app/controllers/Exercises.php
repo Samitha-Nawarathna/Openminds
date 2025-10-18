@@ -10,12 +10,12 @@ class Exercises extends Controller
         function generate_mock_exercises($type, $offset, $limit) {
             // Mock data for the 'All' exercises
             $all_exercises = [
-                ['id' => 'e1', 'title' => 'what is lagrangian method?', 'subject' => 'Physics', 'relation' => 'Created'],
-                ['id' => 'e2', 'title' => 'how Jacobian related to gradient?', 'subject' => 'Maths', 'relation' => 'Created'],
-                ['id' => 'e3', 'title' => 'solve in Hamiltonian mechanics?', 'subject' => 'Physics', 'relation' => 'Attempted'],
-                ['id' => 'e4', 'title' => 'what does this operator do?', 'subject' => 'Quantum Computing', 'relation' => 'Created'],
-                ['id' => 'e5', 'title' => 'how shadow work described by jung?', 'subject' => 'Psychology', 'relation' => 'Attempted'],
-                ['id' => 'e6', 'title' => 'how to solve this in linear algebra?', 'subject' => 'Maths', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'what is lagrangian method?', 'subject' => 'Physics', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'how Jacobian related to gradient?', 'subject' => 'Maths', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'solve in Hamiltonian mechanics?', 'subject' => 'Physics', 'relation' => 'Attempted'],
+                ['id' => 1, 'title' => 'what does this operator do?', 'subject' => 'Quantum Computing', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'how shadow work described by jung?', 'subject' => 'Psychology', 'relation' => 'Attempted'],
+                ['id' => 1, 'title' => 'how to solve this in linear algebra?', 'subject' => 'Maths', 'relation' => 'Created'],
             ];
 
             $data_source = $all_exercises;
@@ -57,10 +57,110 @@ class Exercises extends Controller
         $this->view('exercises/browser', $data);
     }
 
+//     Array
+// (
+//     [exercise_id] => new
+//     [question_order] => q_umi95lpmgvx1px0,q_ao6tgqfmgvx1v1p
+//     [exercise_title] => Test exercise
+//     [subject_name] => art
+//     [tags] => science,art,maths
+//     [questions_data] => [{"id":"q_umi95lpmgvx1px0","question_text":"q1","answer_type":"multiple_choice","options":["Option A","Option B"]},{"id":"q_ao6tgqfmgvx1v1p","question_text":"q2","answer_type":"multiple_choice","options":["Option A","Option B"]}]
+// )
+
     public function create()
     {
+        //validate if user is a mentor
+
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Process form submission to create a new exercise
+            $exercise_title = $_POST['exercise_title'] ?? '';
+            $subject_name = $_POST['subject_name'] ?? '';
+            $tag_string = $_POST['tags'] ?? '';
+
+
+
+            $question_order = $_POST['question_order'] ?? '';
+            $questions_data = json_decode($_POST['questions_data']) ?? '[]';
+
+            // Validate required fields
+            if (empty($exercise_title)) {
+                // Handle validation error (e.g., redirect back with error message)
+                header('Location: '.ROOT.'/exercises/create?message=Exercise title is required');
+                exit();
+            }
+
+
+            //load required models
+            $exercises = new ExercisesModel;
+            $tags = new Tags;
+            $exercise_tag = new ExerciseTag;
+            $subject = new Subjects;
+            $exercisequestion = new Exercisequestion;
+            $exerciseanswer = new Exerciseanswer;
+
+            //check if subject exists, if not show error message
+            $subject_data = $subject->first(['name' => $subject_name]);
+            if (!$subject_data) {
+                header('Location: '.ROOT.'/exercises/create?message=Subject does not exist');
+                exit();
+            }
+
+            $current_user_id = $_SESSION['user_id'] ?? null;
+            //create new exercise
+            $new_exercise_id = $exercises->insert([
+                'title' => $exercise_title,
+                'subject_id' => $subject_data->id,
+                'creator_id' => $current_user_id, // Replace with actual logged-in user ID
+                'status' => 'pending', // New exercises are pending review
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            //for all tags check if exists, if not create new tag and add to questiontag
+            $tag_list = array_map('trim', explode(',', $tag_string));
+            $tag_ids = [];
+            foreach ($tag_list as $tag_name) {
+                $tag_data = $tags->first(['name' => $tag_name]);
+                if (!$tag_data) {
+                    // Create new tag
+                    $new_tag_id = $tags->insert(['name' => $tag_name]);
+                    $tag_ids[] = $new_tag_id;
+                } else {
+                    $tag_ids[] = $tag_data->id;
+                }
+    
+            }
+
+            //insert all tagids with exercise id to exercisetag
+            foreach ($tag_ids as $tag_id) {
+                $exercise_tag->insert([
+                    'exercise_id' => $new_exercise_id,
+                    'tag_id' => $tag_id
+                ]);
+            }
+
+            // Insert questions and answers
+            foreach ($questions_data as $question_data) {
+                $new_question_id = $exercisequestion->insert([
+                    'exercise_id' => $new_exercise_id,
+                    'question_text' => $question_data->question_text,
+                ]);
+
+                foreach ($question_data->options as $option_text) {
+                    $exerciseanswer->insert([
+                        'question_id' => $new_question_id,
+                        'answer_text' => $option_text,
+                        'is_correct' => 0
+                    ]);
+                }
+            }
+
+            header('Location: '.ROOT.'/exercises/show?id='.$new_exercise_id);
+
+            
+
+
+
         } else {
             // Show the create exercise form
             $this->view('exercises/create');
@@ -75,7 +175,7 @@ class Exercises extends Controller
         }
         //check if same user is attempting again, creator attempting again etc..
 
-        $exercise_id = $_GET['id'] ?? null;
+        $exercise_id = $_GET['id'] ?? 1;
         if (!$exercise_id) {
             // Handle missing exercise ID (e.g., redirect or show error)
             header('Location: '.ROOT.'/exercises?message=Exercise ID is required to attempt an exercise');
@@ -187,6 +287,49 @@ class Exercises extends Controller
 
     public function show()
     {
+        //only accessible to creator
+        $id = $_GET['id'] ?? null;
+
+        $data = [
+            'exercise_details' => [
+                'id' => 'ex_123',
+                'title' => 'Advanced Color Theory in UI Design',
+                'creator' => 'Alice',
+                'role' => 'under graphic design',
+                'created_at' => '26-02-2027',
+                'tags' => ['art', 'color', 'design principles'],
+                'upvotes' => 10000,
+                'downvotes' => 2000
+            ],
+            // NEW: Mock review data
+            'review_data' => [
+                'average_score' => 0.8,
+                'analysis_link' => '/exercises/ex_123/analysis',
+                'edit_link' => '/exercises/ex_123/edit' // Points to your editor view
+            ],
+            'questions' => [
+                [
+                    'id' => 'q1',
+                    'question_text' => 'Which of the following is considered a "cool" color?',
+                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
+                    'correct_index' => 2 // Mock correct answer for display logic
+                ],
+                [
+                    'id' => 'q2',
+                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
+                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
+                    'correct_index' => 2
+                ],
+                [
+                    'id' => 'q3',
+                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
+                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
+                    'correct_index' => 1
+                ],
+            ]
+        ];
+
+        $this->view('exercises/view', $data);
         
     }
 
@@ -200,5 +343,106 @@ class Exercises extends Controller
 
             $this->view('exercises/edit', ['exercise_id' => $id]);
         }
+    }
+
+    public function expertreview()
+    {
+        $id = $_GET['id'] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Process expert review submission
+            exit();
+        }
+
+        //check user is not the creator and also expert in same subject which exercise in
+        $data = [
+            'exercise_details' => [
+                'id' => 'ex_123',
+                'title' => 'Advanced Color Theory in UI Design',
+                'creator' => 'Alice',
+                'role' => 'under graphic design',
+                'created_at' => '26-02-2027',
+                'tags' => ['art', 'color', 'design principles'],
+                'upvotes' => 10000,
+                'downvotes' => 2000
+            ],
+            // NEW: Mock review data
+            'review_data' => [
+                'average_score' => 0.8,
+                'analysis_link' => '/exercises/ex_123/analysis',
+                'edit_link' => '/exercises/ex_123/edit' // Points to your editor view
+            ],
+            'questions' => [
+                [
+                    'id' => 'q1',
+                    'question_text' => 'Which of the following is considered a "cool" color?',
+                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
+                    'correct_index' => 2 // Mock correct answer for display logic
+                ],
+                [
+                    'id' => 'q2',
+                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
+                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
+                    'correct_index' => 2
+                ],
+                [
+                    'id' => 'q3',
+                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
+                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
+                    'correct_index' => 1
+                ],
+            ]
+        ];
+
+
+        $this->view('exercises/expertreview', $data);
+    }
+
+    public function viewattempt()
+    {
+        $id = $_GET['id'] ?? null;
+
+        $data = [
+            'exercise_details' => [
+                'id' => 'ex_123',
+                'title' => 'Advanced Color Theory in UI Design',
+                'creator' => 'Alice',
+                'role' => 'under graphic design',
+                'created_at' => '26-02-2027',
+                'tags' => ['art', 'color', 'design principles'],
+                'upvotes' => 10000,
+                'downvotes' => 2000
+            ],
+            // NEW: Mock review data
+            'review_data' => [
+                'average_score' => 0.8,
+                'analysis_link' => '/exercises/ex_123/analysis',
+            ],
+            'questions' => [
+                [
+                    'id' => 'q1',
+                    'question_text' => 'Which of the following is considered a "cool" color?',
+                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
+                    'correct_index' => 2,// Mock correct answer for display logic
+                    'selected_index' => 1 // Mock user selected answer for display logic
+                ],
+                [
+                    'id' => 'q2',
+                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
+                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
+                    'correct_index' => 2,
+                    'selected_index' => 2
+                ],
+                [
+                    'id' => 'q3',
+                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
+                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
+                    'correct_index' => 1,
+                    'selected_index' => 0
+                ],
+            ]
+        ];
+
+        $this->view('exercises/viewattempt', $data);
     }
 }

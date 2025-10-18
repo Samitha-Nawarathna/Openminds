@@ -122,9 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Tags: ${tags}`);
 
         // --- MOCK AJAX CALL ---
-        alert("Note saved successfully! (Mock submission)");
+        // alert("Note saved successfully! (Mock submission)");
         // In a real application, redirect to the created note's view:
         // window.location.href = '/note/newly-created-id';
+        form.submit();
     });
 
     // Initialize all top tags to the unselected state on load

@@ -301,6 +301,22 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Tags:", hiddenTagsField.value);
         console.log("Question Order:", questionOrderField.value);
         console.log("Full Question State:", questionsState);
+
+        let hiddenQuestionsField = document.getElementById('hidden-questions-field');
+
+        if (!hiddenQuestionsField) {
+            hiddenQuestionsField = document.createElement('input');
+            hiddenQuestionsField.type = 'hidden';
+            hiddenQuestionsField.name = 'questions_data';
+            hiddenQuestionsField.id = 'hidden-questions-field';
+            form.appendChild(hiddenQuestionsField);
+        }
+
+        // Serialize questionsState (array of arrays or objects)
+        hiddenQuestionsField.value = JSON.stringify(questionsState);
+
+
+        form.submit();
         
         // alert("Exercise creation request sent successfully! (Check console for submitted data)");
         

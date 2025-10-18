@@ -8,10 +8,55 @@ class Question extends Controller
         $this->view('question/browser');
     }
 
+
+//     Array
+// (
+//     [title] => test_question
+//     [content] => question content
+//     [tags] => r,re
+// )
+
+
     public function create()
     {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            //save question to the database
+            $current_user = $_SESSION['user_id'] ?? null;
+
+            $title = $_POST['title'];
+            $content = $_POST['content'];
+            $tags_list = explode(',',$_POST['tags']);
+
+            // Save question to the database
+            $tags = new Tags;
+            $question = new QuestionModel;
+            $question_tag = new Questiontag;
+
+            $question_id = $question->insert([
+                'title' => $title,
+                'content' => $content,
+                'creator_id' => $current_user,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            foreach ($tags_list as $tag_name) {
+                $tag = $tags->first(['name' => trim($tag_name)]);
+                if (!$tag) {
+                    // If tag does not exist, create it
+                    $tag_id = $tags->insert(['name' => trim($tag_name)]);
+                } else {
+                    $tag_id = $tag->id;
+                }
+
+                // Associate tag with question
+                $question_tag->insert([
+                    'question_id' => $question_id,
+                    'tag_id' => $tag_id
+                ]);
+            }
+
+            // Redirect to the question view page
+            header("Location: ".ROOT."/question/show?id=" . $question_id);
+
         } else {
             // Show the form
             $this->view('question/question_creator');

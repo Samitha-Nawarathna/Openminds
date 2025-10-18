@@ -16,7 +16,7 @@
         <div class="filter-bar">
             <input type="text" id="exercise-filter-input" placeholder="enter a username name">
             <button class="btn-filter" id="filter-btn">filter</button>
-            <a href="<?= htmlspecialchars($data['create_url']) ?>" class="btn-create">+ Create</a>
+            <a href="<?=ROOT?>/exercises/create" class="btn-create">+ Create</a>
         </div>
 
         <div class="tabs-container" id="tabs-container">
@@ -29,12 +29,15 @@
             <?php 
             // UPDATED: Accessing exercises via $data array
             foreach ($data['initial_exercises'] as $exercise) {
-                echo '<div class="exercise-item" data-id="' . htmlspecialchars($exercise['id']) . '">';
+
+                echo '<a class = "no-style-link" href="' . ROOT . '/exercises/attempt?id=' . htmlspecialchars($exercise['id']) . '">';
+                echo '<div class="exercise-item" data-id="' . htmlspecialchars($exercise['id']) . '">';                
                 echo '  <span class="exercise-title-list">' . htmlspecialchars($exercise['title']) . '</span>';
                 echo '  <span class="subject-pill" data-subject="' . htmlspecialchars($exercise['subject']) . '">';
                 echo '      ' . htmlspecialchars($exercise['subject']) . '';
                 echo '  </span>';
                 echo '</div>';
+                echo '</a>';
             }
             ?>
         </div>

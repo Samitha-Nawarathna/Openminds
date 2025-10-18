@@ -8,17 +8,17 @@
     <div class="middle-side">
         <div class="nav-links">
             <ul>
-                <li>Notes</li>
-                <li>Q & A</li>
+                <li><a href="<?=ROOT?>/notes" class="no-style-link">Notes</li>
+                <li><a href="<?=ROOT?>/question" class="no-style-link">Q & A</li>
                 <li class="dropdown">
                     Exercises
                     <ul class="dropdown-menu">
-                        <li>All</li>
-                        <li>By You</li>
-                        <li>For approval</li>
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">All</li>
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">By You</li>
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">For approval</li>
                     </ul>
                 </li>
-                <li>Analysis</li>
+                <li><a href="<?=ROOT?>/analysis" class="no-style-link">Analysis</li>
                 <li><a href="<?=ROOT?>/expertrequest" class="no-style-link">Expert Requests</a></li>
             </ul>
         </div>

@@ -3,10 +3,16 @@
 if ($_SERVER["SERVER_NAME"] == "localhost")
 {
     /** database config **/
-    define('DBNAME', 'samitha_openminds');
-    define('DBHOST', 'mysql-samitha.alwaysdata.net');
-    define('DBUSER', 'samitha');
-    define('DBPASS', 'sam2008itha0522');
+    // define('DBNAME', 'samitha_openminds');
+    // define('DBHOST', 'mysql-samitha.alwaysdata.net');
+    // define('DBUSER', 'samitha');
+    // define('DBPASS', 'sam2008itha0522');
+    // define('DBDRIVER', '');
+
+    define('DBNAME', 'openminds');
+    define('DBHOST', 'localhost');
+    define('DBUSER', 'root');
+    define('DBPASS', '1234');
     define('DBDRIVER', '');
 
     /** file structure config**/
@@ -38,13 +44,18 @@ define('DEFAULT_PROFILE_PICTURE', ROOT."\uploads\\0\profile.avif");
 ini_set('session.use_only_cookies', 1);
 ini_set('session.use_use_strict_mode', 1);
 
+$lifetime = 100 * 365 * 24 * 60 * 60; // 100 years in seconds
+
 session_set_cookie_params([
-    'lifetime' => 1800,
+    'lifetime' => $lifetime,
     'domain' => HOST,
     'path' => '/',
     'secure' => 1,
     'httponly' => 1
 ]);
+
+ini_set('session.gc_maxlifetime', $lifetime);
+
 
 session_start();
 regenerate_session_id();

@@ -24,7 +24,7 @@ $data = [
 
 
     <div class="editor-wrapper">
-        <form action="<?= htmlspecialchars($data['form_action_url']) ?>" method="POST" id="exercise-editor-form">
+        <form action="<?= ROOT?>exercises/create" method="POST" id="exercise-editor-form">
             
             <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_id']) ?>">
             <input type="hidden" name="question_order" id="question-order-field" value="">

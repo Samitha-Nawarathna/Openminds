@@ -196,16 +196,9 @@ body {
     gap: var(--space-xl);
 }
 
-.review-management-panel
-{
-    display: flex;
-    justify-content: end;
-}
-
 .management-card {
     display: flex;
     flex-direction: column;
-    justify-content: end;
     margin-top: var(--space-lg);
     gap: var(--space-sm);
 }
@@ -237,92 +230,4 @@ body {
     background-color: white;
     color: #F44336;
     border: 1px solid #F44336;
-}
-
-/* --- Submission Modal/Popup Styles --- */
-
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; 
-    z-index: 1000; /* High z-index to cover everything */
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    width: 90%; 
-    max-width: 400px; /* Max width for better focus */
-    position: relative;
-}
-
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #333;
-    text-decoration: none;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #333;
-    font-size: 1.5em;
-}
-
-.modal-content p {
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.input-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 1em;
-}
-
-.btn-submit-review {
-    width: 100%;
-    padding: 12px;
-    background-color: #6375F1; /* Primary color */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-submit-review:hover {
-    background-color: #4c5bbd;
 }

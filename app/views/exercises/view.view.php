@@ -1,7 +1,7 @@
 <?php
 
     $title = "view exercise | Openminds";
-    $filename = "exercises/expertreview";
+    $filename = "exercises/view";
 
     include_once "../app/views/partials/header.view.php";
 
@@ -18,15 +18,15 @@
 
     <div class="attempt-main-content">
         <div class="review-management-panel">
+            <div class="score-card">
+                <div class="score-text">Average Score</div>
+                <div class="score-value"><?= number_format($data['review_data']['average_score'], 1) ?></div>
+                <a href="<?= htmlspecialchars($data['review_data']['analysis_link']) ?>" class="analysis-link">full analysis ></a>
+            </div>
 
             <div class="management-card">
-                <form action="/your-backend-endpoint/approve-exercise" method="POST">
-                    <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_details']['id']) ?>">
-                    <input type="hidden" name="status" value="approved">
-                    <button type="submit" class="btn-approve button btn-primary">Approve</button>
-                </form>
-                
-                <button class="btn-reject button btn-error" id="btn-reject">Reject</button>
+                <a href="<?= ROOT ?>/exercises/edit?id=<?=$data['exercise_details']['id']?>" class="btn-edit">Edit</a>
+                <a href="<?= ROOT ?>/exercises/delete" class="btn-delete">Delete</a>
             </div>
         </div>
     
@@ -76,27 +76,6 @@
         </div>
     </div>
 
-    <div id="reject-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" id="close-reject-modal">&times;</span>
-        <h2>Reason for Rejection</h2>
-        <p>Please provide feedback for the creator before rejecting this exercise.</p>
-        
-        <form id="reject-form" action="/your-backend-endpoint/reject-exercise" method="POST">
-            <input type="hidden" name="exercise_id" id="reject-exercise-id" value="<?= htmlspecialchars($data['exercise_details']['id']) ?>">
-            <input type="hidden" name="status" value="rejected">
-            <input type="hidden" name="reviewer_id" value="expert_user_123"> 
-
-            <div class="input-group">
-                <label for="reject-reason">Reason for Rejection</label>
-                <textarea id="reject-reason" name="reason" rows="4" placeholder="e.g., Question 2 is ambiguous..." required></textarea>
-            </div>
-
-            <button type="submit" class="btn-submit-rejection button btn-primary">Send Rejection</button>
-        </form>
-    </div>
-</div>
-
     <script>
         // Pass the questions data and view mode flag
         const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
@@ -106,7 +85,6 @@
     <script>
         // Pass the questions data to the JavaScript file
         const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
-        const isReviewMode = true;
     </script>
 
 <?php
