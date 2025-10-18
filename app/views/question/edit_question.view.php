@@ -1,0 +1,58 @@
+<?php
+
+$title = 'Question creator';
+$filename = 'question/edit_question';
+
+include_once '../app/views/partials/header.view.php';
+
+?>
+
+<?php
+
+$data = [
+    'id'      => 'q_101',
+    'title'   => 'What are myelinated axons?',
+    'content' => 'I have heard about myelinated axons in my biology class, but I am not sure what they are. Can someone explain?',
+    'tags'    => ['biology', 'neuroscience', 'anatomy'],
+];
+
+
+?>
+
+<script>
+    let tags = [];
+    tags = <?php echo json_encode($data['tags']); ?>;
+</script>
+
+<div class="form-wrapper">
+        <form action="<?= ROOT?>/question/edit" method="POST" id="create-question-form">
+            
+            <input type="hidden" name="id" value="<?= htmlspecialchars($data['id']) ?>">
+            <div class="input-group">
+                <input type="text" id="title" name="title" placeholder="Title" value = "<?= htmlspecialchars($data['title']) ?>" required>
+            </div>
+
+            <div class="input-group">
+                <textarea id="content" name="content" placeholder="Content" rows="8" required><?= htmlspecialchars($data['content']) ?></textarea>
+            </div>
+
+            <div class="input-group">
+                <div id="tags-display-container">
+                    <!-- <?php foreach ($data['tags'] as $tag): ?>
+                        <span class="tag"><?= htmlspecialchars($tag) ?> <span class="remove-tag" onclick="removeTag(this)">x</span></span>
+                    <?php endforeach; ?> -->
+                </div>
+                <input type="text" id="tag-input" placeholder="Tags (type and press Enter)">
+                <input type="hidden" name="tags" id="hidden-tags-input">
+            </div>
+
+            <button type="submit" class="btn-save">Save</button>
+
+        </form>
+    </div>
+
+<?php
+
+include_once '../app/views/partials/footer.view.php';
+
+?>

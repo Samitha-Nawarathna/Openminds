@@ -98,28 +98,57 @@
     }
     notifications_container.innerHTML = content;
 
-    const hamburger = document.querySelector(".hamburger");
-    const navLinks = document.querySelector(".nav-links");
+    const nav_trigger = document.querySelector(".nav-trigger");
+    const nav = document.querySelector("nav");
 
-    hamburger.addEventListener("click", () => {
-        navLinks.classList.toggle("active");
+    let hideTimer = null;
+
+    nav_trigger.addEventListener("mouseover", () => {
+        nav.classList.toggle("nav-hidden");
+        nav_trigger.classList.add("nav-trigger-hidden");
+        nav_trigger.style.transform = "translateY(-100%)";
     });
 
-        const nav_trigger = document.querySelector(".nav-trigger");
-        const nav = document.querySelector("nav");
+    nav.addEventListener("mouseleave", () => {
+        // start 2s timer to hide nav
+        hideTimer = setTimeout(() => {
+            nav.classList.add("nav-hidden");
+            nav_trigger.classList.remove("nav-trigger-hidden");
+            nav_trigger.style.transform = "translateY(-10%)";
+            hideTimer = null; // clear reference
+        }, 2000);
+    });
 
-        nav_trigger.addEventListener("mouseover", () => {
-            document.querySelector("nav").classList.toggle("nav-hidden");
-            nav_trigger.classList.add("nav-trigger-hidden");
-            nav_trigger.style.transform = "translateY(-100%)";
-        });
+nav.addEventListener("mouseenter", () => {
+    // cancel hiding if user comes back quickly
+    if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+    }
+});
 
-        nav.addEventListener("mouseleave", () => {
-            setTimeout(() => {
-                document.querySelector("nav").classList.add("nav-hidden");
-                nav_trigger.classList.remove("nav-trigger-hidden");
-                nav_trigger.style.transform = "translateY(-10%)";
-            }, 2000);
+    // const hamburger = document.querySelector(".hamburger");
+    // const navLinks = document.querySelector(".nav-links");
 
-        });
+    // hamburger.addEventListener("click", () => {
+    //     navLinks.classList.toggle("active");
+    // });
+
+    //     const nav_trigger = document.querySelector(".nav-trigger");
+    //     const nav = document.querySelector("nav");
+
+    //     nav_trigger.addEventListener("mouseover", () => {
+    //         document.querySelector("nav").classList.toggle("nav-hidden");
+    //         nav_trigger.classList.add("nav-trigger-hidden");
+    //         nav_trigger.style.transform = "translateY(-100%)";
+    //     });
+
+    //     nav.addEventListener("mouseleave", () => {
+    //         setTimeout(() => {
+    //             document.querySelector("nav").classList.add("nav-hidden");
+    //             nav_trigger.classList.remove("nav-trigger-hidden");
+    //             nav_trigger.style.transform = "translateY(-10%)";
+    //         }, 2000);
+
+    //     });
 </script>

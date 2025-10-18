@@ -1,0 +1,194 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc; /* Light background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.creator-wrapper {
+    width: 100%;
+    max-width: 950px;
+    padding: 20px;
+}
+
+.main-card-layout {
+    display: flex;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+/* --- Left Input Section --- */
+.input-section {
+    flex: 2; /* Main inputs take up more space */
+    padding-right: 30px;
+}
+
+.input-group {
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.input-section input[type="text"],
+.input-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: inherit;
+    color: #333;
+}
+
+.input-section textarea {
+    resize: vertical;
+    min-height: 250px;
+}
+
+/* Save Button */
+.btn-save {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #7c8dff; /* Primary Blue/Purple */
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* --- Right Sidebar Section (Top Tags) --- */
+.sidebar-section {
+    flex: 1; /* Sidebar takes up less space */
+    padding-left: 30px;
+    border-left: 1px solid #eee;
+}
+
+.sidebar-section h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.top-tags-container {
+    padding: 20px;
+    background-color: #fcfcfc;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+
+.tags-list, .tags-display-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 20px; /* Ensures the area is visible */
+    padding-bottom: 5px;
+}
+
+/* Selected Tags Area */
+.tags-display-area {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+    margin-bottom: 10px;
+}
+
+/* Tag Pills */
+.tag-pill {
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.tag-clickable {
+    cursor: pointer;
+    transition: opacity 0.1s;
+}
+
+.tag-clickable:hover {
+    opacity: 0.8;
+}
+
+/* Tag Color Schemes */
+.tag-physics { background-color: #ff9999; color: #cc0000; }
+.tag-psychology { background-color: #ccccff; color: #6600cc; }
+.tag-maths { background-color: #99ff99; color: #008000; }
+.tag-design { background-color: #ffcc99; color: #cc6600; }
+.tag-quantum-computing { background-color: #a0e0ff; color: #0056b3; }
+.tag-selected { /* Style for tags that are already selected */
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+.tag-removal {
+    cursor: pointer;
+    margin-left: 5px;
+    color: #555;
+}
+.tag-removal:hover {
+    color: #333;
+}
+
+/* --- Title Panel Styles (New Addition) --- */
+.title-panel {
+    padding: 20px;
+    background-color: #fcfcfc;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    margin-top: 30px; /* Space it out from the Top Tags section */
+}
+
+.title-panel h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.current-title-display {
+    margin-bottom: 10px;
+}
+
+.current-title-pill {
+    /* Style for the 'Computing' pill */
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.9em;
+    font-weight: 500;
+    background-color: #e6e6e6; /* Neutral/Light Gray */
+    color: #333;
+    display: inline-block;
+}
+
+#create-title-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: inherit;
+    color: #333;
+}

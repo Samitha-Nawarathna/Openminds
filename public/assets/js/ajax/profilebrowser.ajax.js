@@ -35,6 +35,7 @@ export async function get_content(type, limit, offset)
         const item = res[i];
         content +=
         `<div class="card">
+                    <a href="`+ROOT+"profileadmin/profile?id="+item["id"]+`">
                     <div class="left-align">
                         <img src="`+ROOT+item["profile_picture"]+`" alt="profile-picture" class="profile-picture-xs">
                         <div class="username">`+item["username"]+`</div>

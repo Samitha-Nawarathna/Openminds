@@ -1,0 +1,165 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc; /* Light blue/gray background */
+    margin: 0;
+    padding-top: 50px;
+}
+
+.main-content-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 800;
+    text-align: left;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Filter Bar Styles */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+#tag-filter-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+.btn-filter, .btn-create {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    text-decoration: none; /* For the 'a' element used as a button */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-filter {
+    background-color: #ffffff;
+    color: #555;
+    border: 1px solid #ddd;
+}
+
+.btn-create {
+    background-color: #7c8dff; /* Blue/Purple color */
+    color: white;
+    font-weight: 600;
+}
+
+/* Tabs Styles */
+.tabs-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 30px;
+}
+
+.tab-button {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    color: #555;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.tab-button:hover:not(.active) {
+    background-color: #f0f0f0;
+}
+
+.tab-button.active {
+    background-color: #7c8dff;
+    color: white;
+    border-color: #7c8dff;
+}
+
+/* Question List Item Styles */
+.question-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.question-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.question-title {
+    flex-grow: 1;
+    font-size: 1.1em;
+    color: #333;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-right: 15px;
+}
+
+.tag-pill {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Tag Color Schemes (Example colors from the image) */
+.tag-physics { background-color: #ff9999; color: #cc0000; }
+.tag-maths { background-color: #99ff99; color: #008000; }
+.tag-quantum-computing { background-color: #ffcc99; color: #cc6600; }
+.tag-psychology { background-color: #ccccff; color: #6600cc; }
+.tag-test { background-color: #eee; color: #666; }
+
+/* Load More Button Styles */
+.load-more-container {
+    text-align: center;
+    margin: 20px 0 50px 0;
+}
+
+.btn-load-more {
+    padding: 10px 30px;
+    border: 1px solid #7c8dff;
+    border-radius: 8px;
+    background-color: white;
+    color: #7c8dff;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.btn-load-more:hover:not(:disabled) {
+    background-color: #f2f5ff;
+}
+
+.btn-load-more:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Loading/Error State */
+.loading, .error {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}

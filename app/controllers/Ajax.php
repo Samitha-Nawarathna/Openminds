@@ -183,4 +183,18 @@ class Ajax extends Controller
         
         echo json_encode($results);   
     }
+
+    public function vote_question()
+    {
+        $vote_type = $_GET['type'];
+        //update votes in database
+
+    }
+
+    public function vote_answer()
+    {
+        $vote_type = $_GET['type'];
+        //update votes in database
+
+    }
 }

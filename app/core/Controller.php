@@ -25,6 +25,20 @@ class Controller
             header("Location: ".ROOT."login");
         }
     }
+
+    public function admin_guard()
+    {
+        if (!isset($_SESSION["user_id"]) || $_SESSION['role'] !== 'admin') {
+            header("Location: ".ROOT."home");
+        }
+    }
+
+    public function expert_guard()
+    {
+        if (!isset($_SESSION["user_id"]) || $_SESSION['role'] !== 'expert') {
+            header("Location: ".ROOT."home");
+        }
+    }
     
     public function post_guard()
     {

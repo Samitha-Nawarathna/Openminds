@@ -1,0 +1,209 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.note-viewer-wrapper {
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+}
+
+.note-card {
+    display: flex;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 30px;
+}
+
+/* --- Left Content Section --- */
+.content-section {
+    flex: 2; /* Takes up more space */
+    padding-right: 30px;
+    border-right: 1px solid #eee;
+}
+
+.note-title-input,
+.note-content-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    resize: none;
+    font-family: inherit;
+    color: #333;
+}
+
+.note-title-input {
+    font-size: 1.5rem;
+    font-weight: bold;
+    height: 50px;
+}
+
+.note-content-textarea {
+    height: 350px;
+    line-height: 1.6;
+}
+
+/* Action Buttons */
+.action-buttons-bottom {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-start;
+}
+
+.btn-share, .btn-delete {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-share {
+    background-color: #7c8dff; /* Primary Blue/Purple */
+    color: white;
+}
+
+.btn-delete {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+}
+
+
+/* --- Right Sidebar Section --- */
+.sidebar-section {
+    flex: 1; /* Takes up less space */
+    padding-left: 30px;
+}
+
+.sidebar-section h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Tags Display */
+.tags-container {
+    margin-bottom: 30px;
+}
+
+.tags-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-pill {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Tag Color Schemes (Reusing/Adapting from previous steps) */
+.tag-physics { background-color: #ff9999; color: #cc0000; }
+.tag-psychology { background-color: #ccccff; color: #6600cc; }
+.tag-maths { background-color: #99ff99; color: #008000; }
+.tag-design { background-color: #ffcc99; color: #cc6600; }
+.tag-quantum-computing { background-color: #a0e0ff; color: #0056b3; }
+
+
+/* --- Focus Timer Section --- */
+.focus-timer-container {
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.action-buttons-bottom
+{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.action-buttons-bottom .btn-share
+{
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.action-buttons-bottom .btn-edit
+{
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.action-buttons-bottom .btn-delete
+{
+    grid-column: 2;
+    grid-row: 2;
+}
+
+
+#timer-minutes-input {
+    width: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.unit-label {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+#timer-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-start {
+    background-color: #7c8dff;
+    color: white;
+}
+
+.btn-cancel {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+}
+
+#countdown-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    padding: 10px 0;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    display: none; /* Initially hidden */
+}
