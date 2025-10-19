@@ -23,6 +23,7 @@
             <button class="tab-button <?= $data['initial_tab'] == 'all' ? 'active' : '' ?>" data-tab="all" id="all-tab">All</button>
             <button class="tab-button <?= $data['initial_tab'] == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">created by you</button>
             <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">attempt by you</button>
+            <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="pending" id="pending-tab">Pending</button>
         </div>
 
         <div class="list-container" id="exercises-list">

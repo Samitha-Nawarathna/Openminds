@@ -135,11 +135,13 @@
         <input type="hidden" name="id" value="<?=$profile_id?>">
 
         <form action="<?=ROOT?>profileadmin/changerole" method="post" class="role-form">
-            <select name="role" id="role" class="role-select">
-                <option value="user">Student</option>
-                <option value="user">Mentor</option>
-                <option value="expert">Expert</option>
-                <option value="admin">Admin</option>                
+            <input type="hidden" name="user_id" value="<?=$profile_id?>">
+
+            <select name="new_role" id="role" class="role-select">
+                <option value="1" default>Student</option>
+                <option value="2">Mentor</option>
+                <option value="3">Expert</option>
+                <option value="4">Admin</option>                
             </select>
             <div class="btns">
                 <button class='button btn-none btn-dismiss' type="button">Back</button>

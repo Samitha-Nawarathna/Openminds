@@ -20,6 +20,13 @@
                 </li>
                 <li><a href="<?=ROOT?>/analysis" class="no-style-link">Analysis</li>
                 <li><a href="<?=ROOT?>/expertrequest" class="no-style-link">Expert Requests</a></li>
+                <li class="dropdown">
+                    Admin previlages
+                    <ul class="dropdown-menu">
+                        <li><a href="<?=ROOT?>/expertrequestadmin" class="no-style-link">Expert Requests</li>
+                        <li><a href="<?=ROOT?>/profileadmin" class="no-style-link">User Profiles</li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>

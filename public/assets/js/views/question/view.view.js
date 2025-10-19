@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const answerBtn = document.getElementById('answer-btn');
     if (answerBtn) { // Check if the button exists before adding listener
         answerBtn.addEventListener('click', () => {
-            alert("Answer button clicked! Implement answer form logic here.");
         });
     }
 });

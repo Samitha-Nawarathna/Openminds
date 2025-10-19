@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MOCK DATA ---
     const MOCK_USER_DB = [
-        { id: 'u4', name: 'Charlie' },
-        { id: 'u5', name: 'Eva' },
-        { id: 'u6', name: 'Frank' },
-        { id: 'u7', name: 'Grace' },
-        { id: 'u8', name: 'Heidi' },
+        { id: 1, name: 'Charlie' },
+        { id: 2, name: 'Eva' },
+        { id: 3, name: 'Frank' },
+        { id: 4, name: 'Grace' },
+        { id: 5, name: 'Heidi' },
     ];
     
     MOCK_USER_DB.push(...INITIAL_SHARED_USERS);

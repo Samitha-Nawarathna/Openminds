@@ -8,45 +8,6 @@
 ?>
 
 <?php
-// --- MOCK DATA SETUP ---
-$data = [
-    'exercise_id' => 'ex_123',
-    'exercise_title' => 'Fundamental Physics and Maths',
-    'subject_name' => 'Physics',
-    'current_tags' => ['mechanics', 'quantum', 'maths'],
-    'form_action_url' => '/your-backend-controller/update-exercise',
-    
-    'top_tags' => [
-        ['name' => 'Physics', 'count' => 12],
-        ['name' => 'Psychology', 'count' => 9],
-        ['name' => 'Maths', 'count' => 15],
-    ],
-    
-    // Mock Questions Data - ALL ARE NOW MULTIPLE CHOICE
-    'questions' => [
-        [
-            'id' => 'q1',
-            'question_text' => 'What is the relationship between the Lagrangian and Hamiltonian functions?',
-            'answer_type' => 'multiple_choice', // Only MCQs
-            'options' => ['They are Legendre transforms.', 'They are inverses.', 'They are independent.'],
-            'author' => 'Alice'
-        ],
-        [
-            'id' => 'q2',
-            'question_text' => 'Which color harmony creates the highest contrast?',
-            'answer_type' => 'multiple_choice', 
-            'options' => ['Analogous', 'Monochromatic', 'Complementary'],
-            'author' => 'Bob a student'
-        ],
-        [
-            'id' => 'q3',
-            'question_text' => 'The Hamiltonian in classical mechanics typically represents the total energy. Which concept is its quantum counterpart?',
-            'answer_type' => 'multiple_choice', 
-            'options' => ['Momentum operator', 'Schrödinger operator', 'Hamiltonian operator'],
-            'author' => 'Alice'
-        ],
-    ]
-];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,7 +20,7 @@ $data = [
 <body>
 
     <div class="editor-wrapper">
-        <form action="<?= htmlspecialchars($data['form_action_url']) ?>" method="POST" id="exercise-editor-form">
+        <form action="<?= ROOT ?>/exercises/edit" method="POST" id="exercise-editor-form">
             
             <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_id']) ?>">
             <input type="hidden" name="question_order" id="question-order-field" value="">

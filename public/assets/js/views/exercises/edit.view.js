@@ -317,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Question Order:", questionOrderField.value);
         console.log("Full Question State:", questionsState);
         
-        alert("Exercise saved/updated successfully! (Check console for submitted data)");
+        // alert("Exercise saved/updated successfully! (Check console for submitted data)");
+        form.submit();
     });
 
     // --- Initialization ---

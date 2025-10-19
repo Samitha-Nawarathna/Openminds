@@ -1,3 +1,5 @@
+import { ROOT } from '../../core/config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- State Variables ---
     const allQuestions = ALL_QUESTIONS_DATA;
@@ -175,6 +177,35 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function finishExercise() {
         recordAnswer(); // Record the final answer
+
+        let form = document.getElementById('exercise-attempt-form');
+        if (!form)
+        {
+            //create form
+            form = document.createElement('form');
+            form.id = 'exercise-attempt-form';
+            form.method = 'POST';
+            form.action = `${ROOT}/exercises/viewattempt`;
+            //add hidden element for send id
+
+
+            const inputId = document.createElement('input');
+            inputId.type = 'hidden';
+            inputId.name = 'exercise_id';
+            inputId.value = EXERCISE_ID;
+            form.appendChild(inputId);
+
+            //add hidden element for answers
+            const inputAnswers = document.createElement('input');
+            inputAnswers.type = 'hidden';
+            inputAnswers.name = 'answers_json';
+            inputAnswers.value = JSON.stringify(userAnswers);
+            form.appendChild(inputAnswers);
+
+            document.body.appendChild(form);
+        }
+
+        form.submit();
         
         console.log("--- Exercise Attempt Finished ---");
         console.log("User Answers:", userAnswers);

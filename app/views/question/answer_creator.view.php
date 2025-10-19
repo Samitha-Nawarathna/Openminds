@@ -11,7 +11,7 @@ include_once '../app/views/partials/header.view.php';
 // --- MOCK DATA SETUP ---
 // Data required for the view (e.g., the specific question being answered)
 $data = [
-    'question_id'     => 'q_101',
+    'question_id'     => 2,
     'question_title'  => 'What are myelinated axons?',
 ];
 ?>

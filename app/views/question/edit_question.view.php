@@ -9,12 +9,7 @@ include_once '../app/views/partials/header.view.php';
 
 <?php
 
-$data = [
-    'id'      => 'q_101',
-    'title'   => 'What are myelinated axons?',
-    'content' => 'I have heard about myelinated axons in my biology class, but I am not sure what they are. Can someone explain?',
-    'tags'    => ['biology', 'neuroscience', 'anatomy'],
-];
+
 
 
 ?>
@@ -25,6 +20,7 @@ $data = [
 </script>
 
 <div class="form-wrapper">
+        <h1 class="form-title">Edit Question</h1>
         <form action="<?= ROOT?>/question/edit" method="POST" id="create-question-form">
             
             <input type="hidden" name="id" value="<?= htmlspecialchars($data['id']) ?>">

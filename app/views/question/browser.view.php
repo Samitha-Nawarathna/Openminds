@@ -12,24 +12,24 @@ include_once '../app/views/partials/header.view.php';
 // --- MOCK DATA SETUP ---
 
 $data = [
-    'current_user_id' => 'user_2', // Used for 'Your Questions' and 'You Answered' tabs
+    'current_user_id' => 1, // Used for 'Your Questions' and 'You Answered' tabs
     'initial_tab' => 'all', // The tab to be loaded first
 ];
 
 // Helper function to generate mock question data based on type
 function generate_mock_questions($type, $offset, $limit) {
     $all_questions = [
-        ['id' => 'q1', 'title' => 'what is lagrangian method?', 'tag' => 'Physics', 'creator_id' => 'user_1', 'answered_by_user' => false],
-        ['id' => 'q2', 'title' => 'how Jacobian related to gradient?', 'tag' => 'Maths', 'creator_id' => 'user_2', 'answered_by_user' => false],
-        ['id' => 'q3', 'title' => 'solve in Hamiltonian mechanics?', 'tag' => 'Physics', 'creator_id' => 'user_3', 'answered_by_user' => true],
-        ['id' => 'q4', 'title' => 'what does this operator do?', 'tag' => 'Quantum Computing', 'creator_id' => 'user_2', 'answered_by_user' => false],
-        ['id' => 'q5', 'title' => 'how shadow work described by jung?', 'tag' => 'Psychology', 'creator_id' => 'user_4', 'answered_by_user' => true],
-        ['id' => 'q6', 'title' => 'how to solve this in linear algebra?', 'tag' => 'Maths', 'creator_id' => 'user_5', 'answered_by_user' => true],
-        ['id' => 'q7', 'title' => 'Explain Feynman diagrams', 'tag' => 'Physics', 'creator_id' => 'user_1', 'answered_by_user' => false],
-        ['id' => 'q8', 'title' => 'Derive the Navier-Stokes equations', 'tag' => 'Fluid Dynamics', 'creator_id' => 'user_2', 'answered_by_user' => false],
-        ['id' => 'q9', 'title' => 'What is the role of the amygdala?', 'tag' => 'Biology', 'creator_id' => 'user_6', 'answered_by_user' => true],
-        ['id' => 'q10', 'title' => 'Why is P=NP a problem?', 'tag' => 'Computer Science', 'creator_id' => 'user_7', 'answered_by_user' => false],
-        ['id' => 'q11', 'title' => 'The eleventh question for load more', 'tag' => 'Test', 'creator_id' => 'user_1', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'what is lagrangian method?', 'tag' => 'Physics', 'creator_id' => 'user_1', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'how Jacobian related to gradient?', 'tag' => 'Maths', 'creator_id' => 'user_2', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'solve in Hamiltonian mechanics?', 'tag' => 'Physics', 'creator_id' => 'user_3', 'answered_by_user' => true],
+        ['id' => 2, 'title' => 'what does this operator do?', 'tag' => 'Quantum Computing', 'creator_id' => 'user_2', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'how shadow work described by jung?', 'tag' => 'Psychology', 'creator_id' => 'user_4', 'answered_by_user' => true],
+        ['id' => 2, 'title' => 'how to solve this in linear algebra?', 'tag' => 'Maths', 'creator_id' => 'user_5', 'answered_by_user' => true],
+        ['id' => 2, 'title' => 'Explain Feynman diagrams', 'tag' => 'Physics', 'creator_id' => 'user_1', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'Derive the Navier-Stokes equations', 'tag' => 'Fluid Dynamics', 'creator_id' => 'user_2', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'What is the role of the amygdala?', 'tag' => 'Biology', 'creator_id' => 'user_6', 'answered_by_user' => true],
+        ['id' => 2, 'title' => 'Why is P=NP a problem?', 'tag' => 'Computer Science', 'creator_id' => 'user_7', 'answered_by_user' => false],
+        ['id' => 2, 'title' => 'The eleventh question for load more', 'tag' => 'Test', 'creator_id' => 'user_1', 'answered_by_user' => false],
         // Add more mock questions here for 'Load More' to work
     ];
 

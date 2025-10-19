@@ -28,7 +28,7 @@
         <div class="list-container" id="notes-list">
             <?php 
             foreach ($data["initial_load"]['notes'] as $note) {
-                echo '<a href="'.ROOT.'/notes/show?id="'.htmlspecialchars($note['id']).' class="no-style-link">';
+                echo '<a href="'.ROOT.'/notes/show?id='.htmlspecialchars($note['id']).'" class="no-style-link">';
                 echo '<div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">';
                 echo '  <span class="note-title-list">' . htmlspecialchars($note['title']) . '</span>';
                 echo '</div>';

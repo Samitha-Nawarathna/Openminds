@@ -9,7 +9,7 @@ class Profileadmin extends Controller
         $this->view("profilebrowser");
     }
 
-    private function admin_guard()
+    public function admin_guard()
     {
 
     }
@@ -129,7 +129,30 @@ class Profileadmin extends Controller
 
     public function changerole()
     {
-    
+        $this->admin_guard();
+
+        $user_id = $_POST['user_id'] ?? null;
+        $new_role = $_POST['new_role'] ?? null;
+
+        if ($user_id === null) {
+            header("Location: ".ROOT."profileadmin?message=Invalid Profile ID");
+            exit;
+        }
+
+        $user = new User;
+
+        $results = $user->first(['id'=>$user_id]);
+
+        if ($results === false) {
+            header("Location: ".ROOT."profileadmin?message=User not found");
+            exit;
+        }
+
+        $user->update($user_id, ['role'=>$new_role]);
+        
+        header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User role has been changed to $new_role successfully");
+        
+        
     }
 
 }

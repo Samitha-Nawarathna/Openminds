@@ -19,12 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // (using fetch or XMLHttpRequest) to send data to the server.
         
         console.log("[MOCK AJAX] Sending data to server...");
-        
-        setTimeout(() => {
-            alert("Answer submitted successfully! (Mock submission)");
-            // Here you would typically redirect the user to the Question Viewer page
-            // window.location.href = `/question/${questionId}`;
-        }, 500);
+
+        form.submit();
+
         // --- END MOCK AJAX CALL ---
     });
 });

@@ -1,3 +1,5 @@
+import {getLowSaturatedColor} from "../../core/utils.js";
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const form = document.getElementById('note-update-form'); // Changed ID to update-form
@@ -6,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedTagsDisplay = document.getElementById('selected-tags-display');
     const hiddenTagsField = document.getElementById('hidden-tags-field');
     const topTagsList = document.getElementById('top-tags-list');
+
+    
+    Array.from(topTagsList.children).forEach(element => {
+        element.style.backgroundColor = getLowSaturatedColor();
+    });
+    
 
     // --- State ---
     // INITIALIZATION: Use the global INITIAL_TAGS variable passed from PHP
@@ -20,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTag(tagName) {
         const tagPill = document.createElement('span');
         tagPill.classList.add('tag-pill');
+        tagPill.style.backgroundColor = getLowSaturatedColor();
         tagPill.innerHTML = `${tagName}<span class="tag-removal" data-tag="${tagName}">&times;</span>`;
         
         tagPill.querySelector('.tag-removal').addEventListener('click', (e) => {
@@ -108,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Title: ${title}`);
         console.log(`Tags: ${tags}`);
 
+        form.submit();
         // --- MOCK AJAX CALL ---
-        alert(`Note ID ${noteId} updated successfully! (Mock submission)`);
+        // alert(`Note ID ${noteId} updated successfully! (Mock submission)`);
         // In a real application, redirect to the updated note's view:
         // window.location.href = `/note/${noteId}`;
     });

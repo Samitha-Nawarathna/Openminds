@@ -84,6 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`${key}: ${value}`);
         }
         
-        alert("Form data (including tags) logged to the console (F12)!");
+        form.submit();
     });
 });

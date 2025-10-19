@@ -251,6 +251,15 @@ nav .right-side ul .profile-pic
   user-select: none;
 }
 
+.form-title
+{
+    font-size: var(--font-size-lg);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    text-align: center;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
   .dropdown-menu {

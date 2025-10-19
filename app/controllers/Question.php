@@ -65,7 +65,7 @@ class Question extends Controller
 
     public function show()
     {
-        $id = $_GET['id'];
+        $id = $_GET['id'] ?? 1;
         // Fetch question from the database using $id
         $current_user = $_SESSION['user_id'] ?? 'user_2';
 
@@ -158,33 +158,74 @@ class Question extends Controller
 
     public function edit()
     {
-        //cannot edit atleast one answer is given
-
-        $id = 1;//$_GET['id'];
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            //read question id
+            $q_id = $_POST['id'];
+
+            //read form data
+
+            //load relevent models
+
+            // retrive question from database
+
+            //validate data and ownership of question if not by creator then redirect to show page with error message
+
+            //if question has atleast one answer then cannot edit and redirect to show page with error message
+
             // Update question in the database
+
+
+            header("Location: ".ROOT."/question/show?id=" . $q_id);
         } else {
+            $id = $_GET['id'] ?? 2;
+            //load relevant models
+
             // Fetch question from the database using $id
-            // Show the edit form
-            $this->view('question/edit_question', ['id' => $id]);
+
+            // Validate ownership and check for existing answers if answers exist or not by creator then cannot edit
+
+            // If valid, proceed to show edit form
+
+            // populate data array
+
+            // MOCK DATA FOR NOW UNTIL DB INTEGRATION --- should be replaced by actual data from DB
+
+            $data = [
+                'id'      => 2,
+                'title'   => 'What are myelinated axons?',
+                'content' => 'I have heard about myelinated axons in my biology class, but I am not sure what they are. Can someone explain?',
+                'tags'    => ['biology', 'neuroscience', 'anatomy'],
+            ];
+            
+            $this->view('question/edit_question', $data);
         }
     }
 
     public function delete()
     {
+        //read question id from post method
+        
+        //load relevant models
+
+        // retrive question from database
+
+        //validate data and ownership of question if not by creator then redirect to show page with error message
+
         //cannot edit atleast one answer is given
 
-        $id = $_GET['id'];
         // Delete question from the database using $id
+
         //show success message or error
-        header("Location: /question/index");
+        header("Location: ".ROOT."/question");
     }
 
     public function answer()
     {
-        $q_id = 1;//$_GET['id'];
+        $q_id = $_GET['id'] ?? 1;
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Save answer to the database
+
+            header("Location: ".ROOT."/question/show?id=" . $_POST['question_id']);
         } else {
             // Show the answer form
             $this->view('question/answer_creator', ['q_id' => $q_id]);

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             form.submit();
-            alert("Answer submitted successfully! (Mock submission)");
+            // alert("Answer submitted successfully! (Mock submission)");
             // Here you would typically redirect the user to the Question Viewer page
             // window.location.href = `/question/${questionId}`;
         }, 500);

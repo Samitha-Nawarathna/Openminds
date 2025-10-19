@@ -249,3 +249,9 @@ body {
     font-size: 0.9em;
     margin: 3px;
 }
+
+.tag-input
+{
+    display: flex;
+    gap: 10px;
+}

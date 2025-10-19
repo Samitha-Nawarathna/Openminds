@@ -59,15 +59,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderExercises(exercises) {
         exercises.forEach(exercise => {
             const item = document.createElement('div');
-            item.className = 'exercise-item';
+            // item.className = 'exercise-item';
             item.setAttribute('data-id', exercise.id);
 
+            let endpoint = "attempt";
+
+            if (currentTab === 'pending') {
+                endpoint = "expertreview";
+            }
+
             item.innerHTML = `
-                <a class="no-style-link" herf=${ROOT}/exercises/attempt?id=${exercise.id}>
-                <span class="exercise-title-list">${exercise.title}</span>
-                <span class="subject-pill" data-subject="${exercise.subject}">
-                    ${exercise.subject}
-                </span>
+                <a class="no-style-link" href=${ROOT}/exercises/${endpoint}?id=${exercise.id}>
+                    <div class="exercise-item">
+                        <span class="exercise-title-list">${exercise.title}</span>
+                        <span class="subject-pill" data-subject="${exercise.subject}">
+                            ${exercise.subject}
+                        </span>
+                    </div>
+                </a>
             `;
             listContainer.appendChild(item);
         });
@@ -79,15 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchExercises(tab, currentOffset, currentLimit, filterText = '') {
         // --- MOCK BACKEND DATA LOGIC ---
         const all_exercises = [
-            { id: 'e1', title: 'what is lagrangian method?', 'subject': 'Physics', 'relation': 'Created' },
-            { id: 'e2', title: 'how Jacobian related to gradient?', 'subject': 'Maths', 'relation': 'Created' },
-            { id: 'e3', title: 'solve in Hamiltonian mechanics?', 'subject': 'Physics', 'relation': 'Attempted' },
-            { id: 'e4', title: 'what does this operator do?', 'subject': 'Quantum Computing', 'relation': 'Created' },
-            { id: 'e5', title: 'how shadow work described by jung?', 'subject': 'Psychology', 'relation': 'Attempted' },
-            { id: 'e6', title: 'how to solve this in linear algebra?', 'subject': 'Maths', 'relation': 'Created' },
-            { id: 'e7', title: 'Load More: Wave-particle duality', 'subject': 'Physics', 'relation': 'Created' },
-            { id: 'e8', title: 'Load More: Linear Regression', 'subject': 'Maths', 'relation': 'Created' },
-            { id: 'e9', title: 'Load More: Cognitive Dissonance', 'subject': 'Psychology', 'relation': 'Attempted' },
+            { id: 1, title: 'what is lagrangian method?', 'subject': 'Physics', 'relation': 'Created' },
+            { id: 1, title: 'how Jacobian related to gradient?', 'subject': 'Maths', 'relation': 'Created' },
+            { id: 1, title: 'solve in Hamiltonian mechanics?', 'subject': 'Physics', 'relation': 'Attempted' },
+            { id: 1, title: 'what does this operator do?', 'subject': 'Quantum Computing', 'relation': 'Created' },
+            { id: 1, title: 'how shadow work described by jung?', 'subject': 'Psychology', 'relation': 'Attempted' },
+            { id: 1, title: 'how to solve this in linear algebra?', 'subject': 'Maths', 'relation': 'Created' },
+            { id: 1, title: 'Load More: Wave-particle duality', 'subject': 'Physics', 'relation': 'Created' },
+            { id: 1, title: 'Load More: Linear Regression', 'subject': 'Maths', 'relation': 'Created' },
+            { id: 1, title: 'Load More: Cognitive Dissonance', 'subject': 'Psychology', 'relation': 'Attempted' },
         ];
         
         let filteredData = all_exercises.filter(e => {
@@ -150,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.classList.add('active');
             
             currentTab = e.target.getAttribute('data-tab');
+            console.log(currentTab);
             loadData(true); // True for initial load/reset
         }
     });

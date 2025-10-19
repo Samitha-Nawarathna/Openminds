@@ -68,7 +68,8 @@ function format_count($n) {
     <script>
         // Pass the questions data to the JavaScript file
         const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
-        const userVoteStatus = <?= json_encode($data['exercise_details']['user_vote_status'])?>
+        const userVoteStatus = <?= json_encode($data['exercise_details']['user_vote_status'])?>;
+        const EXERCISE_ID = <?= json_encode($data['exercise_details']['id']) ?>;
     </script>
 
 <?php

@@ -3,17 +3,17 @@
 if ($_SERVER["SERVER_NAME"] == "localhost")
 {
     /** database config **/
-    // define('DBNAME', 'samitha_openminds');
-    // define('DBHOST', 'mysql-samitha.alwaysdata.net');
-    // define('DBUSER', 'samitha');
-    // define('DBPASS', 'sam2008itha0522');
-    // define('DBDRIVER', '');
-
-    define('DBNAME', 'openminds');
-    define('DBHOST', 'localhost');
-    define('DBUSER', 'root');
-    define('DBPASS', '1234');
+    define('DBNAME', 'samitha_openminds');
+    define('DBHOST', 'mysql-samitha.alwaysdata.net');
+    define('DBUSER', 'samitha');
+    define('DBPASS', 'sam2008itha0522');
     define('DBDRIVER', '');
+
+    // define('DBNAME', 'openminds');
+    // define('DBHOST', 'localhost');
+    // define('DBUSER', 'root');
+    // define('DBPASS', '1234');
+    // define('DBDRIVER', '');
 
     /** file structure config**/
     define('ROOT', "http://localhost/Openminds/public/");

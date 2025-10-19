@@ -30,22 +30,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (offset === 0) {
                         // Simulating a fresh load after filter/tab change
                         mockNotes = [
-                            { id: 'c1', title: 'Calculus Basics', tag: 'Maths' },
-                            { id: 'c2', title: 'Quantum Fields', tag: 'Physics' }
+                            { id: 1, title: 'Calculus Basics', tag: 'Maths' },
+                            { id: 1, title: 'Quantum Fields', tag: 'Physics' }
                         ];
                         hasMore = true;
                     } else if (offset === 10) {
                         // Simulating the 'Load More' action
                         mockNotes = [
-                            { id: 'c11', title: '11th Created Note (Lazy Load)', tag: 'Test' }
+                            { id: 1, title: '11th Created Note (Lazy Load)', tag: 'Test' }
                         ];
                         hasMore = false;
                     }
                 } else if (tabType === 'shared') {
                     // Shared notes, usually a smaller list, less frequent lazy load
                     mockNotes = [
-                        { id: 's1', title: 'Shared: General Relativity', tag: 'Physics' },
-                        { id: 's2', title: 'Shared: Python Tips', tag: 'CS' }
+                        { id: 1, title: 'Shared: General Relativity', tag: 'Physics' },
+                        { id: 1, title: 'Shared: Python Tips', tag: 'CS' }
                     ];
                     hasMore = false;
                 }

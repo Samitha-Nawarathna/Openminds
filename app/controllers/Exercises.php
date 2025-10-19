@@ -280,10 +280,6 @@ class Exercises extends Controller
 
     }
 
-    public function evaluate()
-    {
-
-    }
 
     public function show()
     {
@@ -336,12 +332,93 @@ class Exercises extends Controller
     public function edit()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Process form submission to update exercise
-        } else {
-            $id = $_GET['id'] ?? null;
-            //check if user is authorized to edit the exercise
 
-            $this->view('exercises/edit', ['exercise_id' => $id]);
+            //load relevent models
+
+            //read exercise id
+            $exercise_id = $_POST['exercise_id'] ?? 1;
+
+            //read other data from post
+
+            //validate data and permissions if redirect to edit page with error message
+
+            //update relevent models
+
+            //after update redirect to show page
+            header('Location: '.ROOT.'/exercises/show?id='.$exercise_id);
+        } else {
+
+
+            $id = $_GET['id'] ?? null;
+            //check if user is authorized to edit the exercise if not redirect to show page with error message
+
+            //load relevent models and data to prefill the edit form
+
+            //populated $data array with existing exercise data
+            
+            // --- MOCK DATA SETUP --- should be replaced with actual data from database
+            $data = [
+                'exercise_id' => 1,
+                'exercise_title' => 'Fundamental Physics and Maths',
+                'subject_name' => 'Physics',
+                'current_tags' => ['mechanics', 'quantum', 'maths'],
+                'form_action_url' => '/your-backend-controller/update-exercise',
+                
+                'top_tags' => [
+                    ['name' => 'Physics', 'count' => 12],
+                    ['name' => 'Psychology', 'count' => 9],
+                    ['name' => 'Maths', 'count' => 15],
+                ],
+                
+                // Mock Questions Data - ALL ARE NOW MULTIPLE CHOICE
+                'questions' => [
+                    [
+                        'id' => 'q1',
+                        'question_text' => 'What is the relationship between the Lagrangian and Hamiltonian functions?',
+                        'answer_type' => 'multiple_choice', // Only MCQs
+                        'options' => ['They are Legendre transforms.', 'They are inverses.', 'They are independent.'],
+                        'author' => 'Alice'
+                    ],
+                    [
+                        'id' => 'q2',
+                        'question_text' => 'Which color harmony creates the highest contrast?',
+                        'answer_type' => 'multiple_choice', 
+                        'options' => ['Analogous', 'Monochromatic', 'Complementary'],
+                        'author' => 'Bob a student'
+                    ],
+                    [
+                        'id' => 'q3',
+                        'question_text' => 'The Hamiltonian in classical mechanics typically represents the total energy. Which concept is its quantum counterpart?',
+                        'answer_type' => 'multiple_choice', 
+                        'options' => ['Momentum operator', 'Schrödinger operator', 'Hamiltonian operator'],
+                        'author' => 'Alice'
+                    ],
+                ]
+            ];
+
+
+            $this->view('exercises/edit', $data);
+        }
+    }
+
+    public function delete()
+    {
+        // Process exercise deletion
+        $exercise_id = $_POST['id'] ?? null;
+
+        if ($exercise_id) {
+            //load relevant models
+
+            //delete related data first due to foreign key constraints in database following order:
+            //delete answers
+            //delete questions
+
+            //finally delete the exercise
+            
+            //show success message
+            header('Location: '.ROOT.'/exercises?message=Exercise deleted successfully');
+        } else {
+            header('Location: '.ROOT.'/exercises?message=Invalid exercise ID');
         }
     }
 

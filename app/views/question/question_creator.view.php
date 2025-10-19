@@ -8,6 +8,7 @@ include_once '../app/views/partials/header.view.php';
 ?>
 
 <div class="form-wrapper">
+        <h1 class="form-title">Ask Question</h1>
         <form action="<?= ROOT?>/question/create" method="POST" id="create-question-form">
             
             <div class="input-group">

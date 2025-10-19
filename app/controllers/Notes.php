@@ -66,31 +66,31 @@ class Notes extends Controller
         function generate_mock_notes($type, $offset, $limit) {
             // Mock data for the 'Created' (by user_1) and 'Shared' tabs
             $created_notes = [
-                ['id' => 'c1', 'title' => 'Calculus Basics', 'tag' => 'Maths', 'relation' => 'Created'],
-                ['id' => 'c2', 'title' => 'Quantum Fields', 'tag' => 'Physics', 'relation' => 'Created'],
-                ['id' => 'c3', 'title' => 'Set Theory Axioms', 'tag' => 'Maths', 'relation' => 'Created'],
-                ['id' => 'c4', 'title' => 'A Note on Ethics', 'tag' => 'Philosophy', 'relation' => 'Created'],
-                ['id' => 'c5', 'title' => 'Kinematics in 3D', 'tag' => 'Physics', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'Calculus Basics', 'tag' => 'Maths', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'Quantum Fields', 'tag' => 'Physics', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'Set Theory Axioms', 'tag' => 'Maths', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'A Note on Ethics', 'tag' => 'Philosophy', 'relation' => 'Created'],
+                ['id' => 1, 'title' => 'Kinematics in 3D', 'tag' => 'Physics', 'relation' => 'Created'],
             ];
 
             $shared_notes = [
-                ['id' => 's1', 'title' => 'Shared: General Relativity', 'tag' => 'Physics', 'relation' => 'Shared'],
-                ['id' => 's2', 'title' => 'Shared: Python Tips', 'tag' => 'CS', 'relation' => 'Shared'],
-                ['id' => 's3', 'title' => 'Shared: Thermodynamics', 'tag' => 'Physics', 'relation' => 'Shared'],
-                ['id' => 's4', 'title' => 'Shared: Abstract Algebra', 'tag' => 'Maths', 'relation' => 'Shared'],
-                ['id' => 's5', 'title' => 'Shared: Psychology Stats', 'tag' => 'Psychology', 'relation' => 'Shared'],
+                ['id' => 1, 'title' => 'Shared: General Relativity', 'tag' => 'Physics', 'relation' => 'Shared'],
+                ['id' => 1, 'title' => 'Shared: Python Tips', 'tag' => 'CS', 'relation' => 'Shared'],
+                ['id' => 1, 'title' => 'Shared: Thermodynamics', 'tag' => 'Physics', 'relation' => 'Shared'],
+                ['id' => 1, 'title' => 'Shared: Abstract Algebra', 'tag' => 'Maths', 'relation' => 'Shared'],
+                ['id' => 1, 'title' => 'Shared: Psychology Stats', 'tag' => 'Psychology', 'relation' => 'Shared'],
             ];
 
             $data_source = ($type === 'created') ? $created_notes : $shared_notes;
             
             // Add extra items for 'Load More' to work
             if ($type === 'created') {
-                array_push($data_source, ['id' => 'c6', 'title' => '6th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 'c7', 'title' => '7th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 'c8', 'title' => '8th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 'c9', 'title' => '9th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 'c10', 'title' => '10th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 'c11', 'title' => '11th Created Note (Load More)', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '6th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '7th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '8th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '9th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '10th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
+                array_push($data_source, ['id' => 1, 'title' => '11th Created Note (Load More)', 'tag' => 'Test', 'relation' => 'Created']);
             }
 
             // Apply offset and limit for pagination
@@ -234,18 +234,41 @@ class Notes extends Controller
     public function edit()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            // Handle form submission to update the note
             $note_id = $_POST['note_id'] ?? '';
             $title = $_POST['title'] ?? '';
             $content = $_POST['content'] ?? '';
             $tags = $_POST['tags'] ?? [];
 
+            //load required models
+
+            //retrieve existing note
+
+            //validate ownership if not own by current user redirect to note page with errror message
+
+            // Update note details
+
+            // Redirect to the note view page after updating
+            header("Location: ".ROOT."/notes/show?id=" . $note_id);
+
             exit();
         }
-
         $note_id = $_GET['note_id'] ?? null;
+
+        // For GET request, load the existing note data to pre-fill the form
+
+        //laod required models
+
+        //retrieve note id from query parameter
+
+        //validate ownership if not own by current user redirect to note page with errror message
+
+        //replace mock data below with actual data from database
+
         // --- MOCK DATA SETUP: Data passed from the backend for the note being edited ---
         $current_note_data = [
-            'id' => 'note_42_edit', // THE ESSENTIAL HIDDEN FIELD VALUE
+            'id' => 1, // THE ESSENTIAL HIDDEN FIELD VALUE
             'title' => 'Advanced Color Theory for Web Design',
             'content' => "Color theory in the digital age focuses heavily on hex codes, RGB, and HSL values. Understanding color space, gamut mapping, and accessibility (WCAG contrast ratios) is crucial for modern front-end design.\n\nKey areas: Accessibility (AA/AAA), Brand Palette definition, and understanding color psychology for conversion rates.",
             'tags' => ['design', 'Psychology', 'WebDev', 'Accessibility'], // Pre-selected tags
@@ -260,10 +283,26 @@ class Notes extends Controller
                 ['name' => 'design', 'count' => 3],
                 ['name' => 'Quantum Computing', 'count' => 7],
             ],
-            'form_action_url' => '/your-backend-controller/update-note'
+            // 'form_action_url' => '/your-backend-controller/update-note'
         ];
 
         $this->view('notes/edit', array_merge($data, ['note' => $current_note_data]));
+    }
+
+    public function delete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $note_id = $_POST['note_id'] ?? '';
+            // Load required models
+
+            // Validate ownership if not own by current user redirect to note page with error message
+
+            // Perform deletion logic here (e.g., remove from database)
+
+            // Redirect to notes list after deletion
+            header("Location: ".ROOT."/notes/view_notes");
+            exit();
+        }
     }
 
     public function share()
@@ -283,9 +322,7 @@ class Notes extends Controller
             'note_title' => 'Color theory',
             // Users currently shared with
             'initial_shared_users' => [
-                ['id' => 'u1', 'name' => 'Alice',],
-                ['id' => 'u2', 'name' => 'Bob',],
-                ['id' => 'u3', 'name' => 'David'],
+
             ],
             'form_action_url' => '/your-backend-controller/share-note'
         ];

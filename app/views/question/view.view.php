@@ -69,12 +69,14 @@ if (!$isQuestionCreator) { // No need to check if they are the creator
 
   <?php foreach ($data['answers'] as $answer): ?>
     <section class="answer-container <?= $answer['is_chosen'] ? 'chosen-answer' : '' ?>">
-      <?php if ($answer['creator_id'] === $data['current_user_id']): ?>
+      <?php //if ($answer['creator_id'] === $data['current_user_id']):
+            if (1):
+        ?>
         <div class="your-answer-badge">your answer</div>
       <?php endif; ?>
 
       <?php if ($answer['is_chosen']): ?>
-        <div class="chosen-badge">ANSWER'S CHOICE</div>
+        <div class="chosen-badge">ASKER'S CHOICE</div>
       <?php endif; ?>
 
       <p class="answer-meta-top">
@@ -85,7 +87,9 @@ if (!$isQuestionCreator) { // No need to check if they are the creator
 
       <div class="answer-content"><?= $answer['content'] ?></div>
 
-      <?php if ($answer['creator_id'] === $data['current_user_id']): ?>
+      <?php //if ($answer['creator_id'] === $data['current_user_id']):
+            if (1):
+        ?>
         <div class="action-buttons">
           <button class="btn-edit" data-type="answer" data-id="<?= $answer['id'] ?>">Edit</button>
           <button class="btn-delete" data-type="answer" data-id="<?= $answer['id'] ?>">Delete</button>
@@ -100,17 +104,21 @@ if (!$isQuestionCreator) { // No need to check if they are the creator
   <?php endforeach; ?>
 </div>
 
-<?php if ($isQuestionCreator): ?>
+
+<?php //if (!$currentUserHasAnswered): ?>
+  <?php if (1): ?>
   <div class="fixed-footer">
-    <div class="action-buttons-footer">
+  <div class="action-buttons-footer">
+    <button id="answer-btn"><a href="<?=ROOT?>/question/answer?=<?=$data['question']['id']?>" class="no-style-link">Answer</a></button>
+<?php endif; ?>
+
+<?php //if ($isQuestionCreator): ?>
+  <?php if (1): ?>
+
       <button class="btn-edit" data-type="question" data-id="<?= $data['question']['id'] ?>">Edit</button>
       <button class="btn-delete" data-type="question" data-id="<?= $data['question']['id'] ?>">Delete</button>
     </div>
-  </div>
-<?php elseif (!$currentUserHasAnswered): ?>
-  <div class="fixed-footer">
-    <button id="answer-btn">Answer</button>
-  </div>
+
 <?php endif; ?>
 
 <script>
