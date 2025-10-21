@@ -9,15 +9,6 @@
 
 <?php
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Exercise: <?= htmlspecialchars($data['exercise_title']) ?></title>
-    <link rel="stylesheet" href="styles_exercise_editor.css">
-</head>
-<body>
 
     <div class="editor-wrapper">
         <form action="<?= ROOT ?>/exercises/edit" method="POST" id="exercise-editor-form">
@@ -112,9 +103,7 @@
         const INITIAL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
         const INITIAL_TAGS = <?= json_encode($data['current_tags']) ?>; 
     </script>
-    <script src="scripts_exercise_editor.js"></script>
-</body>
-</html>
+
 
 <?php
     include_once "../app/views/partials/footer.view.php";

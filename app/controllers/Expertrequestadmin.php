@@ -38,10 +38,20 @@ final class Expertrequestadmin extends Controller
         $expert_requests_service = new ExpertRequestsServices();
         $approve_result = $expert_requests_service->approve_request($request_id);
 
+        $request_model = new ExpertRequests();
+        $reciver_id = $request_model->first(['id' => $request_id])->user_id;
+
+        $sender_id = $_SESSION['user_id'];
+
+
         if (!$approve_result->is_success()) {
             header("Location: ".ROOT."expertrequestsadmin/show?id=".$request_id."&message=".$approve_result->get_message());
             exit;
         }
+
+        $notification_service = new NotificationServices();
+        $notification_service->send_notification($sender_id, "Your expert request has been approved. You can now access expert features on our platform.", $reciver_id);
+        
 
         header("Location: ".ROOT."expertrequestadmin/show?id=".$request_id);
     }

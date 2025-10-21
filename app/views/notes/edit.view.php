@@ -58,7 +58,7 @@
                     </div>
                     
                     <div class="title-panel">
-                        <h2>Title</h2>
+                        <h2>Topic</h2>
                         <div class="current-title-display">
                         </div>
                         <input type="text" id="create-title-input" value = "<?= htmlspecialchars($data['note']['topic']) ?>" placeholder="Create or add title">

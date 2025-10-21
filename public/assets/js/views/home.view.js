@@ -101,14 +101,14 @@ document.addEventListener('scroll', () => {
     let scroll_position = window.scrollY;
 
     if (scroll_position > nav_bar_hidden_start && scroll_position < feature_section_end) {
-        nav_bar.style.transform = `translateY(-100%)`;
+        nav_bar.style.transform = `translate(-50%, -100%)`;
         nav_bar.addEventListener('mouseover', () => {
             nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
         });
     }
     else
     {
-        nav_bar.style.transform = `translateY(0)`;
+        nav_bar.style.transform = `translate(-50% ,0)`;
         nav_bar.addEventListener('mouseover', () => {
             nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
         });

@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('.btn-delete').addEventListener('click', () => {
         if (confirm("Are you sure you want to delete this note? (Mock Action)")) {
-            alert("Note deleted.");
+            // alert("Note deleted.");
         }
     });
 

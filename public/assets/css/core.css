@@ -260,6 +260,17 @@ nav .right-side ul .profile-pic
     text-align: center;
 }
 
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eef1ff;
+  color: #58589f;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
   .dropdown-menu {

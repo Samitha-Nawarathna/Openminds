@@ -10,11 +10,11 @@ include_once '../app/views/partials/header.view.php';
 <div class="main-content-container">
         <h1>Topics</h1>
 
-        <div class="filter-bar">
+        <!-- <div class="filter-bar">
             <input type="text" id="topic-filter-input" placeholder="enter a username/name">
             <button class="btn-filter" id="filter-btn">Filter</button> 
             <a href="<?=ROOT?>/notes/create_title" class="btn-create">+ Create</a>
-        </div>
+        </div> -->
 
         <div class="list-container" id="topics-list">
             <?php 

@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionsListContainer = document.getElementById('questions-list');
     const questionOrderField = document.getElementById('question-order-field');
     const btnAddQuestion = document.getElementById('btn-add-question');
+    const exerciseTitleInput = document.getElementById('exercise-title-input');
     
     // Tag Elements
     const tagsInput = document.getElementById('tags-input');
@@ -15,11 +16,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.querySelector('.close-button');
     const btnModalSave = document.getElementById('btn-modal-save');
     const modalQuestionText = document.getElementById('modal-question-text');
-    // const modalAnswerType = document.getElementById('modal-answer-type'); // Removed, now hidden input
-    const modalOptionsGroup = document.getElementById('modal-options-group');
     const modalOptionsText = document.getElementById('modal-options-text');
     const modalQuestionId = document.getElementById('modal-question-id');
     const modalTitleText = document.getElementById('modal-title-text');
+    
+    // --- NEW: Elements for Correct Answer Selection ---
+    const modalOptionsGroup = document.getElementById('modal-options-group'); // Find the existing options textarea
+    const modalCorrectAnswerList = document.createElement('div');
+    modalCorrectAnswerList.id = 'modal-correct-answer-list';
+    modalCorrectAnswerList.className = 'modal-answer-list'; // For styling
+
+    // Create the new UI group
+    const answerSelectorGroup = document.createElement('div');
+    answerSelectorGroup.className = 'input-group';
+    answerSelectorGroup.id = 'modal-correct-answer-selector-group';
+    answerSelectorGroup.innerHTML = '<label>Correct Answer(s) (Select all that apply)</label>';
+    answerSelectorGroup.appendChild(modalCorrectAnswerList);
+
+    // Inject the new UI group into the modal, right after the options textarea
+    if (modalOptionsGroup) {
+        modalOptionsGroup.after(answerSelectorGroup);
+    }
+    // --- End New Elements ---
+
 
     // --- State ---
     let questionsState = INITIAL_QUESTIONS_DATA || [];
@@ -32,6 +51,54 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'q_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
     }
 
+    /**
+     * Dynamically renders checkboxes in the modal to select the correct answer.
+     * Reads from the modalOptionsText textarea.
+     */
+    function updateModalAnswerSelector(options = [], selectedIndices = []) {
+        const listContainer = document.getElementById('modal-correct-answer-list');
+        if (!listContainer) return;
+
+        // Determine options: either from passed data (on open) or from textarea (on typing)
+        let currentOptions = options.length > 0 ? options : modalOptionsText.value.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+        
+        // Determine selection: either from passed data (on open) or from current checkboxes (on typing)
+        let currentSelection = selectedIndices;
+        if (options.length === 0) { 
+            // If triggered by typing, preserve existing selections
+            currentSelection = Array.from(listContainer.querySelectorAll('input:checked')).map(input => parseInt(input.value));
+        }
+
+        listContainer.innerHTML = ''; // Clear old checkboxes
+
+        if (currentOptions.length === 0) {
+            listContainer.innerHTML = '<em>Type options in the box above to select a correct answer.</em>';
+            return;
+        }
+
+        currentOptions.forEach((optionText, index) => {
+            const id = `modal-check-${index}`;
+            const label = document.createElement('label');
+            label.className = 'checkbox-label'; // For styling
+            label.setAttribute('for', id);
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = id;
+            input.value = index;
+
+            if (currentSelection.includes(index)) {
+                input.checked = true;
+            }
+
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(' ' + (optionText || '(Empty Option)')));
+            listContainer.appendChild(label);
+        });
+    }
+
+
+    /** Updates the hidden field and button text. */
     function updateQuestionOrder() {
         const order = questionsState.map(q => q.id).join(',');
         questionOrderField.value = order;
@@ -39,9 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
         questionsListContainer.querySelectorAll('.question-panel').forEach((panel, index) => {
             panel.querySelector('.question-number').textContent = `Question ${index + 1}`;
         });
+        
+        btnAddQuestion.textContent = questionsState.length === 0 ? 
+                                     'add first question' : 
+                                     'add another question';
     }
 
-    // --- Tag Management Functions (UNCHANGED) ---
+    // --- Tag Management Functions ---
 
     function updateHiddenTagsField() {
         hiddenTagsField.value = Array.from(selectedTags).join(',');
@@ -50,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTag(tagName) {
         const tagPill = document.createElement('span');
         tagPill.classList.add('tag-pill');
-        tagPill.innerHTML = `${tagName} <span class="tag-removal" data-tag="${tagName}">&times;</span>`;
+        tagPill.innerHTML = `${tagName}<span class="tag-removal" data-tag="${tagName}"> &times;</span>`;
         
         tagPill.querySelector('.tag-removal').addEventListener('click', (e) => {
             const tagToRemove = e.target.dataset.tag;
@@ -90,11 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.dataset.questionId = q.id;
         panel.draggable = true;
 
-        const optionsHTML = q.options.map(opt => 
-            `<li><label><input type="radio" disabled>${opt}</label></li>`
-        ).join('');
+        // UPDATED: Use checkboxes and check against 'correct_indices'
+        const optionsHTML = q.options.map((opt, optIndex) => {
+            const isCorrect = q.correct_indices && q.correct_indices.includes(optIndex);
+            const checkedAttr = isCorrect ? 'checked' : '';
+            // Add a class for styling the correct answer preview
+            const liClass = isCorrect ? 'class="correct-answer-preview"' : ''; 
+
+            return `<li ${liClass}><label><input type="checkbox" disabled ${checkedAttr}> ${opt}</label></li>`;
+        }).join('');
         
-        // SIMPLIFIED ANSWER PREVIEW (ONLY MULTIPLE CHOICE)
         const answerPreviewHTML = `
             <div class="answer-preview">
                 <span class="preview-type">Type: Multiple Choice</span>
@@ -124,29 +200,33 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQuestionOrder();
     }
 
-    // --- Modal/Edit Functions (SIMPLIFIED) ---
+    // --- Modal/Edit Functions ---
 
     function openModal(question) {
         modalQuestionId.value = question.id || '';
         modalQuestionText.value = question.question_text || '';
-        
-        // Answer type is fixed to multiple_choice, so no need to set select/hide fields.
-        
         modalOptionsText.value = (question.options || []).join('\n');
         
+        // NEW: Populate the correct answer checkboxes
+        // Pass the question's options and its saved correct indices
+        updateModalAnswerSelector(question.options || [], question.correct_indices || []);
+
         modalTitleText.textContent = question.id ? 'Edit' : 'Add New';
         modal.style.display = 'block';
     }
 
     function closeModal() {
         modal.style.display = 'none';
+        // Clear the answer selector on close
+        const listContainer = document.getElementById('modal-correct-answer-list');
+        if (listContainer) listContainer.innerHTML = '';
     }
 
-    // Save button handler inside the modal (SIMPLIFIED)
+    // Save button handler inside the modal (UPDATED)
     btnModalSave.addEventListener('click', () => {
         const id = modalQuestionId.value;
         const text = modalQuestionText.value.trim();
-        const type = 'multiple_choice'; // Fixed type
+        const type = 'multiple_choice'; 
         const optionsText = modalOptionsText.value.trim();
         
         if (!text) {
@@ -160,6 +240,17 @@ document.addEventListener('DOMContentLoaded', () => {
              return;
         }
         
+        // --- NEW: Get correct answer indices from checkboxes ---
+        const listContainer = document.getElementById('modal-correct-answer-list');
+        const selectedCheckboxes = listContainer.querySelectorAll('input[type="checkbox"]:checked');
+        const correctIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+
+        if (correctIndices.length === 0) {
+            alert("You must select at least one correct answer.");
+            return;
+        }
+        // --- End New Section ---
+        
         let questionIndex = questionsState.findIndex(q => q.id === id);
 
         const newQuestionData = {
@@ -167,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             question_text: text,
             answer_type: type,
             options: options,
+            correct_indices: correctIndices // <-- ADDED THIS
         };
 
         if (questionIndex !== -1) {
@@ -290,8 +382,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // NEW: Add listener to update checkboxes as user types options
+    modalOptionsText.addEventListener('input', () => {
+        // Pass no arguments so it reads from the textarea and preserves selection
+        updateModalAnswerSelector(); 
+    });
+
     btnAddQuestion.addEventListener('click', () => {
-        const newQuestion = { id: null, question_text: 'New Multiple Choice Question', options: ['', ''] }; 
+        // Default new question structure (UPDATED)
+        const newQuestion = { 
+            id: null, 
+            question_text: '', 
+            options: ['Option A', 'Option B'],
+            correct_indices: [] // Start with no correct answer selected
+        }; 
         openModal(newQuestion);
     });
     
@@ -303,22 +407,50 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // Final submit handler (UNCHANGED)
+    // Final submit handler (Validation unchanged)
     form.addEventListener('submit', (e) => {
         e.preventDefault();
+        
+        // --- Validation Checks ---
+        if (exerciseTitleInput.value.trim() === '') {
+            alert("The Exercise Title is required.");
+            exerciseTitleInput.focus();
+            return;
+        }
+
+        if (questionsState.length === 0) {
+            alert("You must add at least one question to the exercise.");
+            return;
+        }
+        // --- End Validation Checks ---
+        
         updateQuestionOrder(); 
         updateHiddenTagsField(); 
 
-        console.log("--- Exercise Submission Data ---");
-        console.log("Exercise ID:", form.elements['exercise_id'].value);
-        console.log("Exercise Title:", document.getElementById('exercise-title-input').value);
+        console.log("--- New Exercise Submission Data ---");
+        console.log("Exercise ID (Placeholder):", form.elements['exercise_id'].value); 
+        console.log("Exercise Title:", exerciseTitleInput.value);
         console.log("Subject Name:", document.getElementById('exercise-subject-input').value);
         console.log("Tags:", hiddenTagsField.value);
         console.log("Question Order:", questionOrderField.value);
-        console.log("Full Question State:", questionsState);
-        
-        // alert("Exercise saved/updated successfully! (Check console for submitted data)");
+        console.log("Full Question State (JSON):", JSON.stringify(questionsState));
+
+        let hiddenQuestionsField = document.getElementById('hidden-questions-field');
+
+        if (!hiddenQuestionsField) {
+            hiddenQuestionsField = document.createElement('input');
+            hiddenQuestionsField.type = 'hidden';
+            hiddenQuestionsField.name = 'questions_data';
+            hiddenQuestionsField.id = 'hidden-questions-field';
+            form.appendChild(hiddenQuestionsField);
+        }
+
+        // Serialize questionsState (This now includes 'correct_indices')
+        hiddenQuestionsField.value = JSON.stringify(questionsState);
+
         form.submit();
+        
+        // alert("Exercise creation request sent successfully! (Check console for submitted data)");
     });
 
     // --- Initialization ---
@@ -326,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTagsDisplayArea();
     updateHiddenTagsField();
     
-    updateQuestionOrder();
+    // No initial questions to render, but call this to set the button text
+    updateQuestionOrder(); 
     attachPanelListeners(); 
 });

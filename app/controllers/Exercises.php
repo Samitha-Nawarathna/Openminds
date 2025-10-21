@@ -67,7 +67,7 @@ class Exercises extends Controller
 //     [questions_data] => [{"id":"q_umi95lpmgvx1px0","question_text":"q1","answer_type":"multiple_choice","options":["Option A","Option B"]},{"id":"q_ao6tgqfmgvx1v1p","question_text":"q2","answer_type":"multiple_choice","options":["Option A","Option B"]}]
 // )
 
-    public function create()
+public function create()
     {
         //validate if user is a mentor
 
@@ -81,7 +81,8 @@ class Exercises extends Controller
 
 
             $question_order = $_POST['question_order'] ?? '';
-            $questions_data = json_decode($_POST['questions_data']) ?? '[]';
+            // NOTE: We need to decode the JSON as an associative array (true) for better iteration
+            $questions_data = json_decode($_POST['questions_data'], true) ?? [];
 
             // Validate required fields
             if (empty($exercise_title)) {
@@ -139,23 +140,34 @@ class Exercises extends Controller
                 ]);
             }
 
-            // Insert questions and answers
+            // Insert questions and answers (UPDATED LOGIC)
             foreach ($questions_data as $question_data) {
                 $new_question_id = $exercisequestion->insert([
                     'exercise_id' => $new_exercise_id,
-                    'question_text' => $question_data->question_text,
+                    'question_text' => $question_data['question_text'],
+                    // Note: You might also want to save question_data['answer_type'] if your schema supports it
                 ]);
 
-                foreach ($question_data->options as $option_text) {
+                // Extract the array of correct indices, defaulting to an empty array
+                $correct_indices = $question_data['correct_indices'] ?? []; 
+
+                // Use the option index as a counter
+                foreach ($question_data['options'] as $option_index => $option_text) {
+                    
+                    // Check if the current option index is in the correct_indices array
+                    $is_correct = in_array($option_index, $correct_indices) ? 1 : 0;
+
                     $exerciseanswer->insert([
                         'question_id' => $new_question_id,
                         'answer_text' => $option_text,
-                        'is_correct' => 0
+                        'is_correct' => $is_correct // Now correctly marked as 1 or 0
                     ]);
                 }
             }
 
             header('Location: '.ROOT.'/exercises/show?id='.$new_exercise_id);
+            exit();
+
 
             
 
@@ -284,45 +296,112 @@ class Exercises extends Controller
     public function show()
     {
         //only accessible to creator
-        $id = $_GET['id'] ?? null;
+        $exercise_id = $_GET['id'] ?? 1;
+        if (!$exercise_id) {
+            // Handle missing exercise ID (e.g., redirect or show error)
+            header('Location: '.ROOT.'/exercises?message=Exercise ID is required to attempt an exercise');
+        }
 
+        $exercises = new ExercisesModel;
+        $exercise_data = $exercises->first(['id' => $exercise_id]);
+
+        if(!$exercise_data->status === 'approved'){
+            header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
+        }
+
+        $user = new User;
+        $subject = new Subjects;
+        $exercise_tag = new ExerciseTag;
+        $user_vote_exercise = new UserVoteExercise;
+        $tags = new Tags;
+        $exercisequestion = new Exercisequestion;
+        $exerciseanswer = new Exerciseanswer;
+
+
+        $creator = $user->first(['id' => $exercise_data->creator_id])->username ?? 'Unknown';
+        $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
+
+        $tag_in_exercise = $exercise_tag->where(['exercise_id' => $exercise_id]);
+        $tags_list = [];
+
+        foreach ($tag_in_exercise as $key => $tag) {
+            // $tag_info = $subject->first(['id' => $tag->tag_id]);
+            $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
+        }
+
+        $votes = $user_vote_exercise->where(['exercise_id' => $exercise_id]);
+    
+        $upvotes = 0;
+        $downvotes = 0;
+        $user_vote_status = 'none';
+
+        foreach ($votes as $vote) {
+            if ($vote->votetype === 'upvote') {
+                $upvotes++;
+            } elseif ($vote->votetype === 'downvote') {
+                $downvotes++;
+            }
+
+            // if ($vote->user_id === $current_user->id) {
+            //     $user_vote_status = $vote->vote_type;
+            // }
+        }
+
+
+
+        if (!$exercise_data) {
+            // Handle case where exercise is not found
+            header('Location: '.ROOT.'/exercises?message=Exercise not found');
+        }
+
+        $questions = $exercisequestion->where(['exercise_id' => $exercise_id]);
+        
+        if (empty($questions)) {
+            // Handle case where no questions are found for the exercise
+            header('Location: '.ROOT.'/exercises/attempt?id='.$exercise_id.'&message=No questions found for this exercise');
+        }
+
+        $question_list = [];
+
+
+        foreach ($questions as $question) {
+            $answers = $exerciseanswer->where(['question_id' => $question->id]);
+            $answer_options = [];
+
+            foreach ($answers as $ans) {
+                $answer_options[] = $ans->answer_text;
+            }
+
+            $question_list[] = [
+                'id' => $question->id,
+                'question_text' => $question->question_text,
+                'options' => $answer_options
+            ];
+            
+        };
+
+        //remember to fetch review data too
+        $review_data = [
+            'average_score' => 0.8,
+        ];
+
+
+        // --- MOCK DATA SETUP ---
         $data = [
             'exercise_details' => [
-                'id' => 'ex_123',
-                'title' => 'Advanced Color Theory in UI Design',
-                'creator' => 'Alice',
-                'role' => 'under graphic design',
-                'created_at' => '26-02-2027',
-                'tags' => ['art', 'color', 'design principles'],
-                'upvotes' => 10000,
-                'downvotes' => 2000
+                'id' => $exercise_data->id,
+                'title' => $exercise_data->title,
+                'creator' => $creator,
+                'role' => 'under '.$subject_name,
+                'created_at' => $exercise_data->created_at,
+                'tags' => $tag_list,
+                'upvotes' => $upvotes,
+                'downvotes' => $downvotes,
+                'user_vote_status' => 'upvote', // possible values: 'upvoted', 'downvoted', 'none'
+                
             ],
-            // NEW: Mock review data
-            'review_data' => [
-                'average_score' => 0.8,
-                'analysis_link' => '/exercises/ex_123/analysis',
-                'edit_link' => '/exercises/ex_123/edit' // Points to your editor view
-            ],
-            'questions' => [
-                [
-                    'id' => 'q1',
-                    'question_text' => 'Which of the following is considered a "cool" color?',
-                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
-                    'correct_index' => 2 // Mock correct answer for display logic
-                ],
-                [
-                    'id' => 'q2',
-                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
-                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
-                    'correct_index' => 2
-                ],
-                [
-                    'id' => 'q3',
-                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
-                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
-                    'correct_index' => 1
-                ],
-            ]
+            'questions' => $question_list,
+            'review_data' => $review_data
         ];
 
         $this->view('exercises/view', $data);
@@ -521,5 +600,23 @@ class Exercises extends Controller
         ];
 
         $this->view('exercises/viewattempt', $data);
+    }
+
+    public function approve()
+    {
+        $exercise_id = $_POST['exercise_id'] ?? null;
+
+        //implement here
+
+        header('Location: '.ROOT.'/exercises?message=Exercise '.$exercise_id.' approved successfully');
+    }
+
+    public function reject()
+    {
+        $exercise_id = $_POST['exercise_id'] ?? null;
+
+        //implement here
+
+        header('Location: '.ROOT.'/exercises?message=Exercise '.$exercise_id.' rejected successfully');
     }
 }

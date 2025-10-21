@@ -20,7 +20,7 @@
         <div class="review-management-panel">
 
             <div class="management-card">
-                <form action="/your-backend-endpoint/approve-exercise" method="POST">
+                <form action="<?=ROOT?>/exercises/approve" method="POST">
                     <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_details']['id']) ?>">
                     <input type="hidden" name="status" value="approved">
                     <button type="submit" class="btn-approve button btn-primary">Approve</button>
@@ -82,7 +82,7 @@
         <h2>Reason for Rejection</h2>
         <p>Please provide feedback for the creator before rejecting this exercise.</p>
         
-        <form id="reject-form" action="/your-backend-endpoint/reject-exercise" method="POST">
+        <form id="reject-form" action="<?=ROOT?>/exercises/reject" method="POST">
             <input type="hidden" name="exercise_id" id="reject-exercise-id" value="<?= htmlspecialchars($data['exercise_details']['id']) ?>">
             <input type="hidden" name="status" value="rejected">
             <input type="hidden" name="reviewer_id" value="expert_user_123"> 

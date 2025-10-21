@@ -20,9 +20,13 @@ class Notes extends Controller
                 ['id' => 't7', 'name' => 'Biology', 'creator_id' => 'user_1'],
                 ['id' => 't8', 'name' => 'Fluid Dynamics', 'creator_id' => 'user_6'],
                 ['id' => 't9', 'name' => 'Computer Science', 'creator_id' => 'user_7'],
-                ['id' => 't10', 'name' => 'Thermodynamics', 'creator_id' => 'user_8'],
-                ['id' => 't11', 'name' => 'Cosmology', 'creator_id' => 'user_1'], 
-                ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
+                // ['id' => 't10', 'name' => 'Thermodynamics', 'creator_id' => 'user_8'],
+                // ['id' => 't11', 'name' => 'Cosmology', 'creator_id' => 'user_1'], 
+                // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
+                // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
+                ['id' => 't13', 'name' => 'Number Theory', 'creator_id' => 'user_10'],
+                ['id' => 't14', 'name' => 'Philosophy', 'creator_id' => 'user_11'],
+                ['id' => 't15', 'name' => 'Ethics', 'creator_id' => 'user_12'],
             ];
         
             // Simple text filter simulation
@@ -121,7 +125,7 @@ class Notes extends Controller
         $tags = new Tags;
 
         $note_data = $notes->first(['id' => $note_id]);
-        show($note_id);
+        // show($note_id);
 
         $topic_id = $note_data ? $note_data->topic_id : null;
         $topic_name = $topics->first(['id' => $topic_id])->name ?? 'Unknown Topic';
@@ -242,7 +246,7 @@ class Notes extends Controller
             $tags = $_POST['tags'] ?? [];
 
             //load required models
-
+                
             //retrieve existing note
 
             //validate ownership if not own by current user redirect to note page with errror message
@@ -291,7 +295,7 @@ class Notes extends Controller
 
     public function delete()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $note_id = $_POST['note_id'] ?? '';
             // Load required models
 
@@ -300,7 +304,7 @@ class Notes extends Controller
             // Perform deletion logic here (e.g., remove from database)
 
             // Redirect to notes list after deletion
-            header("Location: ".ROOT."/notes/view_notes");
+            header("Location: ".ROOT."/notes/notes?message=Note+".$note_id."+deleted+successfully");
             exit();
         }
     }

@@ -92,7 +92,8 @@ class OtpServices
                 $login_services->unset_user_data();
 
     
-                return 'login';//redirect to dashboard page
+                header("Location: ".ROOT."profile");
+                exit;
 
             case 'accountverification':
                 #accountverification

@@ -21,7 +21,7 @@
             <div class="score-card">
                 <div class="score-text">Average Score</div>
                 <div class="score-value"><?= number_format($data['review_data']['average_score'], 1) ?></div>
-                <a href="<?= htmlspecialchars($data['review_data']['analysis_link']) ?>" class="analysis-link">full analysis ></a>
+                <a href="<?= ROOT ?>/analysis" class="analysis-link">full analysis ></a>
             </div>
 
             <div class="management-card">

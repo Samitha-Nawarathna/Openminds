@@ -28,6 +28,7 @@ class Profileadmin extends Controller
         $user = new User;
         
         $role = $user->get_role($user_id);
+        // show($role);
 
         $results = $user->first(['id'=>$user_id]);
 
@@ -149,8 +150,10 @@ class Profileadmin extends Controller
         }
 
         $user->update($user_id, ['role'=>$new_role]);
+        $roles_model = new Roles;
+        $role_name = $roles_model->first(['role_id'=>$new_role])->name;
         
-        header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User role has been changed to $new_role successfully");
+        header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User role has been changed to $role_name successfully");
         
         
     }

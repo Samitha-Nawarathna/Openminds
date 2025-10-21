@@ -8,8 +8,8 @@
     <div class="middle-side">
         <div class="nav-links">
             <ul>
-                <li><a href="<?=ROOT?>/notes" class="no-style-link">Notes</li>
-                <li><a href="<?=ROOT?>/question" class="no-style-link">Q & A</li>
+                <li><a href="<?=ROOT?>/notes" class="no-style-link">Notes</a></li>
+                <li><a href="<?=ROOT?>/question" class="no-style-link">Q & A</a></li>
                 <li class="dropdown">
                     Exercises
                     <ul class="dropdown-menu">
@@ -20,13 +20,22 @@
                 </li>
                 <li><a href="<?=ROOT?>/analysis" class="no-style-link">Analysis</li>
                 <li><a href="<?=ROOT?>/expertrequest" class="no-style-link">Expert Requests</a></li>
-                <li class="dropdown">
+               
+               <?php 
+               
+               $nav_role = $_SESSION['role'] ?? null;
+
+               if ($nav_role && $nav_role === "admin"){
+                    echo '<li class="dropdown">
                     Admin previlages
                     <ul class="dropdown-menu">
-                        <li><a href="<?=ROOT?>/expertrequestadmin" class="no-style-link">Expert Requests</li>
-                        <li><a href="<?=ROOT?>/profileadmin" class="no-style-link">User Profiles</li>
+                        <li><a href="'.ROOT.'/expertrequestadmin" class="no-style-link">Expert Requests</li>
+                        <li><a href="'.ROOT.'/profileadmin" class="no-style-link">User Profiles</li>
                     </ul>
-                </li>
+                </li>';
+
+                    }?>
+
             </ul>
         </div>
     </div>
@@ -36,16 +45,12 @@
         </div>
         <div class="nav-links">
             <ul>
+                
                 <li class="dropdown">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
                     <ul class="dropdown-menu" style="width:20vw">
                         <li class="notification-header">Notifications</li>
                         <div class="notifications-container">
-                            <li class="notification-item">New comment on your post</li>
-                            <li class="notification-item">Your exercise has been approved</li>
-                            <li class="notification-item">New follower: JohnDoe</li>
-                            <li class="notification-item">Your profile was viewed 10 times today</li>
-                            <li class="notification-item">System maintenance scheduled for tonight</li>
                         </div>
                         <li class="notification-footer"><div class="button btn-none">See all notifications</div></li>
                     </ul>
@@ -96,7 +101,15 @@
     let notifications_container = document.querySelector(".notifications-container");
     let content = "";
 
-    if (res.length === 0) {
+    if (!notifications_container){
+        exit;
+    }
+
+    if (res.success===false){
+        content = "<li class='notification-item'>Error loading notifications</li>";
+    }
+     else
+     if (res.length === 0) {
         content = "<li class='notification-item'>No new notifications</li>";
     } else {
         res.forEach(notification => {

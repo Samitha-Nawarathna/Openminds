@@ -59,16 +59,7 @@ textarea {
     margin-bottom: 10px; /* Space between tags and the input bar */
 }
 
-.tag-pill {
-    display: inline-flex;
-    align-items: center;
-    background-color: #eef1ff;
-    color: #58589f;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 0.9em;
-    font-weight: 500;
-}
+
 
 .remove-tag {
     margin-left: 8px;

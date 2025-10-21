@@ -179,6 +179,27 @@
     grid-row: 2;
 }
 
+.expert-details
+{
+    gap:var(--space-xs);
+    display: flex;
+    flex-direction: column;
+    padding-top:var(--space-sm)
+}
+
+.expert-details .subjects{
+    display: flex;
+    padding-bottom: 0;
+    padding-left: 0;
+    gap: var(--space-xs);
+}
+
+.expert-details .expert-in p
+{
+    padding: 0;
+    margin: 0;
+}
+
 @media (max-width: 850px) {
     .body-container
     {

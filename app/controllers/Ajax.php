@@ -167,7 +167,13 @@ class Ajax extends Controller
         $offset = $sent_data->offset;
         $limit = $sent_data->limit;
 
-        $user_id = $_SESSION['user_id'];
+        $user_id = $_SESSION['user_id'] ?? null;
+
+        if (!$user_id) {
+            # code...
+            echo json_encode(['success' => false, 'error' => 'User not logged in']);
+            exit;
+        }
 
         $data['receiver_id'] = $user_id;
 

@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (offset === 10) {
                     // Simulate loading more data
                     mockTopics = [
-                        { id: 't11', name: 'Cosmology (Lazy Load 1)' },
-                        { id: 't12', name: 'Topology (Lazy Load 2)' }
+                        { id: 't11', name: 'Cosmology' },
+                        { id: 't12', name: 'Topology' }
                     ];
                     hasMore = false; // Last load
                 } else {
@@ -155,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
 
     // 1. Filter Button Listener
-    filterBtn.addEventListener('click', () => {
-        // Reset offset and load fresh data (true for non-initial load)
-        loadTopics(0, false); 
-    });
+    // filterBtn.addEventListener('click', () => {
+    //     // Reset offset and load fresh data (true for non-initial load)
+    //     loadTopics(0, false); 
+    // });
 
     // 2. Load More Button Listener
     loadMoreBtn.addEventListener('click', loadMore);

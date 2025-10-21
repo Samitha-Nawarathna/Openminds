@@ -15,6 +15,7 @@
 
     $role = $data["role"];
 
+
     $total_notes = $data["total_notes"];
 
     $total_exercises = $data["total_exercises"];
@@ -26,6 +27,8 @@
     $total_upvotes = $data["total_upvotes"];
 
     $total_points = $data["total_points"];
+
+    $subjects = $data["subjects"];
 
     include_once(HEADER_PATH);
 ?>
@@ -50,6 +53,21 @@
             </div> -->
         </div>
         <div class="expert-details">
+            <?php
+            if ($subjects)
+            {
+                echo '<div class="expert-in">
+                <p class="">Experts in:</p></div>
+                <div class="subjects">';
+                
+                //iterate through subjects and display them as pills
+                foreach ($subjects as $subject) {
+                    echo '<div class="tag-pill">'.$subject.'</div>';
+                }
+                echo '</div>';                
+            }
+
+            ?>
 
         </div>
     </div>

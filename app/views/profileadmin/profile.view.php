@@ -35,6 +35,7 @@
     $display_unban = $banned ? "block" : "none";
 
     include_once(HEADER_PATH);
+
 ?>
 
 <div class="body-container">

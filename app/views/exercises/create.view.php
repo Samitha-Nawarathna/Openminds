@@ -92,8 +92,6 @@ $data = [
         const INITIAL_QUESTIONS_DATA = [];
         const INITIAL_TAGS = []; 
     </script>
-    <script src="scripts_exercise_editor.js"></script>
-</body>
 
 <?php
     include_once "../app/views/partials/footer.view.php";

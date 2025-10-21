@@ -61,7 +61,7 @@
                         </div>
                     
                                     <div class="title-panel">
-                                        <h2>Title</h2>
+                                        <h2>Topic</h2>
                                             <input type="text" id="create-title-input" placeholder="Create or add title">
                                     </div>
                                     </div>

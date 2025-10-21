@@ -8,12 +8,30 @@ class Profile extends Controller
 
         $user_id = $_SESSION['user_id'];
 
-
         $user = new User;
-        
         $role = $user->get_role($user_id);
-
+        
         $results = $user->first(['id'=>$user_id]);
+
+        $results->subjects = [];
+
+        if ($role === "expert")
+        {
+            $experts_model = new Experts;
+
+            $results->subjects = $experts_model->where(['user_id'=>$user_id]);
+            if ($results->subjects === false) {
+                $results->subjects = [];
+            }
+            else
+            {
+                $results->subjects = array_column($results->subjects, 'subject');
+            }
+        }
+
+        
+
+        // $results->subjects = ['science', 'maths', 'english']; // temporary hardcoded subjects
 
         if ($results === false) {
             echo "user not found!";
@@ -40,6 +58,7 @@ class Profile extends Controller
             "display_name"=>$results->display_name,
             "created_at"=>$results->created_at,
             "role"=>$role,
+            "subjects"=>$results->subjects,
             "total_notes"=>$total_notes,
             "total_exercises"=>$total_exercises,
             "total_questions"=>$total_questions,
