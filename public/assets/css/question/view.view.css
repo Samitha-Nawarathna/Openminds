@@ -1,184 +1,202 @@
 /* General Reset/Base Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc;
+    /* Updated to use tokens */
+    font-family: var(--font-body);
+    background-color: var(--color-secondary-background);
     margin: 0;
-    padding-bottom: 80px; /* Space for the fixed footer */
+    padding-bottom: var(--space-xl); /* Increased space for the fixed footer */
+    color: var(--color-text); /* Base text color from tokens */
 }
 
 .container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 0 15px;
+    max-width: 900px; /* Slightly wider container */
+    margin: var(--space-md) auto;
+    padding:  var(--space-sm);
 }
 
 /* Question/Answer Common Styles */
 .question-container, .answer-container {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
+    background-color: var(--color-surface);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    /* Lighter, modern shadow */
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-md);
     text-align: left;
+    width: 100%;
+}
+
+.question-container
+{
+    border: var(--color-primary) 2px solid;
+}
+
+.answer-container {
+    border: 1px solid var(--color-border);
 }
 
 .question-meta-top, .answer-meta-top {
-    font-size: 0.9em;
-    color: #888;
-    margin-bottom: 10px;
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder); /* Muted gray for meta info */
+    margin-bottom: var(--space-xs);
 }
 
 h1 {
-    font-size: 1.5em;
-    font-weight: 600;
-    margin: 0 0 15px 0;
+    /* Using large font size from tokens */
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--color-text);
 }
 
 .question-content {
-    font-size: 1em;
-    color: #333;
+    font-size: var(--font-size-base);
+    color: var(--color-text);
     line-height: 1.6;
 }
 
 .answer-content {
     line-height: 1.7;
-    color: #333;
+    color: var(--color-text);
 }
 
-.answer-content ul { padding-left: 20px; }
-.answer-content li { margin-bottom: 0.5em; }
+.answer-content ul { padding-left: var(--space-md); }
+.answer-content li { margin-bottom: var(--space-xs); }
 
 /* Tags Styling */
-.tags { margin: 15px 0; }
+.tags { margin: var(--space-sm) 0; }
 .tag-item {
     display: inline-block;
-    background-color: #e0f7fa;
-    color: #00838f;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    margin-right: 8px;
+    /* Using secondary background for subtle tag color, or a specific tone */
+    background-color: var(--color-blue);
+    color: var(--color-primary); /* Use primary color for tag text */
+    padding: 5px var(--space-xs);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    margin-right: var(--space-xs);
+    font-weight: 500;
 }
 
 /* Vote Stats Styling */
 .vote-stats {
     display: flex;
-    gap: 20px;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--color-secondary-background); /* Lighter divider */
 }
 .upvote-count, .downvote-count {
     cursor: pointer;
-    color: #555;
+    color: var(--color-placeholder);
     user-select: none;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: var(--space-xs) 10px;
+    border-radius: var(--radius-sm);
     transition: background-color 0.2s;
 }
-.upvote-count:hover, .downvote-count:hover { background-color: #f0f0f0; }
+.upvote-count:hover, .downvote-count:hover { background-color: var(--color-secondary-background); }
 
 /* Answer Specific Styles */
 .answer-container {
-    padding-top: 50px;
+    padding-top: var(--space-lg); /* Increased padding for absolute badge */
     position: relative;
 }
-.chosen-answer { border: 1px solid #66bb6a; }
+.chosen-answer { border: 2px solid var(--color-success); } /* Thicker border for chosen answer */
 
 /* --- NEW STYLES START HERE --- */
 
 /* "Your Answer" Badge */
 .your-answer-badge {
     position: absolute;
-    top: -10px; /* Position above the container */
-    left: 20px;
-    background-color: #2e7d32; /* Dark green */
-    color: white;
-    padding: 5px 15px;
-    font-size: 0.8em;
-    font-weight: bold;
-    border-radius: 15px;
+    top: calc(-1 * var(--space-xs)); /* Position above the container */
+    left: var(--space-md);
+    background-color: var(--color-primary); /* Using primary color */
+    color: var(--color-surface);
+    padding: 5px var(--space-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border-radius: var(--radius-lg); /* Pill shape */
+    box-shadow: var(--shadow-md);
 }
 
 .chosen-badge {
     position: absolute;
     top: 0; left: 0;
-    background-color: #4caf50;
-    color: white;
-    padding: 5px 15px;
-    font-size: 0.75em;
-    font-weight: bold;
-    border-top-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    background-color: var(--color-success); /* Success color */
+    color: var(--color-surface);
+    padding: 5px var(--space-xs);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-top-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
 }
 
 /* Action Buttons Container */
 .action-buttons {
     display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
+    gap: var(--space-xs); /* Reduced gap */
+    margin-top: var(--space-sm);
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--color-secondary-background);
 }
 
 .action-buttons button {
-    flex-grow: 1; /* Make buttons share the space */
-    padding: 12px;
+    flex-grow: 1;
+    padding: var(--space-xs); /* Use smaller padding for action buttons */
     border: none;
-    border-radius: 8px;
-    font-size: 1em;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
     font-weight: 500;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s;
 }
 
 .action-buttons button:hover {
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .btn-edit {
-    background-color: #667eea; /* Blue/Purple */
-    color: white;
+    /* background-color: var(--color-n); Primary for edit/main action */
+    border: var(--color-primary) 2px solid;
+    color: var(--color-primary);
     border: none;
-    padding: 12px 40px;
-    border-radius: 5px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
 }
+.btn-edit:hover { background-color: #0069d9;
+color: var(--color-background); } /* Slightly darker primary on hover */
 
 .btn-delete {
-    background-color: #ef5350; /* Red */
-    color: white;
+    background-color: var(--color-error); /* Error color for delete */
+    color: var(--color-surface);
     border: none;
-    padding: 12px 40px;
-    border-radius: 5px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
 }
-/* --- NEW STYLES END HERE --- */
+.btn-delete:hover { background-color: #c82333; } /* Slightly darker error on hover */
 
 /* Fixed Footer Button */
 .fixed-footer {
     position: fixed;
     bottom: 0; left: 0;
     width: 100%;
-    background-color: #ffffff;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    padding: 15px 0;
+    background-color: var(--color-surface);
+    box-shadow: 0 -0.25rem 0.5rem rgba(0, 0, 0, 0.05); /* Lighter upward shadow */
+    padding: var(--space-sm) 0;
     text-align: center;
+    z-index: 999;
 }
 
 #answer-btn {
-    background-color: #5c6bc0;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
     border: none;
-    padding: 12px 40px;
-    border-radius: 5px;
-    font-size: 1.1em;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
-#answer-btn:hover { background-color: #4a569c; }
+#answer-btn:hover { background-color: #0069d9; }

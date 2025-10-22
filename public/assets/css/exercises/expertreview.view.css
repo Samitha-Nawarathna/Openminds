@@ -1,6 +1,6 @@
 /* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-body);
     background-color: #f7f9fc;
     display: flex;
     justify-content: center;

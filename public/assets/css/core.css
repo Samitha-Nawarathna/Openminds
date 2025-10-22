@@ -469,6 +469,24 @@ nav .right-side ul .profile-pic
     transition: all 0.2s ease;
   }
 
+ 
+.vote-state
+{
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+.vote-btn
+{
+    padding: 6px 10px;
+    border-radius: 1rem; /* Using a fixed value for a distinct pill shape */
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border: var(--color-border) 1px solid;    
+}
+
   .tile
   {
     padding: var(--space-sm);

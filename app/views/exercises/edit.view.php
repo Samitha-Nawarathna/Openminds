@@ -70,7 +70,7 @@
                 <button type="button" class=" button btn-primary" id="btn-add-question">add another question</button>
             </div>
             
-            <div class="save-button-container">
+            <div class="save-button-container container">
                 <button type="submit" class="button btn-primary">Save Exercise</button>
             </div>
 

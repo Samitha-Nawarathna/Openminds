@@ -1,38 +1,41 @@
 /* General Body and Container (Reusing Questions List styles) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* General Body and Container (Reusing Questions List styles) */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc;
+    font-family: var(--font-body);
+    background-color: var(--color-background);
     margin: 0;
-    padding-top: 50px;
+    padding-top: var(--space-lg);
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 var(--space-sm);
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: var(--font-size-xl);
     font-weight: 800;
     text-align: left;
-    margin-bottom: 25px;
-    color: #333;
+    margin-bottom: var(--space-md);
+    color: var(--color-text);
 }
 
 /* Filter Bar Styles (Reusing Questions List styles) */
 .filter-bar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
 }
 
 #topic-filter-input { /* Updated ID */
     flex-grow: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1em;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
 }
 
 .btn-filter, .btn-create {

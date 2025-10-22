@@ -1,55 +1,49 @@
 /* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc; /* Light blue/gray background */
+    font-family: var(--font-body);
+    background-color: var(--color-background);
     margin: 0;
-    padding-top: 30px;
-    padding-bottom: 50px;
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-xl);
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 var(--space-sm);
 }
 
-header{
+header {
     display: flex;
     padding-bottom: var(--space-md);
 }
+
 /* --- Current Note View Styles --- */
 .current-note-view {
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin-bottom: 30px;
+    background-color: var(--color-surface);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-lg);
 }
 
 .note-title {
-    font-size: 2em;
+    font-size: var(--font-size-lg);
     font-weight: 700;
-    margin: 0 0 10px 0;
-    color: #333;
+    margin: 0 0 var(--space-xs) 0;
+    color: var(--color-text);
 }
 
 .note-meta {
-    font-size: 0.9em;
-    color: #888;
-    margin-bottom: 15px;
-}
-
-.note-tags {
-    margin-bottom: 25px;
-    display: flex;
-    gap: 8px;
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+    margin-bottom: var(--space-sm);
 }
 
 .note-content {
-    font-size: 1.1em;
-    line-height: 1.7;
-    color: #444;
-    margin-bottom: 25px;
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--color-text);
 }
 
 .note-content p {

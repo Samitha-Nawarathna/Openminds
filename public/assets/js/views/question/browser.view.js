@@ -55,7 +55,7 @@
            item.classList.add('question-item');
            
            // In a real app, clicking should navigate to the question view
-           item.setAttribute('onclick', `window.location.href='/question/${question.id}'`);
+           item.setAttribute('onclick', `window.location.href='/question/show?id=${question.id}'`);
 
            item.innerHTML = `
                <span class="question-title"><a href="${ROOT}question/show?id=${question.id}" class="no-style-link">${question.title}</a></span>

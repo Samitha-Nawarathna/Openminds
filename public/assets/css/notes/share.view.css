@@ -1,7 +1,7 @@
 /* General Body Styles for the modal background */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc; 
+    font-family: var(--font-body);
+    background-color: var(--color-secondary-background); 
     display: flex;
     justify-content: center;
     align-items: center;

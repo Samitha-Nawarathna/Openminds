@@ -21,8 +21,8 @@ function format_count($n) {
 <div class="attempt-wrapper">
 
         <div class="question-flipper">
-            <div class="decorative-card"></div>
-            
+        <div class="decorative-card"></div>
+
             <div class="question-card">
                 <header class="question-header">
                     <span id="question-number">Question 1 of 3</span>

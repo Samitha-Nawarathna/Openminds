@@ -1,7 +1,7 @@
 /* General Body Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f2eef7; /* Light lavender background */
+    background-color: var(--color-secondary-background); /* Light lavender background */
     display: flex;
     justify-content: center;
     align-items: center;

@@ -1,54 +1,56 @@
-/* General Body Styles */
+/* General Body Styles - Replaced hardcoded values with tokens */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc;
+    font-family: var(--font-body); /* Use the body font token */
+    background-color: var(--color-secondary-background); /* Use the system background color */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    color: var(--color-text); /* Ensure text color inheritance */
+
 }
 
 .note-viewer-wrapper {
     width: 100%;
     max-width: 900px;
-    padding: 20px;
+    padding: var(--space-md); /* Used space-md (1.5rem/24px) for padding */
 }
 
 .note-card {
     display: flex;
-    background-color: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-surface); /* White surface color */
+    border-radius: var(--radius-lg); /* Larger radius for the main card */
+    box-shadow: var(--shadow-md); /* Lighter, modern shadow */
     overflow: hidden;
-    padding: 30px;
+    padding: var(--space-lg); /* Increased padding inside the card (2.5rem/40px) */
 }
 
 /* --- Left Content Section --- */
 .content-section {
     flex: 2; /* Takes up more space */
-    padding-right: 30px;
-    border-right: 1px solid #eee;
+    padding-right: var(--space-lg);
+    border-right: 1px solid var(--color-secondary-background); /* Use light secondary background for subtle divider */
 }
 
 .note-title-input,
 .note-content-textarea {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
+    padding: var(--space-sm); /* Used space-sm (1rem/16px) for padding */
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md); /* Medium radius for inputs */
+    font-size: var(--font-size-base);
     box-sizing: border-box;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-md);
     resize: none;
     font-family: inherit;
-    color: #333;
+    color: var(--color-text);
 }
 
 .note-title-input {
-    font-size: 1.5rem;
-    font-weight: bold;
-    height: 50px;
+    font-size: var(--font-size-lg); /* Used larger font token */
+    font-weight: 600;
+    height: auto; /* Allow height to adjust based on padding/font size */
 }
 
 .note-content-textarea {
@@ -58,66 +60,99 @@ body {
 
 /* Action Buttons */
 .action-buttons-bottom {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto; /* Use auto for row height */
+    gap: var(--space-sm); /* Consistent gap spacing */
 }
 
-.btn-share, .btn-delete {
-    padding: 12px 30px;
+.btn-share, .btn-delete, .action-buttons-bottom .btn-edit {
+    padding: var(--space-sm) var(--space-md); /* Adjusted button padding */
     border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s; /* Transition all properties for better hover effects */
 }
 
 .btn-share {
-    background-color: #7c8dff; /* Primary Blue/Purple */
-    color: white;
+    /* Primary button style */
+    background-color: var(--color-primary); 
+    color: var(--color-surface);
 }
 
-.btn-delete {
+.btn-share:hover {
+    background-color: #0056b3; /* Darker primary blue on hover */
+}
+
+.action-buttons-bottom .btn-share {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.action-buttons-bottom .btn-edit {
+    /* Secondary style for edit/cancel (assuming edit button is a secondary action) */
+    /* background-color: var(--color-secondary-background); */
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.action-buttons-bottom .btn-edit:hover {
+    background-color: #ced4da; /* Slightly darker background on hover */
+    color: var(--color-primary);
+}
+
+.action-buttons-bottom .btn-delete {
+    /* Error button style */
     color: var(--color-surface);
     background-color: var(--color-error);
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.action-buttons-bottom .btn-delete:hover {
+    background-color: #c82333; /* Darker error red on hover */
 }
 
 
 /* --- Right Sidebar Section --- */
 .sidebar-section {
     flex: 1; /* Takes up less space */
-    padding-left: 30px;
+    padding-left: var(--space-lg);
 }
 
 .sidebar-section h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #555;
+    font-size: var(--font-size-base);
+    font-weight: 700; /* Increased weight for emphasis */
+    color: var(--color-text); /* Used main text color */
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: var(--space-sm);
 }
 
 /* Tags Display */
 .tags-container {
-    margin-bottom: 30px;
+    margin-bottom: var(--space-lg);
 }
 
 .tags-display {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-xs); /* Use xs spacing for small gap */
 }
 
 .tag-pill {
-    padding: 5px 10px;
+    /* This style is identical to the one in your token file, kept for consistency */
+    padding: 5px 10px; 
     border-radius: 12px;
     font-size: 0.9em;
     font-weight: 500;
     white-space: nowrap;
 }
 
-/* Tag Color Schemes (Reusing/Adapting from previous steps) */
+/* Tag Color Schemes - Keeping original colors as they are utility-based */
 .tag-physics { background-color: #ff9999; color: #cc0000; }
 .tag-psychology { background-color: #ccccff; color: #6600cc; }
 .tag-maths { background-color: #99ff99; color: #008000; }
@@ -127,83 +162,66 @@ body {
 
 /* --- Focus Timer Section --- */
 .focus-timer-container {
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-secondary-background);
 }
 
 .timer-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
 }
-
-.action-buttons-bottom
-{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-}
-
-.action-buttons-bottom .btn-share
-{
-    grid-column: 1 / -1;
-    grid-row: 1;
-}
-
-.action-buttons-bottom .btn-edit
-{
-    grid-column: 1;
-    grid-row: 2;
-}
-
-.action-buttons-bottom .btn-delete
-{
-    grid-column: 2;
-    grid-row: 2;
-}
-
 
 #timer-minutes-input {
     width: 60px;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
     text-align: center;
-    font-size: 1.1rem;
+    font-size: var(--font-size-base);
 }
 
 .unit-label {
-    font-size: 0.9rem;
-    color: #777;
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
 }
 
 #timer-btn {
-    padding: 8px 20px;
+    padding: var(--space-xs) var(--space-sm);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .btn-start {
-    background-color: #7c8dff;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+.btn-start:hover {
+    background-color: #0056b3; /* Darker primary blue on hover */
 }
 
 .btn-cancel {
+    /* Use error color for cancel button */
     color: var(--color-surface);
     background-color: var(--color-error);
 }
 
+.btn-cancel:hover {
+    background-color: #c82333; /* Darker error red on hover */
+}
+
 #countdown-display {
-    font-size: 2.5rem;
+    font-size: var(--font-size-lg);
     font-weight: bold;
-    color: #333;
+    color: var(--color-text);
     text-align: center;
-    padding: 10px 0;
-    background-color: #f0f0f0;
-    border-radius: 8px;
-    display: none; /* Initially hidden */
+    padding: var(--space-sm) 0;
+    background-color: var(--color-secondary-background);
+    border-radius: var(--radius-md);
+    display: none;
 }

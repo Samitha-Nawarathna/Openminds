@@ -58,7 +58,7 @@ $data = [
                 <button type="button" class="button btn-primary btn-add-" id="btn-add-question">add first question</button>
             </div>
             
-            <div class="save-button-container">
+            <div class="save-button-container container">
                 <button type="submit" class="button btn-primary" id="btn-save-exercise">Save Exercise</button>
             </div>
 

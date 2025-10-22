@@ -1,165 +1,201 @@
 /* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc; /* Light blue/gray background */
+    /* Font is already set in the global base styles, removing duplication */
+    /* background-color is already set in the global base styles, removing duplication */
     margin: 0;
-    padding-top: 50px;
+    /* Maintain padding top for fixed nav, but use a spacing token */
+    padding-top: var(--space-xl); 
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 var(--space-sm); /* Using space-sm for side padding */
 }
 
 h1 {
-    font-size: 2.5em;
-    font-weight: 800;
+    font-size: var(--font-size-lg); /* Using the new large font size token */
+    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
     text-align: left;
-    margin-bottom: 25px;
-    color: #333;
+    margin-bottom: var(--space-md); /* Using space-md for good separation */
+    color: var(--color-text); /* Using the dark text color token */
 }
 
-/* Filter Bar Styles */
+/* -----------------------------
+    🛠️ FILTER BAR STYLES
+------------------------------ */
+
 .filter-bar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
+    gap: var(--space-xs); /* Tighter gap */
+    margin-bottom: var(--space-md);
 }
 
 #tag-filter-input {
     flex-grow: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1em;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
 }
 
 .btn-filter, .btn-create {
-    padding: 10px 20px;
+    padding: var(--space-xs) var(--space-md);
     border: none;
-    border-radius: 8px;
-    font-size: 1em;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
     cursor: pointer;
-    text-decoration: none; /* For the 'a' element used as a button */
+    text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .btn-filter {
-    background-color: #ffffff;
-    color: #555;
-    border: 1px solid #ddd;
+    background-color: var(--color-surface);
+    color: var(--color-placeholder); /* More subtle text for secondary button */
+    border: 1px solid var(--color-border);
+}
+
+.btn-filter:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: var(--color-secondary-background);
 }
 
 .btn-create {
-    background-color: #7c8dff; /* Blue/Purple color */
+    background-color: var(--color-primary); /* Primary button color */
     color: white;
     font-weight: 600;
 }
 
-/* Tabs Styles */
+.btn-create:hover {
+    background-color: #0056b3; /* Darker shade for primary hover */
+}
+
+/* -----------------------------
+    🏷️ TABS STYLES
+------------------------------ */
+
 .tabs-container {
     display: flex;
-    gap: 5px;
-    margin-bottom: 30px;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap; /* Added for mobile responsiveness */
 }
 
 .tab-button {
-    padding: 8px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: white;
-    color: #555;
+    padding: calc(var(--space-xs) / 1.25) var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm); /* Using sm radius for tabs */
+    background-color: var(--color-surface);
+    color: var(--color-placeholder);
     cursor: pointer;
-    font-size: 0.95em;
-    transition: background-color 0.2s, color 0.2s;
+    font-size: var(--font-size-sm);
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    font-weight: 500;
 }
 
 .tab-button:hover:not(.active) {
-    background-color: #f0f0f0;
+    background-color: var(--color-secondary-background);
+    color: var(--color-text);
 }
 
 .tab-button.active {
-    background-color: #7c8dff;
-    color: white;
-    border-color: #7c8dff;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border-color: var(--color-primary);
 }
 
-/* Question List Item Styles */
+/* -----------------------------
+    📄 QUESTION/LIST ITEM STYLES
+------------------------------ */
+
 .question-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background-color: var(--color-surface);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xs);
+    box-shadow: var(--shadow-md); /* Using the lighter shadow token */
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: all 0.2s ease;
+    border: 1px solid transparent; /* Prepare for focus/hover border */
 }
 
 .question-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slightly stronger hover shadow */
+    border-color: var(--color-primary);
 }
 
 .question-title {
     flex-grow: 1;
-    font-size: 1.1em;
-    color: #333;
+    font-size: var(--font-size-base);
+    color: var(--color-text);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    margin-right: 15px;
+    margin-right: var(--space-sm);
 }
 
 .tag-pill {
-    padding: 5px 10px;
+    /* This style is duplicated and should be consolidated or removed if using the previous definition */
+    /* Keeping it for now but using tokens */
+    padding: 4px 10px;
     border-radius: 12px;
-    font-size: 0.8em;
+    font-size: var(--font-size-sm);
     font-weight: 600;
     white-space: nowrap;
 }
 
-/* Tag Color Schemes (Example colors from the image) */
+/* Tag Color Schemes - Keep as is, but consider using new tokens for consistency later */
+/* For now, these utility classes remain until a robust tag color system is defined */
 .tag-physics { background-color: #ff9999; color: #cc0000; }
 .tag-maths { background-color: #99ff99; color: #008000; }
 .tag-quantum-computing { background-color: #ffcc99; color: #cc6600; }
 .tag-psychology { background-color: #ccccff; color: #6600cc; }
-.tag-test { background-color: #eee; color: #666; }
+.tag-test { background-color: #eee; color: var(--color-placeholder); } /* Changed color to placeholder token */
 
-/* Load More Button Styles */
+/* -----------------------------
+    ➕ LOAD MORE STYLES
+------------------------------ */
+
 .load-more-container {
     text-align: center;
-    margin: 20px 0 50px 0;
+    margin: var(--space-md) 0 var(--space-lg) 0;
 }
 
 .btn-load-more {
-    padding: 10px 30px;
-    border: 1px solid #7c8dff;
-    border-radius: 8px;
-    background-color: white;
-    color: #7c8dff;
+    padding: var(--space-xs) var(--space-lg);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    color: var(--color-primary);
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s;
+    font-size: var(--font-size-base);
+    transition: all 0.2s ease;
 }
 
 .btn-load-more:hover:not(:disabled) {
-    background-color: #f2f5ff;
+    background-color: var(--color-blue); /* Lighter blue from tokens */
+    color: var(--color-primary);
 }
 
 .btn-load-more:disabled {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.6;
+    border-color: var(--color-border);
+    color: var(--color-placeholder);
 }
 
 /* Loading/Error State */
 .loading, .error {
     text-align: center;
-    padding: 20px;
-    color: #888;
+    padding: var(--space-md);
+    color: var(--color-placeholder);
 }

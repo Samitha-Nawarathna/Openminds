@@ -152,6 +152,12 @@ class Profileadmin extends Controller
         $user->update($user_id, ['role'=>$new_role]);
         $roles_model = new Roles;
         $role_name = $roles_model->first(['role_id'=>$new_role])->name;
+
+        $notification_service = new NotificationServices;
+
+        $sender_id = $_SESSION['user_id'];
+        $notification_content = "Your user role has been changed to $role_name.";
+        $notification_service->send_notification($sender_id, $notification_content, $user_id);
         
         header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User role has been changed to $role_name successfully");
         

@@ -1,7 +1,7 @@
 /* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc; /* Light background */
+    font-family: var(--font-body);
+    background-color: var(--color-secondary-background); /* Light background */
     display: flex;
     justify-content: center;
     align-items: center;

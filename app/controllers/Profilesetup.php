@@ -78,7 +78,7 @@ class Profilesetup extends Controller
         $loginservices->set_session($user_data);
         $loginservices->unset_user_data($user_data);
         
-        header("Location: ".ROOT."dashboard");
+        header("Location: ".ROOT."profile");
     }
 
 }
