@@ -178,24 +178,92 @@ class Question extends Controller
             header("Location: ".ROOT."/question/show?id=" . $q_id);
         } else {
             $id = $_GET['id'] ?? 2;
-            //load relevant models
-
+            $id = $_GET['id'] ?? 1;
             // Fetch question from the database using $id
-
-            // Validate ownership and check for existing answers if answers exist or not by creator then cannot edit
-
-            // If valid, proceed to show edit form
-
-            // populate data array
-
-            // MOCK DATA FOR NOW UNTIL DB INTEGRATION --- should be replaced by actual data from DB
-
+            $current_user = $_SESSION['user_id'] ?? 'user_2';
+    
+            $questions = new QuestionModel;
+            $answers = new Answer;
+            $user_vote_question = new Uservotequestion;
+            $user_vote_answer = new Uservoteanswer;
+            $question_tag = new Questiontag;
+            $user = new User;
+            $tags = new Tags;
+    
+    
+            $question_data = $questions->first(['id' => $id]);
+            $creator = $user->first(['id' => $question_data->creator_id])->username;
+    
+            $question_tags = $question_tag->where(['question_id' => $id]);
+            $tag_names = [];
+            foreach ($question_tags as $qt) {
+                $tag = $tags->first(['id' => $qt->tag_id]);
+                if ($tag) {
+                    $tag_names[] = $tag->name;
+                }
+            }
+    
+            $question_upvotes = 0;
+            $question_downvotes = 0;
+            $question_votes = $user_vote_question->where(['q_id' => $id]);
+    
+            foreach ($question_votes as $vote) {
+                if ($vote->votetype === 'upvote') {
+                    $question_upvotes++;
+                } elseif ($vote->votetype === 'downvote') {
+                    $question_downvotes++;
+                }
+            }
+    
+            $answers_data = $answers->where(['q_id' => $id]);
+            $answer_list = [];
+    
+            foreach ($answers_data as $answer) {
+                $answer_upvotes = 0;
+                $answer_downvotes = 0;
+                $answer_votes = $user_vote_answer->where(['a_id' => $answer->id]);
+    
+                foreach ($answer_votes as $vote) {
+                    if ($vote->votetype === 'upvote') {
+                        $answer_upvotes++;
+                    } elseif ($vote->votetype === 'downvote') {
+                        $answer_downvotes++;
+                    }
+                }
+    
+                $answer_list[] = [
+                    'id'         => $answer->id,
+                    'is_chosen'  => $answer->is_chosen ?? false,
+                    'content'    => $answer->content,
+                    'creator'    => $user->first(['id' => $answer->creator_id])->username,
+                    'creator_id' => $answer->creator_id,
+                    'role'       => $user->get_role($answer->creator_id),
+                    'created_at' => $answer->created_at,
+                    'upvotes'    => $answer_upvotes,
+                    'downvotes'  => $answer_downvotes
+                ];
+            }
+            
             $data = [
-                'id'      => 2,
-                'title'   => 'What are myelinated axons?',
-                'content' => 'I have heard about myelinated axons in my biology class, but I am not sure what they are. Can someone explain?',
-                'tags'    => ['biology', 'neuroscience', 'anatomy'],
+                'current_user_id' => $current_user, // Simulating that 'Bob' is the logged-in user.
+                                               // Change to 'user_1' to see buttons on the question.
+                                               // Change to 'user_3' to see the default view for a visitor.
+                'question' => [
+                    'id'         => $question_data->id,
+                    'title'      => $question_data->title,
+                    'content'    => $question_data->content,
+                    'creator'    => $creator,
+                    'creator_id' => $question_data->creator_id, // Added creator ID
+                    'created_at' => $question_data->created_at,
+                    'upvotes'    => $question_upvotes,
+                    'downvotes'  => $question_downvotes,
+                    'tags'       => $tag_names
+                ],
+                'answers' => 
+                    $answer_list
+                    // You can add more answers here to test
             ];
+    
             
             $this->view('question/edit_question', $data);
         }

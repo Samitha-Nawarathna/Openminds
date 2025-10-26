@@ -12,6 +12,8 @@
         return $n;
     }
 
+    $id = $data['exercise_details']['id'];
+
 ?>
 
 <div class="attempt-wrapper">
@@ -26,7 +28,7 @@
                     <button type="submit" class="btn-approve button btn-primary">Approve</button>
                 </form>
                 
-                <button class="btn-reject button btn-error" id="btn-reject">Reject</button>
+                <button class="btn-reject button btn-error" id="btn-reject">Improvement Needed</button>
             </div>
         </div>
     
@@ -79,8 +81,8 @@
     <div id="reject-modal" class="modal">
     <div class="modal-content">
         <span class="close-button" id="close-reject-modal">&times;</span>
-        <h2>Reason for Rejection</h2>
-        <p>Please provide feedback for the creator before rejecting this exercise.</p>
+        <h2>Give Feedback</h2>
+        <p>Please provide feedback for the creator about this exercise.</p>
         
         <form id="reject-form" action="<?=ROOT?>/exercises/reject" method="POST">
             <input type="hidden" name="exercise_id" id="reject-exercise-id" value="<?= htmlspecialchars($data['exercise_details']['id']) ?>">
@@ -88,11 +90,11 @@
             <input type="hidden" name="reviewer_id" value="expert_user_123"> 
 
             <div class="input-group">
-                <label for="reject-reason">Reason for Rejection</label>
+                <label for="reject-reason">Write your Feedback here</label>
                 <textarea id="reject-reason" name="reason" rows="4" placeholder="e.g., Question 2 is ambiguous..." required></textarea>
             </div>
 
-            <button type="submit" class="btn-submit-rejection button btn-primary">Send Rejection</button>
+            <button type="submit" class="btn-submit-rejection button btn-primary">Send Feedback</button>
         </form>
     </div>
 </div>
@@ -108,6 +110,43 @@
         const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
         const isReviewMode = true;
     </script>
+
+<div class="popup confirmation" style='display:none'>
+    <div class="content">
+        <div class="container">
+            <p class='message'></p>
+            <div class="btns" style="display:flex;">
+            <button class='button btn-none btn-dismiss'>Back</button>
+
+            <form class='confirmation-btn' action='' method='post'>
+                <input type="hidden" name="id" value="<?=$id?>">
+                <input type='submit' class='button btn-error' value='Confirm'>
+            </form>
+
+            </div>
+        </div>
+    </div>
+    <div class="background"></div>
+</div>
+
+<div class="popup feedback" style='display:none'>
+    <div class="content container">
+            <p class='message'></p>
+            
+
+                <form class='confirmation-btn' action='' method='post'>
+                    <div class="input-group">
+                        <textarea name="feedback"  id="" cols="30" rows="10"></textarea>
+                    </div>
+                    <input type="hidden" name="id" value="<?=$id?>">
+                    <div class="btns">
+                        <button type= 'button' class='button btn-none btn-dismiss' onclick=''>Back</button>
+                        <input type='submit' class='button btn-error' value='Send feedback'>
+                    </div>
+                </form>
+
+        
+    </div>
 
 <?php
     include_once "../app/views/partials/footer.view.php";

@@ -12,6 +12,8 @@
         return $n;
     }
 
+
+
 ?>
 
 <div class="attempt-wrapper">
@@ -26,6 +28,7 @@
 
             <div class="management-card">
                 <a href="<?= ROOT ?>/exercises/edit?id=<?=$data['exercise_details']['id']?>" class="btn-edit">Edit</a>
+                <a href="<?= ROOT ?>/exercises/hide?id=<?=$data['exercise_details']['id']?>" class="btn-hide">Hide</a>
                 <a href="<?= ROOT ?>/exercises/delete" class="btn-delete">Delete</a>
             </div>
         </div>

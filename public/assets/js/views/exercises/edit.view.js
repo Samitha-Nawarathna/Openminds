@@ -39,9 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- End New Elements ---
 
-
+    const INITIAL_QUESTIONS_DATA = window.INITIAL_QUESTIONS_DATA;
+    const INITIAL_TAGS = window.INITIAL_TAGS;
     // --- State ---
     let questionsState = INITIAL_QUESTIONS_DATA || [];
+    console.log("Initial Questions Data:", INITIAL_QUESTIONS_DATA);
     let selectedTags = new Set(INITIAL_TAGS || []);
     let dragSrcEl = null; 
 
@@ -249,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("You must select at least one correct answer.");
             return;
         }
+
+        const weightContainer = document.getElementById('modal-question-weight');
+        const weight = weightContainer ? parseFloat(weightContainer.value) : 1;
         // --- End New Section ---
         
         let questionIndex = questionsState.findIndex(q => q.id === id);
@@ -258,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             question_text: text,
             answer_type: type,
             options: options,
+            weight: isNaN(weight) ? 1 : weight,
             correct_indices: correctIndices // <-- ADDED THIS
         };
 
@@ -354,8 +360,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Action button listeners
             panel.querySelector('.btn-edit').addEventListener('click', function() {
+                console.log("dataset: ", this.dataset.id);
                 const qId = this.dataset.id;
-                const question = questionsState.find(q => q.id === qId);
+                const question = questionsState.find(q => q.id == qId);
+                console.log("Editing question:", question);
+                console.log("Current questions state:", questionsState);
                 openModal(question); 
             });
             

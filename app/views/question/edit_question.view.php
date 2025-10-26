@@ -23,13 +23,13 @@ include_once '../app/views/partials/header.view.php';
         <h1 class="form-title">Edit Question</h1>
         <form action="<?= ROOT?>/question/edit" method="POST" id="create-question-form">
             
-            <input type="hidden" name="id" value="<?= htmlspecialchars($data['id']) ?>">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($data['question']['id']) ?>">
             <div class="input-group">
-                <input type="text" id="title" name="title" placeholder="Title" value = "<?= htmlspecialchars($data['title']) ?>" required>
+                <input type="text" id="title" name="title" placeholder="Title" value = "<?= htmlspecialchars($data['question']['title']) ?>" required>
             </div>
 
             <div class="input-group">
-                <textarea id="content" name="content" placeholder="Content" rows="8" required><?= htmlspecialchars($data['content']) ?></textarea>
+                <textarea id="content" name="content" placeholder="Content" rows="8" required><?= htmlspecialchars($data['question']['content']) ?></textarea>
             </div>
 
             <div class="input-group">

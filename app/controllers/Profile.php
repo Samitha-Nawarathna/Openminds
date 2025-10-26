@@ -17,16 +17,16 @@ class Profile extends Controller
 
         if ($role === "expert")
         {
-            $experts_model = new Experts;
+            // $experts_model = new Experts;
 
-            $results->subjects = $experts_model->where(['user_id'=>$user_id]);
-            if ($results->subjects === false) {
-                $results->subjects = [];
-            }
-            else
-            {
-                $results->subjects = array_column($results->subjects, 'subject');
-            }
+            // $results->subjects = $experts_model->where(['user_id'=>$user_id]);
+            // if ($results->subjects === false) {
+            //     $results->subjects = [];
+            // }
+            // else
+            // {
+            //     $results->subjects = array_column($results->subjects, 'subject');
+            // }
         }
 
         

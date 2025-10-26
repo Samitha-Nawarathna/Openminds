@@ -249,6 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("You must select at least one correct answer.");
             return;
         }
+
+        const weightContainer = document.getElementById('modal-question-weight');
+        const weight = weightContainer ? parseFloat(weightContainer.value) : 1;
         // --- End New Section ---
         
         let questionIndex = questionsState.findIndex(q => q.id === id);
@@ -258,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             question_text: text,
             answer_type: type,
             options: options,
+            weight: weight,
             correct_indices: correctIndices // <-- ADDED THIS
         };
 

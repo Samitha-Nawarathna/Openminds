@@ -5,31 +5,31 @@
 
     include_once "../app/views/partials/header.view.php";
 
-?>
+    // show($data['questions']);
+    // exit;
 
-<?php
 ?>
 
     <div class="editor-wrapper">
         <form action="<?= ROOT ?>/exercises/edit" method="POST" id="exercise-editor-form">
             
-            <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_id']) ?>">
+            <input type="hidden" name="exercise_id" value="<?= htmlspecialchars($data['exercise_details']['exercise_id']) ?>">
             <input type="hidden" name="question_order" id="question-order-field" value="">
 
             <div class="main-header-card">
                 <h1>Edit Exercise</h1>
-                <input type="text" id="exercise-title-input" name="exercise_title" value="<?= htmlspecialchars($data['exercise_title']) ?>" placeholder="Enter Main Exercise Title">
+                <input type="text" id="exercise-title-input" name="exercise_title" value="<?= htmlspecialchars($data['exercise_details']['title']) ?>" placeholder="Enter Main Exercise Title">
             </div>
 
             <div class="details-section card">
                 <div class="input-group">
                     <label for="exercise-subject-input">Subject Name</label>
-                    <input type="text" id="exercise-subject-input" name="subject_name" value="<?= htmlspecialchars($data['subject_name']) ?>" placeholder="e.g., Physics, Maths, Art">
+                    <input type="text" id="exercise-subject-input" name="subject_name" value="<?= htmlspecialchars($data['exercise_details']['subject']) ?>" placeholder="e.g., Physics, Maths, Art">
                 </div>
 
                 <div class="input-group tag-input">
                     <label for="tags-input">Tags (Type and Enter)</label>
-                    <input type="hidden" id="hidden-tags-field" name="tags" value="<?= htmlspecialchars(implode(',', $data['current_tags'])) ?>">
+                    <input type="hidden" id="hidden-tags-field" name="tags" value="<?= htmlspecialchars(implode(',', $data['exercise_details']['tags'])) ?>">
                     
                     <div id="selected-tags-display" class="tags-display-area">
                         </div>
@@ -88,6 +88,11 @@
                 <textarea id="modal-question-text" rows="3"></textarea>
             </div>
 
+            <div class="input-group">
+                <label for="modal-question-text">weight</label>
+                <textarea id="modal-question-text" rows="1">1</textarea>
+            </div>
+
             <input type="hidden" id="modal-answer-type" value="multiple_choice" name="answer_type">
 
             <div class="input-group" id="modal-options-group">
@@ -100,9 +105,10 @@
     </div>
     
     <script>
-        const INITIAL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
-        const INITIAL_TAGS = <?= json_encode($data['current_tags']) ?>; 
+        window.INITIAL_QUESTIONS_DATA = <?= json_encode($data['questions'] ?? []) ?>;
+        window.INITIAL_TAGS = <?= json_encode($data['current_tags'] ?? [])?>; 
     </script>
+
 
 
 <?php

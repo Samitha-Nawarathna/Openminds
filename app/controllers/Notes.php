@@ -20,7 +20,7 @@ class Notes extends Controller
                 ['id' => 't7', 'name' => 'Biology', 'creator_id' => 'user_1'],
                 ['id' => 't8', 'name' => 'Fluid Dynamics', 'creator_id' => 'user_6'],
                 ['id' => 't9', 'name' => 'Computer Science', 'creator_id' => 'user_7'],
-                // ['id' => 't10', 'name' => 'Thermodynamics', 'creator_id' => 'user_8'],
+                ['id' => 't10', 'name' => 'Thermodynamics', 'creator_id' => 'user_8'],
                 // ['id' => 't11', 'name' => 'Cosmology', 'creator_id' => 'user_1'], 
                 // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
                 // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
@@ -174,13 +174,13 @@ class Notes extends Controller
             $tags = new Tags;
 
             // Check if topic exists, if not create it
-            $topic_data = $topics->first(['name' => $topic]);
+            // $topic_data = $topics->first(['name' => $topic]);
 
-            if (!$topic_data) {
-                $topic_id = $topics->insert(['name' => $topic, 'creator_id' => $current_user_id]);
-            } else {
-                $topic_id = $topic_data->id;
-            }
+            // if (!$topic_data) {
+            //     $topic_id = $topics->insert(['name' => $topic, 'creator_id' => $current_user_id]);
+            // } else {
+            //     $topic_id = $topic_data->id;
+            // }
 
             // Create the new note
 
@@ -258,26 +258,38 @@ class Notes extends Controller
 
             exit();
         }
-        $note_id = $_GET['note_id'] ?? null;
+        $note_id = $_GET['id'] ?? null;
 
-        // For GET request, load the existing note data to pre-fill the form
+       // --- MOCK DATA SETUP ---
+       $notes = new NoteModel;
+       $note_shares = new NoteShares;
+       $note_tags = new NoteTags;
+       $topics = new Topics;
+       $tags = new Tags;
 
-        //laod required models
+       $note_data = $notes->first(['id' => $note_id]);
+       // show($note_id);
 
-        //retrieve note id from query parameter
+       $topic_id = $note_data ? $note_data->topic_id : null;
+       $topic_name = $topics->first(['id' => $topic_id])->name ?? 'Unknown Topic';
 
-        //validate ownership if not own by current user redirect to note page with errror message
+       $note_tags = $note_tags->where(['note_id' => $note_id]);
 
-        //replace mock data below with actual data from database
+       $tag_names = [];
 
-        // --- MOCK DATA SETUP: Data passed from the backend for the note being edited ---
-        $current_note_data = [
-            'id' => 1, // THE ESSENTIAL HIDDEN FIELD VALUE
-            'title' => 'Advanced Color Theory for Web Design',
-            'content' => "Color theory in the digital age focuses heavily on hex codes, RGB, and HSL values. Understanding color space, gamut mapping, and accessibility (WCAG contrast ratios) is crucial for modern front-end design.\n\nKey areas: Accessibility (AA/AAA), Brand Palette definition, and understanding color psychology for conversion rates.",
-            'tags' => ['design', 'Psychology', 'WebDev', 'Accessibility'], // Pre-selected tags
-            'topic' => 'Color Theory'
-        ];
+       foreach ($note_tags as $tag) {
+           $tag_names[] = $tags->first(['id' => $tag->tag_id])->name;
+       }
+
+       $note_data = [
+           'note' => [
+               'id' => $note_id,
+               'title' => $note_data->title ?? 'Unknown Note',
+               'content' => $note_data->content ?? 'No content available.',
+               'tags' => $tag_names,
+               'topic' => $topic_name
+           ]
+       ];
 
         $data = [
             'top_tags' => [
@@ -290,7 +302,7 @@ class Notes extends Controller
             // 'form_action_url' => '/your-backend-controller/update-note'
         ];
 
-        $this->view('notes/edit', array_merge($data, ['note' => $current_note_data]));
+        $this->view('notes/edit', array_merge($data, ['note' => $note_data['note']]));
     }
 
     public function delete()

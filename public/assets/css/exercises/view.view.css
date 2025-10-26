@@ -277,7 +277,8 @@ body {
 }
 
 .management-card .btn-edit,
-.management-card .btn-delete {
+.management-card .btn-delete,
+.management-card .btn-hide {
     display: block;
     text-align: center;
     /* Use Spacing Token */
@@ -307,4 +308,14 @@ body {
     color: var(--color-error);
     /* Use Error Color Token for border */
     border: 1px solid var(--color-error);
+}
+
+.management-card .btn-hide {
+    /* Use Surface Color */
+    background-color: none;
+    /* Use Error Color Token for text */
+    color: var(--color-primary);
+    border: var(--color-primary) 1px solid;
+    /* Use Error Color Token for border */
+    /* border: 1px solid var(--color-error); */
 }

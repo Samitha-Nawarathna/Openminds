@@ -3,7 +3,7 @@
     //guard from unnessesary accesses
     if (isset($_SESSION['user_id']))
     {
-        header('Location: '.ROOT.'dashboard');
+        header('Location: '.ROOT.'profile');
         exit;
     }
 

@@ -4,11 +4,14 @@
     $filename = "notes/edit";
 
     include_once "../app/views/partials/header.view.php";
+    // show($data);
+    // exit;
+
 
 ?>
 
 <div class="creator-wrapper">
-        <form action="<?=ROOT?>/notes/edit" method="POST" id="note-update-form">
+        <form action="<?=ROOT?>/notes/edit?id=<?= htmlspecialchars($data['note']['id']) ?>" method="POST" id="note-update-form">
             
             <input type="hidden" name="note_id" id="note-id-field" value="<?= htmlspecialchars($data['note']['id']) ?>">
             
@@ -61,7 +64,7 @@
                         <h2>Topic</h2>
                         <div class="current-title-display">
                         </div>
-                        <input type="text" id="create-title-input" value = "<?= htmlspecialchars($data['note']['topic']) ?>" placeholder="Create or add title">
+                        <input type="text" id="create-title-input"  placeholder="Create or add title" value = "<?= htmlspecialchars($data['note']['topic']) ?>">
                     </div>
 
                 </div>

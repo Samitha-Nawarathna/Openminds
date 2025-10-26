@@ -694,3 +694,9 @@ nav .right-side ul .profile-pic
     align-items: center;
   }
 
+  .confirmation .btns
+  {
+    display: flex;
+    gap: var(--space-sm);
+  }
+

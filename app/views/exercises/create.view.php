@@ -76,6 +76,11 @@ $data = [
                 <textarea id="modal-question-text" rows="3"></textarea>
             </div>
 
+            <div class="input-group">
+                <label for="modal-question-weight">weight</label>
+                <textarea id="modal-question-weight" rows="1">1</textarea>
+            </div>
+
             <input type="hidden" id="modal-answer-type" value="multiple_choice" name="answer_type">
 
             <div class="input-group" id="modal-options-group">

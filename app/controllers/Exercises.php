@@ -428,53 +428,115 @@ public function create()
         } else {
 
 
-            $id = $_GET['id'] ?? null;
-            //check if user is authorized to edit the exercise if not redirect to show page with error message
+            $exercise_id = $_GET['id'] ?? 1;
 
-            //load relevent models and data to prefill the edit form
-
-            //populated $data array with existing exercise data
+            if (!$exercise_id) {
+                // Handle missing exercise ID (e.g., redirect or show error)
+                header('Location: '.ROOT.'/exercises?message=Exercise ID is required to edit an exercise');
+            }
+    
+            $exercises = new ExercisesModel;
+            $exercise_data = $exercises->first(['id' => $exercise_id]);
+    
+            if(!$exercise_data->status === 'approved'){
+                header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
+            }
+    
+            $user = new User;
+            $subject = new Subjects;
+            $exercise_tag = new ExerciseTag;
+            $user_vote_exercise = new UserVoteExercise;
+            $tags = new Tags;
+            $exercisequestion = new Exercisequestion;
+            $exerciseanswer = new Exerciseanswer;
+    
+    
+            $creator = $user->first(['id' => $exercise_data->creator_id])->username ?? 'Unknown';
+            $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
+    
+            $tag_in_exercise = $exercise_tag->where(['exercise_id' => $exercise_id]);
+            $tags_list = [];
+    
+            foreach ($tag_in_exercise as $key => $tag) {
+                // $tag_info = $subject->first(['id' => $tag->tag_id]);
+                $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
+            }
+    
+            $votes = $user_vote_exercise->where(['exercise_id' => $exercise_id]);
+        
+            $upvotes = 0;
+            $downvotes = 0;
+            $user_vote_status = 'none';
+    
+            foreach ($votes as $vote) {
+                if ($vote->votetype === 'upvote') {
+                    $upvotes++;
+                } elseif ($vote->votetype === 'downvote') {
+                    $downvotes++;
+                }
+    
+                // if ($vote->user_id === $current_user->id) {
+                //     $user_vote_status = $vote->vote_type;
+                // }
+            }
+    
+    
+    
+            if (!$exercise_data) {
+                // Handle case where exercise is not found
+                header('Location: '.ROOT.'/exercises?message=Exercise not found');
+            }
+    
+            $questions = $exercisequestion->where(['exercise_id' => $exercise_id]);
             
-            // --- MOCK DATA SETUP --- should be replaced with actual data from database
-            $data = [
-                'exercise_id' => 1,
-                'exercise_title' => 'Fundamental Physics and Maths',
-                'subject_name' => 'Physics',
-                'current_tags' => ['mechanics', 'quantum', 'maths'],
-                'form_action_url' => '/your-backend-controller/update-exercise',
+            if (empty($questions)) {
+                // Handle case where no questions are found for the exercise
+                header('Location: '.ROOT.'/exercises/attempt?id='.$exercise_id.'&message=No questions found for this exercise');
+            }
+    
+            $question_list = [];
+    
+    
+            foreach ($questions as $question) {
+                $answers = $exerciseanswer->where(['question_id' => $question->id]);
+                $answer_options = [];
+    
+                foreach ($answers as $ans) {
+                    $answer_options[] = $ans->answer_text;
+                }
+    
+                $question_list[] = [
+                    'id' => $question->id,
+                    'question_text' => $question->question_text,
+                    'options' => $answer_options
+                ];
                 
-                'top_tags' => [
-                    ['name' => 'Physics', 'count' => 12],
-                    ['name' => 'Psychology', 'count' => 9],
-                    ['name' => 'Maths', 'count' => 15],
-                ],
-                
-                // Mock Questions Data - ALL ARE NOW MULTIPLE CHOICE
-                'questions' => [
-                    [
-                        'id' => 'q1',
-                        'question_text' => 'What is the relationship between the Lagrangian and Hamiltonian functions?',
-                        'answer_type' => 'multiple_choice', // Only MCQs
-                        'options' => ['They are Legendre transforms.', 'They are inverses.', 'They are independent.'],
-                        'author' => 'Alice'
-                    ],
-                    [
-                        'id' => 'q2',
-                        'question_text' => 'Which color harmony creates the highest contrast?',
-                        'answer_type' => 'multiple_choice', 
-                        'options' => ['Analogous', 'Monochromatic', 'Complementary'],
-                        'author' => 'Bob a student'
-                    ],
-                    [
-                        'id' => 'q3',
-                        'question_text' => 'The Hamiltonian in classical mechanics typically represents the total energy. Which concept is its quantum counterpart?',
-                        'answer_type' => 'multiple_choice', 
-                        'options' => ['Momentum operator', 'Schrödinger operator', 'Hamiltonian operator'],
-                        'author' => 'Alice'
-                    ],
-                ]
+            };
+    
+            //remember to fetch review data too
+            $review_data = [
+                'average_score' => 0.8,
             ];
-
+    
+    
+            // --- MOCK DATA SETUP ---
+            $data = [
+                'exercise_details' => [
+                    'exercise_id' => $exercise_data->id,
+                    'title' => $exercise_data->title,
+                    'subject' => $subject_name,
+                    'creator' => $creator,
+                    'role' => 'under '.$subject_name,
+                    'created_at' => $exercise_data->created_at,
+                    'tags' => $tag_list,
+                    'upvotes' => $upvotes,
+                    'downvotes' => $downvotes,
+                    'user_vote_status' => 'upvote', // possible values: 'upvoted', 'downvoted', 'none'
+                    
+                ],
+                'questions' => $question_list,
+                'review_data' => $review_data
+            ];
 
             $this->view('exercises/edit', $data);
         }
@@ -499,6 +561,12 @@ public function create()
         } else {
             header('Location: '.ROOT.'/exercises?message=Invalid exercise ID');
         }
+    }
+
+    public function hide()
+    {
+        $exercise_id = $_GET['id'] ?? null;
+        header('Location: '.ROOT.'/exercises/show?id='.$exercise_id.'&message=Hide exercise triggered');
     }
 
     public function expertreview()

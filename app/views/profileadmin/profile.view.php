@@ -8,6 +8,7 @@
     $filename = "profileadmin/profile";
 
     $profile_id = $data["id"];
+    $id  = $data["id"];
 
     $profile_picture_path = $data["profile_picture_path"];
 
@@ -121,10 +122,10 @@
             <input class="button btn-primary" type="submit" value = "Change Role">
         </form> -->
         <form action="<?=ROOT?>profileadmin/ban?id=<?=$profile_id?>" method="post" class="button-wrapper btn2" style="display:<?=$display_ban?>">
-            <input class="button btn-none" type="submit" value = "Ban">
+            <input class="button btn-none btn-ban" type="submit" value = "Ban">
         </form>
         <form action="<?=ROOT?>profileadmin/unban?id=<?=$profile_id?>" method="post" class="button-wrapper btn3" style="display:<?=$display_unban?>">
-            <input class="button btn-error" type="submit" value = "Unban">
+            <input class="button btn-error btn-unban" type="submit" value = "Unban">
         </form>          
     </div>
 </div>
@@ -146,11 +147,28 @@
             </select>
             <div class="btns">
                 <button class='button btn-none btn-dismiss' type="button">Back</button>
-                <input type='submit' class='button btn-primary' value='Change Role'>
+                <input type='submit' class='button btn-primary btn-changerole' value='Change Role'>
             </div>
         </form>
     </div>
 
+    <div class="background"></div>
+</div>
+
+<div class="popup confirmation" style='display:none'>
+    <div class="content">
+        <div class="container">
+            <p class='message'></p>
+            <div class="btns" style="display:flex;">
+            <button class='button btn-none btn-dismiss'>Back</button>
+
+            <form class='confirmation-btn' action='' method='post'>
+                <input type='submit' class='button btn-error' value='Confirm'>
+            </form>
+
+            </div>
+        </div>
+    </div>
     <div class="background"></div>
 </div>
 

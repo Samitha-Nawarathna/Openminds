@@ -72,7 +72,7 @@ class Profileadmin extends Controller
     {
         $this->admin_guard();
 
-        $user_id = $_GET['id'] ?? null;
+        $user_id = $_POST['id'] ?? null;
 
         if ($user_id === null) {
             header("Location: ".ROOT."profileadmin?message=Invalid Profile ID");
@@ -102,7 +102,7 @@ class Profileadmin extends Controller
     {
         $this->admin_guard();
 
-        $user_id = $_GET['id'] ?? null;
+        $user_id = $_POST['id'] ?? null;
 
         if ($user_id === null) {
             header("Location: ".ROOT."profileadmin?message=Invalid Profile ID");
