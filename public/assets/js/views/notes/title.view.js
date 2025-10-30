@@ -1,5 +1,23 @@
 import { ROOT } from '../../core/config.js';
 
+function scrollCards(direction) {
+    const wrapper = document.getElementById('cardsWrapper');
+    // Distance to scroll (e.g., width of 3 cards + gap)
+    const scrollDistance = wrapper.offsetWidth / 2; 
+    
+    // Calculate the new scroll position
+    const newScrollLeft = wrapper.scrollLeft + (direction * scrollDistance);
+    
+    // Perform the smooth scroll
+    wrapper.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth' // Makes the scroll animated
+    });
+}
+
+// Optional: You could add a 'left' button and logic for showing/hiding buttons
+// based on scroll position, but this covers the core requirement.
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global Configuration & State ---
     const ITEMS_PER_LOAD = 10;
@@ -66,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Redirect on topic click (mock) */
     function viewTopic(topicId) {
-        window.location.href = ROOT+"notes/view_notes?id="+topicId;
+        window.location.href = ROOT+"notes/list/"+topicId;
     }
 
     /** Creates the HTML structure for a single topic item. */
@@ -85,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Clears the list and updates with new data (used for Filter or initial load). */
     async function loadTopics(offset, isInitialLoad) {
         const filterName = filterInput.value.trim();
+        console.log(filterName);
         
         // Only show loading if it's not the initial PHP-rendered content
         if (!isInitialLoad) {
@@ -155,10 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
 
     // 1. Filter Button Listener
-    // filterBtn.addEventListener('click', () => {
-    //     // Reset offset and load fresh data (true for non-initial load)
-    //     loadTopics(0, false); 
-    // });
+    filterBtn.addEventListener('click', () => {
+        // Reset offset and load fresh data (true for non-initial load)
+        loadTopics(0, false); 
+    });
 
     // 2. Load More Button Listener
     loadMoreBtn.addEventListener('click', loadMore);
@@ -176,4 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // In a real app, the PHP would pass the total count to JS.
         // For this mock, we rely on the PHP's initial has_more setting.
     }
+
+    
 });

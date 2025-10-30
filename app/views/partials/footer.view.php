@@ -1,10 +1,10 @@
 <?php
 
 include_once('../app/views/partials/message.view.php');
+include_once "../app/views/partials/note_modal.php";
 
 
 ?>
-<script type="module" src="<?=ROOT?>/assets/js/views/<?=$filename?>.view.js"></script>
 
 
 

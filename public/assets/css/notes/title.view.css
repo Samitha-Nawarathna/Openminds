@@ -15,13 +15,45 @@ body {
     padding: 0 var(--space-sm);
 }
 
+
 h1 {
-    font-size: var(--font-size-xl);
-    font-weight: 800;
+    font-size: var(--font-size-lg); /* Using the new large font size token */
+    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
     text-align: left;
-    margin-bottom: var(--space-md);
-    color: var(--color-text);
+    margin-bottom: var(--space-md); /* Using space-md for good separation */
+    color: var(--color-text); /* Using the dark text color token */
 }
+
+h3 {
+    font-size: var(--font-size-sm); /* Using the new large font size token */
+    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
+    text-align: left;
+    margin-bottom: var(--space-md); /* Using space-md for good separation */
+    color: var(--color-text); /* Using the dark text color token */
+}
+
+.caption
+{
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+}
+
+.recent-topic-container
+{
+    background-color: var(--color-gray-100);
+    height: fit-content;
+    padding: var(--space-sm);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-xl);
+}
+.recent-topic-container .title-bar
+{
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+    margin: 0;
+}
+
 
 /* Filter Bar Styles (Reusing Questions List styles) */
 .filter-bar {
@@ -57,7 +89,7 @@ h1 {
 }
 
 .btn-create {
-    background-color: #7c8dff;
+    background-color: var(--color-primary);
     color: white;
     font-weight: 600;
 }
@@ -92,7 +124,9 @@ h1 {
 .list-container {
     display: flex;
     flex-direction: column;
+    padding: var(--space-md);
     gap: 10px; /* Space between items */
+    background-color: var(--color-blue-50);
 }
 
 .topic-item {
@@ -115,6 +149,7 @@ h1 {
 .load-more-container {
     text-align: center;
     margin: 20px 0 50px 0;
+    
 }
 
 .btn-load-more {
@@ -139,4 +174,182 @@ h1 {
     text-align: center;
     padding: 20px;
     color: #888;
+}
+
+:root {
+    --card-bg: #fff;
+    --text-color: #333;
+    --accent-color: #4CAF50; /* For the 'NEW' badge */
+    --border-radius: 16px;
+    --padding: 20px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-swapper-container {
+    position: relative;
+    max-width: 100%;
+    margin: calc(0.25*var(--space-xs)) auto;
+    overflow: hidden; /* To hide the button outside the scroll area */
+    /* padding: 0 40px; Space for the button to sit slightly outside */
+
+}
+
+.cards-wrapper {
+    display: flex;
+    gap: 16px;
+    overflow-x: scroll; /* KEY: Enables horizontal scrolling */
+    scroll-snap-type: x mandatory; /* KEY: Makes it snap to cards */
+    padding: var(--padding) 0;
+    -webkit-overflow-scrolling: touch; /* Improved scrolling on iOS */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.cards-wrapper::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+}
+
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card {
+    flex: 0 0 auto;
+    width: 150px;
+    height: 150px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 16px; /* Slightly reduced padding for better fit */
+    text-align: center;
+    box-shadow: var(--shadow);
+    
+    /* KEY CHANGE 1: Use Flexbox Column Layout */
+    display: flex;
+    flex-direction: column; 
+    justify-content: flex-start; /* Start elements from the top */
+    align-items: stretch; /* Allows icon-placeholder to fill width */
+    
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    scroll-snap-align: start; 
+    position: relative;
+    user-select: none;
+    padding: var(--space-xs);
+}
+
+/* --- Styles for the Icon Placeholder --- */
+.icon-placeholder {
+    /* KEY CHANGE 2: Flex-grow to fill remaining vertical space */
+    flex-grow: 1; 
+    
+    /* Optional: Add a small margin around the placeholder */
+    margin: 1px; 
+    padding: 0;
+    position: relative;
+    /* Original styling for visual representation */
+    background-color: var(--color-placeholder); 
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+    color: #888;
+}
+
+.icon-placeholder:hover .unpin-icon {
+    opacity: 1;
+    transform: translateY(0%);
+} 
+
+.topic-item:hover .pin-icon {
+    opacity: 1;
+    transform: translateY(-50%);
+}
+
+
+
+/* 2. Position the unpin icon absolutely in the top right */
+.unpin-icon, .pin-icon {
+    position: absolute;
+    padding: var(--space-xs);
+    color: var(--card-bg);
+    /* width: 25px; */
+    /* height: 25px; */
+    top: 5px; /* Adjust as needed for vertical positioning */
+    right: 5px; /* Adjust as needed for horizontal positioning */
+    font-size: 10px; /* Adjust size of the icon */
+    cursor: pointer; /* Indicates it's clickable */
+    line-height: 1; /* Helps with vertical alignment */
+    /* Optional: background and border for better visibility */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3); 
+    border-radius: 15%; /* Make it circular */
+    transition: all 0.1s ease;
+    transform: translateY(20%);
+    opacity: 0;
+
+    /* box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); */
+}
+
+.pin-icon
+{
+    top: 50%;
+    background-color: var(--color-yellow-400);
+    margin-right: var(--space-xs);
+    transform: translate(-50%, -50%);
+
+}
+
+/* --- Styles for the Text Content --- */
+.card-container p {
+    /* KEY CHANGE 3: Ensure text only takes space for content */
+    margin: 0; 
+    padding-top: 4px; /* A little space between icon and text */
+    flex-shrink: 0; /* Prevents text from shrinking */
+    font-size: var(--font-size-base);
+    line-height: 1.2;
+    text-align: center;
+    padding: var(--space-xs);
+}
+
+
+
+/* Navigation Button Styling */
+.nav-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-120%);
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    transition: background-color 0.2s;
+}
+
+.nav-button:hover {
+    background-color: var(--color-blue-700);
+}
+
+.nav-button .arrow {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1;
+}
+
+/* Position the button correctly */
+.nav-button.right {
+    right: 0;
 }

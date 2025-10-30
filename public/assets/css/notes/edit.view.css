@@ -1,75 +1,59 @@
 /* --- 2. GENERAL BODY STYLES (Leveraging Tokens) --- */
 body {
-    /* Existing style from base CSS - will override the font-family and background-color below */
-    /* font-family: var(--font-family-base); // Mapped to --font-body */
-    /* background-color: var(--color-background-light); // Mapped to --color-background */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    /* margin: 0; // Already in base * reset */
 }
 
-/* Base body styles from your initial snippet (commented out for reference):
-body {
-    width: 100vw;
-    min-height: 100vh;
-    font-family: var(--font-body);
-    background-color: var(--color-background);
-    /* display: flex; *
-    /* justify-content: center; *
-    /* align-items: center; *
-} 
-*/
-
 .creator-wrapper {
+    /* Adjusted for consistency with create.view.css, if you want full 95vh height on edit */
+    /* position: absolute; */
+    /* top: 5vh; */
     width: 100%;
     max-width: 950px;
     padding: var(--space-lg);
+    /* height: 95vh; */
 }
 
 .main-card-layout {
     display: flex;
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
-    /* Mapped shadow variable: 0 var(--space-xs) 32px var(--color-shadow) -> --shadow-md */
-    box-shadow: var(--shadow-md); 
+    /* box-shadow: var(--shadow-md);  */
     padding: var(--space-xl);
+    /* Ensure no flex wrap for a single column look */
+    flex-direction: column; 
 }
 
 /* --- 3. INPUTS & FORMS --- */
 .input-section {
-    flex: 2;
-    padding-right: var(--space-xl);
+    flex: 1; /* Make it take up full width */
+    padding-right: 0; /* Remove padding from where the sidebar used to be */
 }
 
 .input-group {
-    /* Using a larger spacing for margin-bottom, as --space-xxl is not defined */
-    margin-bottom: var(--space-lg); /* Approximation for --space-xxl */ 
+    margin-bottom: var(--space-lg);
+
 }
 
 .input-group label {
     display: block;
     margin-bottom: var(--space-xs);
-    /* Mapped font-weight: var(--font-weight-semi-bold) -> static 600 */
     font-weight: 600; 
-    /* Mapped color: var(--color-text-medium) -> --color-text for primary use */
     color: var(--color-text); 
     font-size: var(--font-size-sm);
 }
 
-/* Base style for text inputs and textareas */
-/* Note: You already have a .input-group style that handles some of this */
 .input-field {
     width: 100%;
-    padding: var(--space-sm); /* Adjusted from --space-md to --space-sm for consistency with .input-group padding */
+    padding: var(--space-sm);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md); /* Adjusted from --radius-sm to --radius-md */
+    border-radius: var(--radius-md);
     font-size: var(--font-size-base);
     box-sizing: border-box;
     font-family: inherit;
-    color: var(--color-text); /* Mapped color: var(--color-text-dark) -> --color-text */
-    /* Also ensure it has no default focus outline */
+    color: var(--color-text);
     outline: none; 
     transition: border-color 0.2s;
 }
@@ -79,96 +63,50 @@ body {
 }
 
 .input-section input[type="text"],
-#create-title-input {
+#create-title-input,
+.note-data {
     /* Inherits .input-field styles */
+    /* Add styling for title consistency with create.view.css */
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    border: none !important;
 }
 
 .input-section textarea {
     resize: vertical;
     min-height: 250px;
-    /* Inherits .input-field styles */
 }
 
 /* --- 4. BUTTONS --- */
-.btn-save {
+.btn-save, .button {
     width: 100%;
-    padding: var(--space-sm); /* Using --space-sm for consistency (was 15px) */
+    padding: var(--space-sm);
     border: none;
-    border-radius: var(--radius-md); /* Mapped from --radius-sm to --radius-md */
+    border-radius: var(--radius-md);
     background-color: var(--color-primary);
-    color: var(--color-surface); /* Using surface color for text */
-    /* Adjusted font-size: 1.1rem to a token approximation */
+    color: var(--color-surface);
     font-size: var(--font-size-base); 
-    /* Mapped font-weight: var(--font-weight-semi-bold) -> static 600 */
     font-weight: 600; 
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-.btn-save:hover {
-    /* Secondary color is not defined as a separate token, using a darker primary shade from your button:hover style */
-    background-color: #5562db; /* From your existing .button:hover */
+.btn-save:hover, .button:hover {
+    background-color: #5562db;
 }
 
-/* --- 5. SIDEBAR & CONTAINERS --- */
-.sidebar-section {
-    flex: 1;
-    padding-left: var(--space-xl);
-    /* Mapped color: var(--color-border-light) -> --color-border */
-    border-left: 1px solid var(--color-border); 
-}
+/* --- 5. SIDEBAR & CONTAINERS (REMOVED: .sidebar-section, .title-panel, .top-tags-container) --- */
+/* The styles below are kept as they are needed for the modal's tag area */
 
-.section-header {
-    /* Adjusted font-size: 1.2rem to a token approximation */
-    font-size: var(--font-size-base); 
-    /* Mapped font-weight: var(--font-weight-semi-bold) -> static 600 */
-    font-weight: 600; 
-    /* Mapped color: var(--color-text-medium) -> --color-text */
-    color: var(--color-text); 
-    margin-top: 0;
-    margin-bottom: var(--space-sm); /* Adjusted from 15px to --space-sm */
-}
-
-.panel-container {
-    padding: var(--space-lg);
-    /* Mapped color: var(--color-background-subtle) -> --color-secondary-background or a lighter alternative */
-    background-color: var(--color-background); 
-    border-radius: var(--radius-md);
-    /* Mapped color: var(--color-border-light) -> --color-border */
-    border: 1px solid var(--color-border); 
-}
-
-/* Specific Sidebar Containers */
-.top-tags-container {
-    /* Uses .panel-container */
-}
-
-.title-panel {
-    /* Uses .panel-container, overrides background subtly */
-    margin-top: var(--space-xl);
-    /* Using surface for override, but if a subtle background is desired, keep the token */
-    background-color: var(--color-surface); 
-}
-
-.title-panel .section-header {
-    /* Uses .section-header */
-}
-
-.current-title-display {
-    margin-bottom: var(--space-sm);
-}
-
-/* --- 6. TAGS (Pills) --- */
 .tags-list, .tags-display-area {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-xs);
     min-height: 20px;
-    padding-bottom: var(--space-xs); /* Adjusted from 5px to --space-xs */
+    padding-bottom: var(--space-xs); 
 }
 
 .tags-display-area {
-    /* Mapped color: var(--color-background-subtle) -> --color-secondary-background */
     background-color: var(--color-background); 
     padding: var(--space-sm);
     border-radius: var(--radius-sm);
@@ -177,15 +115,10 @@ body {
 }
 
 .tag-pill {
-    padding: calc(var(--space-xs) / 1.5) var(--space-xs); /* Adjusted from 6px 12px */
-    border-radius: var(--radius-lg); /* Adjusted from 16px for a more rounded look */
-    font-size: var(--font-size-sm); /* Adjusted from 0.9em to token */
-    /* Mapped font-weight: var(--font-weight-medium) -> static 500 */
+    padding: calc(var(--space-xs) / 1.5) var(--space-xs);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
     font-weight: 500; 
-    /* Mapped color: var(--color-background-neutral) -> Using --color-blue for a neutral tag background */
-    background-color: var(--color-blue); 
-    /* Mapped color: var(--color-text-dark) -> --color-text */
-    color: var(--color-text); 
     display: inline-block;
 }
 
@@ -202,15 +135,91 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
     text-decoration: line-through;
+    /* OVERRIDE FOR MODAL CONSISTENCY */
+    background-color: var(--color-blue-700) !important; 
+    color: var(--color-surface) !important;
 }
 
 .tag-removal {
     cursor: pointer;
-    margin-left: var(--space-xs); /* Adjusted from 5px to --space-xs */
-    /* Mapped color: var(--color-text-medium) -> --color-placeholder for a subtle icon */
+    margin-left: var(--space-xs);
     color: var(--color-placeholder); 
 }
 .tag-removal:hover {
-    /* Mapped color: var(--color-text-dark) -> --color-text */
     color: var(--color-text); 
+}
+
+/* --- 6. MODAL STYLES (Copied/Ensured from create.view.css) --- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.close-btn {
+    position: absolute;
+    top: var(--space-xs);
+    right: var(--space-md);
+    font-size: var(--font-size-lg);
+    color: var(--color-gray-600);
+    cursor: pointer;
+    font-weight: 300;
+}
+
+.modal-content h2 {
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.top-tags-container h3 {
+    margin-bottom: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+}
+
+#modal-selected-tags-display {
+    min-height: 20px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xs);
+}
+
+.tags-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-muted);
+}
+
+.note-data, .note-content
+{
+    border: none !important;
 }

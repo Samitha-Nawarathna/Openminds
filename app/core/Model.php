@@ -126,4 +126,12 @@ trait Model
         $this->query($query);
     }
 
+    public function search_by_name($name, $column)
+    {
+        //implement the query for name matching
+        $sql = "SELECT * FROM " . $this->table . " WHERE ".$column." LIKE :name";
+        $params = [':name' => '%' . $name . '%'];
+        return $this->query($sql, $params);
+    }
+
 }

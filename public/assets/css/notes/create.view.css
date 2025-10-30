@@ -1,26 +1,37 @@
 /* General Body Styles */
 body {
     font-family: var(--font-body);
-    background-color: var(--color-secondary-background); /* Light background */
+    background-color: var(--color-gray-50);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    max-height: 100vh;
     margin: 0;
+    /* overflow: hidden; */
+    position: relative;
 }
 
 .creator-wrapper {
+    position: absolute;
+    top: 5vh;
     width: 100%;
     max-width: 950px;
+    /* max-height: 80vh; */
     padding: 20px;
+    /* margin-top: calc(1.25*var(--space-xl)); */
+    background-color: white;
+    height: 95vh;
+    
+
 }
 
 .main-card-layout {
     display: flex;
-    background-color: white;
+    /* background-color: white; */
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     padding: 30px;
+    padding-bottom: 0;
+    
 }
 
 /* --- Left Input Section --- */
@@ -31,6 +42,13 @@ body {
 
 .input-group {
     margin-bottom: 25px;
+    border: none;
+}
+
+.input-group:focus-within
+{
+    border: none;
+    box-shadow: none;
 }
 
 .input-group label {
@@ -41,8 +59,8 @@ body {
     font-size: 0.95em;
 }
 
-.input-section input[type="text"],
-.input-section textarea {
+.input-group input[type="text"],
+.input-group textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -51,6 +69,17 @@ body {
     box-sizing: border-box;
     font-family: inherit;
     color: #333;
+}
+
+.note-data
+{
+    border: none !important;
+}
+
+#note-title
+{
+    font-size: var(--font-size-xl);
+    font-weight: 600;
 }
 
 .input-section textarea {
@@ -70,6 +99,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    max-height: 5vh;
 }
 
 /* --- Right Sidebar Section (Top Tags) --- */
@@ -191,4 +221,108 @@ body {
     box-sizing: border-box;
     font-family: inherit;
     color: #333;
+}
+
+/* --- Modal Styles (Using Design System Tokens) --- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open {
+    display: flex; /* Show when open */
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90%;
+    max-width: 500px; /* Constrain modal size */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.close-btn {
+    position: absolute;
+    top: var(--space-xs);
+    right: var(--space-md);
+    font-size: var(--font-size-lg);
+    color: var(--color-gray-600);
+    cursor: pointer;
+    font-weight: 300;
+}
+
+.modal-content h2 {
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.modal-group {
+    /* Style the input groups inside the modal */
+    border: none;
+    padding: 0;
+}
+
+/* Re-style for the selected tags display */
+#modal-selected-tags-display {
+    min-height: 20px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xs);
+}
+
+.top-tags-container h3 {
+    margin-bottom: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-muted); /* Use light background for the area */
+}
+
+/* Styling the clickable tags using tag-pill class */
+.tag-clickable {
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.tag-clickable:hover {
+    opacity: 0.8;
+}
+
+.tag-selected {
+    /* Visual feedback for selected top tags */
+    background-color: var(--color-blue-700) !important; 
+    color: var(--color-surface) !important;
+}
+
+.tag-removal {
+    cursor: pointer;
+    margin-left: 5px;
+    font-weight: bold;
 }

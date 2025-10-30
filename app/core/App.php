@@ -65,15 +65,19 @@ class App
         // 1. --- TRY ADVANCED ROUTING FIRST (New Feature) ---
         
         if (isset(self::$routes[$requestMethod])) {
+
             foreach (self::$routes[$requestMethod] as $routePattern => $controllerMethod) {
+
+                
                 
                 // Convert route pattern (e.g., 'users/{id}') into a regex
                 $regex = preg_replace('/\{([a-zA-Z0-9_-]+)\}/', '([a-zA-Z0-9_-]+)', $routePattern);
                 
                 // Add delimiters for regex matching
                 if (preg_match("#^$regex$#", $uri, $matches)) {
-                    
+  
                     // Match found! Extract Controller and Method
+                    
                     list($controllerName, $methodName) = explode('@', $controllerMethod);
                     
                     // Set class and method
@@ -92,8 +96,9 @@ class App
         // 2. --- FALLBACK TO BACKWARD COMPATIBLE LOGIC (Original Feature) ---
         
         // Split the URI into segments for the old logic
-        $URL = explode("/", $uri);
-        
+
+        $URL = $this->split_url();
+        $URL = explode('/', $URL);
         $controller_name = array_shift($URL);
         
         // Construct the ABSOLUTE FILE PATH

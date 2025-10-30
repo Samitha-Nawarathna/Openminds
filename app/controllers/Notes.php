@@ -43,18 +43,20 @@ class Notes extends Controller
         
             return [
                 'topics' => array_values($topics_to_return),
-                'has_more' => $has_more
+                'has_more' => $has_more,
             ];
         }
         
         // Initial data load for the PHP rendering (first 10 items)
         $data["initial_load"] = generate_mock_topics(0, 10, '');
+        $data['recent_topics'] = ["science", "art", "maths", "physics", "chemistry", "history"];
+        $data['recent_topic_ids'] = [1, 3, 2, 4, 8, 7];
         $this->view('notes/title', $data);
     }
 
-    public function view_notes()
+    public function view_notes($topic_id)
     {
-        $topic_id = $_GET['topic_id'] ?? null;
+        // $topic_id = $_GET['topic_id'] ?? null;
 
         // --- MOCK DATA SETUP ---
 
@@ -65,6 +67,9 @@ class Notes extends Controller
             'initial_tab' => 'created', 
             'create_url' => '/your-backend-controller/create-note-view'
         ];
+
+        $data['pinned_notes'] = ["science", "art", "maths", "physics", "chemistry", "history"];
+        $data['pinned_note_ids'] = [1, 3, 2, 4, 8, 7];
 
         // Helper function to generate mock notes data based on type
         function generate_mock_notes($type, $offset, $limit) {
@@ -112,12 +117,11 @@ class Notes extends Controller
         $this->view('notes/note', $data);
     }
 
-    public function show()
+    public function show($note_id)
     {
-        $note_id = $_GET['id'] ?? null;
+        // $note_id = $_GET['id'] ?? null;
         //check if note is by current user or shared with current user
 
-        // --- MOCK DATA SETUP ---
         $notes = new NoteModel;
         $note_shares = new NoteShares;
         $note_tags = new NoteTags;
@@ -235,7 +239,7 @@ class Notes extends Controller
         $this->view('notes/create', $data);
     }
 
-    public function edit()
+    public function edit($note_id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -258,7 +262,7 @@ class Notes extends Controller
 
             exit();
         }
-        $note_id = $_GET['id'] ?? null;
+        // $note_id = $_GET['id'] ?? null;
 
        // --- MOCK DATA SETUP ---
        $notes = new NoteModel;
@@ -345,4 +349,154 @@ class Notes extends Controller
 
         $this->view('notes/share', $data);
     }
+
+
+    //----------------------------------------------------------//
+    //-----------------------AJAX METHODS-----------------------//
+    //----------------------------------------------------------//
+
+    public function api_search_notes_by_tags()
+    {
+        //read tags from post
+        $data = $this->json_request();
+
+        //import note model
+        $note_model = new NoteModel;
+
+        //get notes
+        $tags = $data['tags'] ?? [];
+        $notes = $note_model->search_by_tags($tags, $user_id ?? 1);
+
+        $note_data = [];
+
+        foreach ($notes as $row) {
+            //prepare each note data
+            $note_data[] = [
+                'id' => $row->id,
+                'title' => $row->title,
+            ];
+        }
+
+        //prepare json respond
+        $this->json_respond([
+            'status' => 'success',
+            'notes' => $note_data
+        ]);
+    }
+
+    public function api_get_note_by_id($note_id)
+    {
+
+        if (!$note_id) {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'Note ID is required'
+            ]);
+            return;
+        }
+
+        
+        //import note model
+        $note_model = new NoteModel;
+        $note = $note_model->first(['id' => $note_id]);
+
+        //compare owner id and session id
+        $user_id = $_SESSION['user_id'];
+
+        if(!$user_id)
+        {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'User not logged in'
+            ]);
+            return;
+        }
+
+        if($note->owner_id != $user_id)
+        {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'Note not found or access denied'
+            ]);
+            return;
+        }
+
+        //get note topic name
+        $topics = new Topics;
+        $topic = $topics->first(['id' => $note->topic_id]);
+        $note->topic_name = $topic ? $topic->name : 'Unknown Topic';
+
+        //get all the tags
+        $note_tags_model = new NoteTags;
+        $note_tags = $note_tags_model->where(['note_id' => $note_id]);
+
+        $tags_model = new Tags;
+        $tag_names = [];
+
+        foreach ($note_tags as $tag) {
+            $tag_data = $tags_model->first(['id' => $tag->tag_id]);
+            if ($tag_data) {
+                $tag_names[] = $tag_data->name;
+            }
+        }
+
+        if ($note) {
+            $note_data = [
+                'id' => $note->id,
+                'title' => $note->title,
+                'content' => $note->content,
+                'topic' => [
+                    'id' => $note->topic_id,
+                    'name' => $note->topic_name
+                ],
+                'tags' => $tag_names
+            ];
+
+
+            $this->json_respond([
+                'status' => 'success',
+                'note' => $note_data
+            ]);
+        } else {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'Note not found'
+            ]);
+        }
+    }
+
+    public function api_share()
+    {
+        $data = $this->json_request();
+
+        $note_id = $data['note_id'] ?? null;
+        $share_with_user_ids = $data['share_with_user_ids'] ?? [];
+
+        if (!$note_id || empty($share_with_user_ids)) {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'Note ID and user IDs are required'
+            ]);
+            return;
+        }
+
+        //import note shares model
+        $note_shares = new NoteShares;
+
+        //share note
+        foreach ($share_with_user_ids as $user_id) {
+            $note_shares->insert([
+                'note_id' => $note_id,
+                'user_id' => $user_id
+            ]);
+        }
+
+        $this->json_respond([
+            'status' => 'success',
+            'message' => 'Note shared successfully'
+        ]);
+    }
+
+
+
 }

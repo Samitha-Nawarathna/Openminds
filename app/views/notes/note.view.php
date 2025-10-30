@@ -8,34 +8,78 @@
 ?>
 
 <div class="main-content-container">
-        
-        <header class="note-browser-header">
-            <h1 class="main-title">Notes</h1>
-            <span class="tag-pill"><?= htmlspecialchars($data['browsing_topic_title']) ?></span>
-        </header>
-        
+    <div class="title-area">
+    <h1>Notes</h1>
+      <span class="tag-pill"><?= htmlspecialchars($data['browsing_topic_title']) ?></span>
+    </div>    
+
+
         <div class="filter-bar">
-            <input type="text" id="note-filter-input" placeholder="enter a username/note title to filter">
-            <button class="btn-filter" id="filter-btn">Filter</button>
+            <input type="text" id="note-filter-input" placeholder="write tag name and press enter">
+            <button class="btn-filter" id="filter-btn">Filter</button> 
             <a href="<?=ROOT?>/notes/create" class="btn-create">+ Create</a>
         </div>
 
+        <div class="recent-topic-container">
+            <div class="title-bar">
+                <div class="title"><h3>Pinned Notes</h3></div>
+                <div class="toggle"><p class="caption">Hide</p></div>
+            </div>
+            <div class="card-swapper-container">
+                <div class="cards-wrapper" id="cardsWrapper">
+
+                    <?php 
+
+                    $colors = ['--color-green-100', '--color-yellow-50', '--color-blue-100',  '--color-blue-200'];
+                    
+                    foreach ($data['pinned_notes'] as $key => $note) {
+                        $rand_no = rand(0, sizeof($colors) - 1);
+
+                        echo '
+                        <a href="'.ROOT.'/notes/view/'.$data['pinned_note_ids'][$key].'" class="no-style-link">
+                        <div class="card-container">
+                            <div class="card">
+                                <div class="icon-placeholder" style="background-color:var('.$colors[$rand_no].');">
+                                    📁
+                                    <span class="unpin-icon">unpin</span>
+                                
+                                </div>
+                                
+                            </div>                      
+                            <p>'.$note.'</p>
+                        </div></a>
+                        ';
+                    }
+                    ?>
+
+                </div>
+                <button class="nav-button right" onclick="scrollCards(1)">
+                    <span class="arrow">›</span>
+                </button>
+            </div>
+            
+        </div>
+
+    
+</div>
+
+    <div class="note-browser-container">
         <div class="tabs-container" id="tabs-container">
             <button class="tab-button active" data-tab="created" id="created-tab">Created</button>
             <button class="tab-button" data-tab="shared" id="shared-tab">Shared</button>
         </div>
 
         <div class="list-container" id="notes-list">
+            <h3>Available Notes</h3>
             <?php 
+            // Initial render of topics using PHP
             foreach ($data["initial_load"]['notes'] as $note) {
-                echo '<a href="'.ROOT.'/notes/show?id='.htmlspecialchars($note['id']).'" class="no-style-link">';
-                echo '<div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">';
-                echo '  <span class="note-title-list">' . htmlspecialchars($note['title']) . '</span>';
-                echo '</div>';
-                echo '</a>';
+                // Added data-id for JS event listener
+                echo '<div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">' . htmlspecialchars($note['title']) . '<span class="pin-icon">pin</span></div>';
             }
             ?>
         </div>
+
 
         <div class="load-more-container">
             <button id="load-more-btn" class="btn-load-more">

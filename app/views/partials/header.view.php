@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="<?=ROOT?>assets/css/partials/upload.view.css">
     <link rel="stylesheet" href="<?=ROOT?>assets/css/<?=$filename?>.view.css">
 
+    <script type="module" src="<?=ROOT?>/assets/js/views/<?=$filename?>.view.js"></script>
+
+
 </head>
 <body>
 

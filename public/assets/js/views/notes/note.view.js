@@ -73,17 +73,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /** Creates the HTML structure for a single note item. */
-    function createNoteItem(note) {
+    function createNoteItem(note, tabType) {
         const item = document.createElement('div');
-        item.classList.add('note-item');
+        // item.classList.add('note-item');
         item.dataset.id = note.id; 
 
         item.innerHTML = `
-            <a href="${ROOT}/notes/show?id=${note.id}" class="no-style-link">
-                <span class="note-title-list">${note.title}</span>
-                <span class="tag-pill tag-${note.tag.toLowerCase().replace(/\s/g, '-')}" >${note.tag}</span>
-            </a>
-        `;
+        <a href="${ROOT}/notes/view/${note.id}" class="no-style-link note-item">
+          <span class="note-title-list">${note.title}</span>
+          <div class="icons">
+            ${tabType === 'shared' ? `<span class="tag-pill">by ${note.creator_id}</span>` : ''}
+            <span class="pin-icon">pin</span>
+          </div>
+        </a>
+      `;
         
         // Add event listener
         item.addEventListener('click', () => viewNote(note.id));
@@ -112,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.notes.length === 0) {
                 listContainer.innerHTML = '<div class="loading">No notes found.</div>';
             } else {
-                response.notes.forEach(n => listContainer.appendChild(createNoteItem(n)));
+                response.notes.forEach(n => listContainer.appendChild(createNoteItem(n, tabType)));
                 
                 currentOffset = response.notes.length;
 
@@ -137,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await mockFetchNotes(currentTab, currentOffset, filterTerm);
             
-            response.notes.forEach(n => listContainer.appendChild(createNoteItem(n)));
+            response.notes.forEach(n => listContainer.appendChild(createNoteItem(n, tabType)));
 
             currentOffset += response.notes.length;
             

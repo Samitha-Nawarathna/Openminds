@@ -1,25 +1,97 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- MOCK DATA and COLOR TOKENS ---
+    const MOCK_TOP_TAGS = [
+        { name: 'Physics' },
+        { name: 'History' },
+        { name: 'Web Dev' },
+        { name: 'Maths' },
+        { name: 'React' },
+        { name: 'Design' }
+    ];
+    
+    // Light color tokens from the design system's core.css for random tag coloring
+    const LIGHT_COLOR_TOKENS = [
+        // Using light/muted tokens from the design system
+        '--color-blue-100',  // Light Blue background
+        '--color-green-100', // Light Green background
+        '--color-yellow-50', // Light Yellow background
+        '--color-gray-100',  // Very Light Gray background
+        '--color-red-100'    // Light Red background
+    ];
+    
+    // Dark color tokens for text on light backgrounds
+    const DARK_TEXT_TOKENS = {
+        '--color-blue-100': '--color-gray-900',
+        '--color-green-100': '--color-gray-900',
+        '--color-yellow-50': '--color-gray-900', 
+        '--color-gray-100': '--color-gray-900',
+        '--color-red-100': '--color-gray-900'
+    };
+
     // --- DOM Elements ---
     const form = document.getElementById('note-create-form');
-    const tagsInput = document.getElementById('tags-input');
-    const selectedTagsDisplay = document.getElementById('selected-tags-display');
+    const openModalBtn = document.getElementById('open-metadata-modal-btn');
+    const modalOverlay = document.getElementById('metadata-modal');
+    const closeModalBtn = document.getElementById('close-metadata-modal-btn');
+    const finalSaveBtn = document.getElementById('save-note-metadata-btn');
+
+    // Modal Specific Elements
+    const modalTagsInput = document.getElementById('modal-tags-input');
+    const modalTagsDisplay = document.getElementById('modal-selected-tags-display');
+    const modalTopicInput = document.getElementById('modal-topic-input');
+    const modalTopTagsList = document.getElementById('modal-top-tags-list');
+    
+    // Hidden Fields in Main Form
     const hiddenTagsField = document.getElementById('hidden-tags-field');
-    const topTagsList = document.getElementById('top-tags-list');
+    const hiddenTopicField = document.getElementById('hidden-topic-field');
 
+    const noteTitle = document.getElementById("note-title");
+    const noteContent = document.getElementById("note-content");
+
+    noteTitle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !(noteTitle.value.trim() === ''))
+        {
+            noteContent.setAttribute("placeholder", "start writing...")
+        }
+    });
+
+    noteTitle.addEventListener('focus', (e) => {
+        if (noteContent.value === '')
+        {
+            noteContent.setAttribute("placeholder", "");
+        }
+    });
+
+    noteContent.addEventListener('focus', (e) => {
+        noteContent.setAttribute("placeholder", "start writing...");
+    });
+
+
+    modalTagsDisplay.style.display = 'none';
     // --- State ---
-    let selectedTags = new Set();
+    let selectedTags = new Set(); 
+    let currentTopic = '';
 
-    // --- Utility Functions ---
 
-    /** Standardizes tag name (e.g., removes spaces and lowercase) for CSS class. */
-    function getTagClass(tagName) {
-        return tagName.toLowerCase().replace(/\s/g, '-');
-    }
-
+    // --- Core Tag Management Functions ---
+    
     /** Renders the tag pill in the display area. */
     function renderTag(tagName) {
         const tagPill = document.createElement('span');
         tagPill.classList.add('tag-pill', `current-title-pill`);
+        
+        // Find the corresponding top tag to get its assigned color for consistency
+        const topTagElement = modalTopTagsList.querySelector(`.tag-clickable[data-tag-name="${tagName.replace(/([\[\].\(\)])/g, '\\$1')}"]`);
+        if (topTagElement) {
+            // Copy the random color style from the top tag if it exists
+            tagPill.style.backgroundColor = 'var(--color-blue-100)';
+            tagPill.style.color = 'var(--color-gray-900)';
+        } else {
+            // Default coloring for manually entered tags that aren't in MOCK_TOP_TAGS
+            tagPill.style.backgroundColor = 'var(--color-blue-100)';
+            tagPill.style.color = 'var(--color-blue-700)';
+        }
+        
         tagPill.innerHTML = `${tagName}<span class="tag-removal" data-tag="${tagName}">&times;</span>`;
         
         // Add listener for removal
@@ -28,108 +100,145 @@ document.addEventListener('DOMContentLoaded', () => {
             removeTag(tagToRemove);
         });
         
-        selectedTagsDisplay.appendChild(tagPill);
+        modalTagsDisplay.appendChild(tagPill);
     }
 
-    /** Adds a new tag to the set and updates the DOM/hidden field. */
+    /** Adds a new tag to the set and updates the DOM/state. */
     function addTag(tagName) {
         tagName = tagName.trim();
         if (!tagName || selectedTags.has(tagName)) return;
 
         selectedTags.add(tagName);
-        renderTag(tagName);
-        updateHiddenField();
+        if (selectedTags.size > 0) {
+            modalTagsDisplay.style.display = 'flex';
+        }else
+        {
+            modalTagsDisplay.style.display = 'none';
+        }
+        updateDisplayArea(); // Re-render all selected tags
         updateTopTagState(tagName, true);
     }
 
-    /** Removes a tag from the set and updates the DOM/hidden field. */
+    /** Removes a tag from the set and updates the DOM/state. */
     function removeTag(tagName) {
         if (selectedTags.delete(tagName)) {
-            // Re-render the display area to reflect the change
+            if (selectedTags.size > 0) {
+                modalTagsDisplay.style.display = 'flex';
+            }else
+            {
+                modalTagsDisplay.style.display = 'none';
+            }
             updateDisplayArea(); 
-            updateHiddenField();
             updateTopTagState(tagName, false);
         }
     }
 
     /** Clears and re-renders the selected tags display area. */
     function updateDisplayArea() {
-        selectedTagsDisplay.innerHTML = '';
+        modalTagsDisplay.innerHTML = '';
         selectedTags.forEach(renderTag);
-    }
-
-    /** Updates the hidden input field with a comma-separated list of tags. */
-    function updateHiddenField() {
-        hiddenTagsField.value = Array.from(selectedTags).join(',');
     }
     
     /** Updates the appearance of a tag in the Top Tags list. */
     function updateTopTagState(tagName, isSelected) {
-        const topTagPill = topTagsList.querySelector(`.tag-clickable[data-tag-name="${tagName}"]`);
+        const escapedTagName = tagName.replace(/([\[\].\(\)])/g, '\\$1'); 
+        const topTagPill = modalTopTagsList.querySelector(`.tag-clickable[data-tag-name="${escapedTagName}"]`);
+        
         if (topTagPill) {
             topTagPill.classList.toggle('tag-selected', isSelected);
         }
     }
 
-
-    // --- Event Handlers ---
+    // --- Modal Control Functions ---
     
-    // 1. Manual Tag Entry Handler (on Enter or comma input)
-    tagsInput.addEventListener('keydown', (e) => {
-        console.log(e.key);
-        // If user presses Enter or a comma
+    function openModal() {
+        modalOverlay.classList.add('open');
+        modalTopicInput.focus();
+        
+        // Ensure initial tag and topic state is loaded if needed
+        if (modalTopTagsList.children.length === 0) {
+            renderTopTags(MOCK_TOP_TAGS);
+        }
+        updateDisplayArea(); // Re-render selected tags
+        selectedTags.forEach(tag => updateTopTagState(tag, true)); // Sync top tag state
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove('open');
+    }
+
+    // --- Initialization and Data Rendering ---
+
+    /** Populates the Top Tags list using the mock data, assigning a random color. */
+    function renderTopTags(tags) {
+        modalTopTagsList.innerHTML = ''; 
+
+        tags.forEach(tag => {
+            const tagName = tag.name;
+            const tagPill = document.createElement('span');
+            tagPill.classList.add('tag-pill', 'tag-clickable'); 
+            tagPill.dataset.tagName = tagName;
+            tagPill.textContent = tagName;
+            
+            // --- NEW: Apply random light color from the design system ---
+            const randomBgToken = LIGHT_COLOR_TOKENS[Math.floor(Math.random() * LIGHT_COLOR_TOKENS.length)];
+            const textToken = DARK_TEXT_TOKENS[randomBgToken];
+            
+            tagPill.style.backgroundColor = `var(${randomBgToken})`;
+            tagPill.style.color = `var(${textToken})`;
+            
+            tagPill.addEventListener('click', () => {
+                if (selectedTags.has(tagName)) {
+                    removeTag(tagName);
+                } else {
+                    addTag(tagName);
+                }
+            });
+
+            modalTopTagsList.appendChild(tagPill);
+        });
+    }
+
+    // --- Event Listeners ---
+    
+    // 1. Open Modal
+    openModalBtn.addEventListener('click', openModal);
+
+    // 2. Close Modal
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+
+    // 3. Manual Tag Entry Handler (in modal)
+    modalTagsInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
-            const inputVal = tagsInput.value.trim();
+            const inputVal = modalTagsInput.value.trim();
             if (inputVal) {
-                // Split by comma in case the user pasted or typed multiple tags
                 inputVal.split(',').forEach(tag => addTag(tag.trim()));
-                tagsInput.value = ''; // Clear the input field
+                modalTagsInput.value = ''; 
             }
         }
     });
 
-    // 2. Click Handler for Top Tags
-    topTagsList.addEventListener('click', (e) => {
-        const target = e.target.closest('.tag-clickable');
-        if (!target) return;
-
-        const tagName = target.dataset.tagName;
+    // 4. Final Save/Submission Handler (in modal)
+    finalSaveBtn.addEventListener('click', (e) => {
+        // Step 1: Transfer data from modal fields to main form's hidden fields
+        hiddenTagsField.value = Array.from(selectedTags).join(',');
+        hiddenTopicField.value = modalTopicInput.value.trim();
         
-        if (selectedTags.has(tagName)) {
-            // If already selected (clicked the striked-out pill), remove it
-            removeTag(tagName);
-        } else {
-            // If not selected, add it
-            addTag(tagName);
-        }
-    });
-
-    // 3. Form Submission Handler (Mock AJAX)
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+        // Step 2: Close the modal
+        closeModal();
         
-        // Ensure the hidden field is up to date one last time
-        updateHiddenField();
-        
-        const title = document.getElementById('note-title').value;
-        const content = document.getElementById('note-content').value;
-        const tags = hiddenTagsField.value;
-
-        console.log("--- New Note Data Ready for Backend ---");
-        console.log(`Title: ${title}`);
-        console.log(`Content Snippet: ${content.substring(0, 50)}...`);
-        console.log(`Tags: ${tags}`);
-
-        // --- MOCK AJAX CALL ---
-        // alert("Note saved successfully! (Mock submission)");
-        // In a real application, redirect to the created note's view:
-        // window.location.href = '/note/newly-created-id';
+        // Step 3: Programmatically submit the main form
         form.submit();
-    });
 
-    // Initialize all top tags to the unselected state on load
-    topTagsList.querySelectorAll('.tag-clickable').forEach(pill => {
-        pill.classList.remove('tag-selected');
+        console.log("--- FINAL FORM SUBMISSION TRIGGERED ---");
+        console.log(`Hidden Tags: ${hiddenTagsField.value}`);
+        console.log(`Hidden Topic: ${hiddenTopicField.value}`);
     });
+    
+    // Initial call to render top tags on load (for the modal)
+    renderTopTags(MOCK_TOP_TAGS);
 });

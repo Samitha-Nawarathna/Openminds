@@ -56,4 +56,17 @@ class Controller
     {
         return $_SERVER['REQUEST_METHOD'] === 'POST';
     }
+
+    protected function json_request()
+    {
+        $json = file_get_contents('php://input');
+        return json_decode($json, true);
+
+    }
+    protected function json_respond($data)
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+    }
 }

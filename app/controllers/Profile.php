@@ -76,4 +76,26 @@ class Profile extends Controller
         header('Location: '.ROOT.'accountverification');
         exit;
     }
+
+    //----------------------------------------------------//
+    //--------------------AJAX METHODS--------------------//
+    //----------------------------------------------------//
+
+    public function api_search_users_by_name()
+    {
+        $data = $this->json_request();
+        $user_model = new User();
+
+        $results = $user_model->filter_by_name($data['query'], 'username');
+
+
+
+        if ($results) {
+            
+
+            $this->json_response(['success' => true, 'results' => $results]);
+        } else {
+            $this->json_response(['success' => false, 'message' => 'No topics found.']);
+        }
+    }        
 }

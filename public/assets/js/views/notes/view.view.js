@@ -1,25 +1,54 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
+    const note_card = document.querySelector('.note-card');
+    // --- Timer DOM Elements (inside the modal) ---
     const timeInput = document.getElementById('timer-minutes-input');
-    const timerButton = document.getElementById('timer-btn');
-    const countdownDisplay = document.getElementById('countdown-display');
+    const timerStartModalBtn = document.getElementById('timer-start-modal-btn'); // Renamed
     const unitLabel = document.querySelector('.unit-label');
 
+    // --- New Fixed Timer Elements ---
+    const focusButtonTrigger = document.getElementById('focus-button-trigger');
+    const runningTimerState = document.getElementById('running-timer-state');
+    const countdownDisplayFixed = document.getElementById('countdown-display-fixed');
+    const cancelTimerBtn = document.getElementById('cancel-timer-btn');
+    
+    // --- Modal Elements ---
+    const timerModal = document.getElementById('timer-modal');
+    const closeModalBtn = timerModal.querySelector('.close-btn');
+
+    // --- Collapsible Tags Elements ---
+    const tagsToggleBtn = document.querySelector('.tags-toggle-btn');
+    const tagsContent = document.getElementById('tags-content');
+
     // --- State Variables ---
-    let timerInterval = null; // Stores the interval ID for stopping the timer
+    let timerInterval = null; 
     let isRunning = false;
     let totalSeconds = 0;
 
-    // --- Utility Functions ---
+    // --- Utility and Core Timer Functions ---
+    function open_note(id)
+    {
+        note_card.style.transform = 'translateX(-100%)';
+        window.abstractNoteModalManager.openNote(id);
+    }
 
-    /** Formats seconds into MM:SS string. */
+    window.open_note = open_note;
+
+    function close_note()
+    {
+        note_card.style.transform = 'translateX(-50%)';
+    }
+
+    window.close_note = close_note;
+
+    
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-    /** Updates the countdown display every second. */
     function updateCountdown() {
         if (totalSeconds <= 0) {
             stopTimer(true); // Stop and trigger completion
@@ -27,79 +56,116 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         totalSeconds--;
-        countdownDisplay.textContent = formatTime(totalSeconds);
+        // Always update the fixed display
+        countdownDisplayFixed.textContent = formatTime(totalSeconds);
     }
 
-    // --- Core Timer Functions ---
-
-    /** Starts the timer and updates the UI state. */
     function startTimer() {
         const minutes = parseInt(timeInput.value);
 
         if (isNaN(minutes) || minutes <= 0) {
-            alert("Please enter a valid focus time (at least 1 minute).");
+            alert("Please enter a valid focus time (1-180 minutes).");
             return;
         }
-
+        
         totalSeconds = minutes * 60;
         isRunning = true;
-
-        // UI Changes for Start
-        timeInput.style.display = 'none';
-        unitLabel.style.display = 'none';
+        timerModal.style.display = 'none'; // Close the modal upon starting
         
-        timerButton.textContent = 'Cancel';
-        timerButton.classList.remove('btn-start');
-        timerButton.classList.add('btn-cancel');
+        // --- UI Changes for Start (Fixed Display) ---
+        focusButtonTrigger.style.display = 'none';
+        runningTimerState.style.display = 'flex'; 
 
-        countdownDisplay.textContent = formatTime(totalSeconds);
-        countdownDisplay.style.display = 'block';
+        // Initial display update
+        countdownDisplayFixed.textContent = formatTime(totalSeconds);
 
-        // Start the interval
         timerInterval = setInterval(updateCountdown, 1000);
     }
 
-    /** Stops the timer and resets the UI state. */
     function stopTimer(completed = false) {
         clearInterval(timerInterval);
         isRunning = false;
 
-        // UI Changes for Stop/Reset
-        timeInput.style.display = 'inline-block';
-        unitLabel.style.display = 'inline-block';
-        
-        timerButton.textContent = 'Start';
-        timerButton.classList.remove('btn-cancel');
-        timerButton.classList.add('btn-start');
+        // --- UI Changes for Stop/Reset (Fixed Display) ---
+        runningTimerState.style.display = 'none';
+        focusButtonTrigger.style.display = 'block';
 
-        countdownDisplay.style.display = 'none';
-        
         if (completed) {
             alert("Focus period complete! Great work.");
-            // Reset input value to a default state (e.g., 30)
-            timeInput.value = 30;
+            timeInput.value = 30; // Reset input
         }
     }
 
-    // --- Event Listener ---
 
-    timerButton.addEventListener('click', () => {
-        if (isRunning) {
-            if (confirm("Are you sure you want to cancel the focus period?")) {
-                stopTimer();
+
+
+    // --- Collapsible Tags Logic ---
+    // if (tagsToggleBtn && tagsContent) {
+    //     tagsToggleBtn.addEventListener('click', () => {
+    //         const isExpanded = tagsToggleBtn.getAttribute('aria-expanded') === 'true' || false;
+    //         tagsToggleBtn.setAttribute('aria-expanded', !isExpanded);
+    //         tagsContent.classList.toggle('show');
+            
+    //         const icon = tagsToggleBtn.querySelector('.toggle-icon');
+    //         if (icon) {
+    //             icon.textContent = isExpanded ? '▼' : '▲';
+    //         }
+    //     });
+    // }
+
+    // --- Modal Logic ---
+    if (focusButtonTrigger && timerModal && closeModalBtn) {
+        // Open Modal
+        focusButtonTrigger.addEventListener('click', () => {
+            timerModal.style.display = 'block';
+        });
+
+        // Close Modal on 'x' click
+        closeModalBtn.addEventListener('click', () => {
+            timerModal.style.display = 'none';
+        });
+
+        // Close Modal on outside click
+        window.addEventListener('click', (event) => {
+            if (event.target === timerModal) {
+                timerModal.style.display = 'none';
             }
-        } else {
-            startTimer();
-        }
-    });
+        });
+    }
+
+
+    // --- Timer Event Listeners ---
     
+    // 1. Start timer from modal
+    if (timerStartModalBtn) {
+        timerStartModalBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                startTimer();
+            }
+        });
+    }
 
-    document.querySelector('.btn-delete').addEventListener('click', () => {
-        if (confirm("Are you sure you want to delete this note? (Mock Action)")) {
-            // alert("Note deleted.");
+    // 2. Cancel timer from fixed display
+    if (cancelTimerBtn) {
+        cancelTimerBtn.addEventListener('click', () => {
+            if (isRunning) {
+                if (confirm("Are you sure you want to cancel the focus period?")) {
+                    stopTimer();
+                }
+            }
+        });
+    }
+
+    // --- Delete Button Confirmation ---
+    document.querySelector('.btn-delete').addEventListener('click', (e) => {
+        e.preventDefault(); 
+        if (confirm("Are you sure you want to delete this note?")) {
+            const deleteLink = e.currentTarget.querySelector('a');
+            if (deleteLink) {
+                window.location.href = deleteLink.href;
+            } else {
+                alert("Note deleted... Mock action complete.");
+            }
         }
     });
-
-    // Initial check to ensure the countdown display is hidden on load
-    stopTimer();
 });
