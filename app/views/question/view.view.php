@@ -61,8 +61,6 @@ $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
         grid-template-columns: repeat(2, 1fr);
     }
 </style>
-
-
 <div id="action-modal" class="modal">
     <div class="modal-content">
 
