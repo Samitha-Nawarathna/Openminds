@@ -1,202 +1,312 @@
-/* General Reset/Base Styles */
-body {
-    /* Updated to use tokens */
-    font-family: var(--font-body);
-    background-color: var(--color-secondary-background);
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* -----------------------------
+ *    🎨 TOKENS (DESIGN VARIABLES)
+ * ------------------------------ */
+:root {
+    /* Primary Palette */
+    --color-blue-50:  #f0f6ff;
+    --color-blue-100: #d6e4ff;
+    --color-blue-200: #adc8ff;
+    --color-blue-400: #5b8def;
+    --color-blue-500: #1f74ff; /* primary */
+    --color-blue-700: #004ecc;
+
+    --color-green-50:  #f3faf5;
+    --color-green-100: #d9f2e1;
+    --color-green-300: #86d19e;
+    --color-green-500: #34c759; /* success */
+    --color-green-700: #228b38;
+
+    --color-yellow-50:  #fff9e5;
+    --color-yellow-200: #ffe680;
+    --color-yellow-400: #ffcd00;
+    --color-yellow-600: #b38600;
+    
+    /* Secondary / CTA Palette (NEW) */
+    --color-red-500: #ff385c; /* Vibrant CTA color */
+    --color-red-700: #d9042b;
+
+    /* Neutral Palette */
+    --color-gray-50:  #fafafa;
+    --color-gray-100: #f5f5f5;
+    --color-gray-200: #e5e5e5;
+    --color-gray-300: #d4d4d4;
+    --color-gray-400: #a3a3a3;
+    --color-gray-600: #525252;
+    --color-gray-800: #262626;
+    --color-gray-900: #171717;
+
+    /* Feedback */
+    --color-success: var(--color-green-500);
+    --color-warning: var(--color-yellow-400);
+    --color-info: var(--color-blue-500);
+    --color-error: var(--color-red-500);
+
+    /* Backgrounds & Text */
+    --color-bg: var(--color-gray-50);
+    --color-bg-card: #ffffff;
+    --color-bg-muted: var(--color-gray-100);
+    --color-text: var(--color-gray-900);
+    --color-text-muted: var(--color-gray-600);
+    --color-border: var(--color-gray-200);
+    --color-border-light: var(--color-gray-100); 
+
+    /* Custom Tokens for Question Page Roles */
+    --role-admin-bg: var(--color-red-500); 
+    --role-admin-text: var(--color-red-500);
+    --role-expert-bg: var(--color-yellow-200);
+    --role-expert-text: var(--color-blue-400);
+    --role-mentor-bg: var(--color-green-300);
+    --role-mentor-text: var(--color-gray-900);
+    --role-student-bg: var(--color-blue-200);
+    --role-student-text: var(--color-gray-900);
+
+    /* Colors (Overriding Duplicates for clarity) */
+    --color-primary: var(--color-blue-500);
+    --color-primary-rgb: 31, 116, 255; 
+    --color-error-feedback: var(--color-red-500); 
+    --color-surface: #ffffff;
+    --color-background: var(--color-gray-50);
+    --color-placeholder: var(--color-gray-300); 
+    --color-success: var(--color-green-500);
+
+    /* Secondary/Contextual Colors */
+    --color-secondary-background: var(--color-gray-100); 
+    --color-secondary-background-rgb: 238, 238, 238;
+    --color-green-text: var(--color-green-700);
+    --color-green: var(--color-green-100); 
+    --color-blue: var(--color-blue-200); 
+    --color-yellow: var(--color-yellow-50);
+    --color-deep-yellow: var(--color-yellow-200);
+    --color-red: var(--color-red-700);
+
+    /* Font */
+    --font-body: 'Inter', sans-serif;
+
+    /* Font Sizes */
+    --font-size-xs: 0.7rem; /* Used for time/date */
+    --font-size-sm: 0.875rem; /* Used for role/tag/vote buttons */
+    --font-size-base: 1rem;
+    --font-size-lg: 1.5rem;
+    --font-size-xl: 3rem; /* Used for main question title */
+
+    /* Spacing */
+    --space-xxs: 0.25rem; 
+    --space-xs: 0.5rem;
+    --space-sm: 1.2rem; 
+    --space-md: 1.7rem; 
+    --space-lg: 2.2rem;
+    --space-xl: 3.2rem;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Shadow */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06); 
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* -----------------------------
+ *      ✨ BASE STYLES
+ * ------------------------------ */
+* {
+    box-sizing: border-box;
     margin: 0;
-    padding-bottom: var(--space-xl); /* Increased space for the fixed footer */
-    color: var(--color-text); /* Base text color from tokens */
+    padding: 0;
 }
 
-.container {
-    max-width: 900px; /* Slightly wider container */
-    margin: var(--space-md) auto;
-    padding:  var(--space-sm);
-}
-
-/* Question/Answer Common Styles */
-.question-container, .answer-container {
-    background-color: var(--color-surface);
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    /* Lighter, modern shadow */
-    box-shadow: var(--shadow-md);
-    margin-bottom: var(--space-md);
-    text-align: left;
-    width: 100%;
-}
-
-.question-container
-{
-    border: var(--color-primary) 2px solid;
-}
-
-.answer-container {
-    border: 1px solid var(--color-border);
-}
-
-.question-meta-top, .answer-meta-top {
-    font-size: var(--font-size-sm);
-    color: var(--color-placeholder); /* Muted gray for meta info */
-    margin-bottom: var(--space-xs);
-}
-
-h1 {
-    /* Using large font size from tokens */
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    margin: 0 0 var(--space-sm) 0;
-    color: var(--color-text);
-}
-
-.question-content {
+body {
+    font-family: var(--font-body);
     font-size: var(--font-size-base);
     color: var(--color-text);
-    line-height: 1.6;
+    background-color: var(--color-background);
 }
 
-.answer-content {
-    line-height: 1.7;
-    color: var(--color-text);
-}
-
-.answer-content ul { padding-left: var(--space-md); }
-.answer-content li { margin-bottom: var(--space-xs); }
-
-/* Tags Styling */
-.tags { margin: var(--space-sm) 0; }
-.tag-item {
-    display: inline-block;
-    /* Using secondary background for subtle tag color, or a specific tone */
-    background-color: var(--color-blue);
-    color: var(--color-primary); /* Use primary color for tag text */
-    padding: 5px var(--space-xs);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    margin-right: var(--space-xs);
-    font-weight: 500;
-}
-
-/* Vote Stats Styling */
-.vote-stats {
-    display: flex;
-    gap: var(--space-sm);
-    margin-top: var(--space-sm);
-    padding-top: var(--space-xs);
-    border-top: 1px solid var(--color-secondary-background); /* Lighter divider */
-}
-.upvote-count, .downvote-count {
-    cursor: pointer;
-    color: var(--color-placeholder);
-    user-select: none;
-    padding: var(--space-xs) 10px;
-    border-radius: var(--radius-sm);
-    transition: background-color 0.2s;
-}
-.upvote-count:hover, .downvote-count:hover { background-color: var(--color-secondary-background); }
-
-/* Answer Specific Styles */
-.answer-container {
-    padding-top: var(--space-lg); /* Increased padding for absolute badge */
-    position: relative;
-}
-.chosen-answer { border: 2px solid var(--color-success); } /* Thicker border for chosen answer */
-
-/* --- NEW STYLES START HERE --- */
-
-/* "Your Answer" Badge */
-.your-answer-badge {
-    position: absolute;
-    top: calc(-1 * var(--space-xs)); /* Position above the container */
-    left: var(--space-md);
-    background-color: var(--color-primary); /* Using primary color */
-    color: var(--color-surface);
-    padding: 5px var(--space-sm);
+.btn-blue, .btn-red, .btn-none {
+    width: fit-content;
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
     font-weight: 600;
-    border-radius: var(--radius-lg); /* Pill shape */
-    box-shadow: var(--shadow-md);
-}
-
-.chosen-badge {
-    position: absolute;
-    top: 0; left: 0;
-    background-color: var(--color-success); /* Success color */
-    color: var(--color-surface);
-    padding: 5px var(--space-xs);
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    border-top-left-radius: var(--radius-md);
-    border-bottom-right-radius: var(--radius-md);
-}
-
-/* Action Buttons Container */
-.action-buttons {
-    display: flex;
-    gap: var(--space-xs); /* Reduced gap */
-    margin-top: var(--space-sm);
-    padding-top: var(--space-xs);
-    border-top: 1px solid var(--color-secondary-background);
-}
-
-.action-buttons button {
-    flex-grow: 1;
-    padding: var(--space-xs); /* Use smaller padding for action buttons */
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-base);
-    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
 }
 
-.action-buttons button:hover {
-    opacity: 0.9;
-}
-
-.btn-edit {
-    /* background-color: var(--color-n); Primary for edit/main action */
-    border: var(--color-primary) 2px solid;
-    color: var(--color-primary);
-    border: none;
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-}
-.btn-edit:hover { background-color: #0069d9;
-color: var(--color-background); } /* Slightly darker primary on hover */
-
-.btn-delete {
-    background-color: var(--color-error); /* Error color for delete */
-    color: var(--color-surface);
-    border: none;
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-}
-.btn-delete:hover { background-color: #c82333; } /* Slightly darker error on hover */
-
-/* Fixed Footer Button */
-.fixed-footer {
-    position: fixed;
-    bottom: 0; left: 0;
-    width: 100%;
-    background-color: var(--color-surface);
-    box-shadow: 0 -0.25rem 0.5rem rgba(0, 0, 0, 0.05); /* Lighter upward shadow */
-    padding: var(--space-sm) 0;
-    text-align: center;
-    z-index: 999;
-}
-
-#answer-btn {
+.btn-blue {
     background-color: var(--color-primary);
     color: var(--color-surface);
-    border: none;
-    padding: var(--space-sm) var(--space-lg);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    cursor: pointer;
-    transition: background-color 0.2s;
 }
 
-#answer-btn:hover { background-color: #0069d9; }
+.btn-blue:hover {
+    background-color: #0056b3;
+}
+
+.btn-none {
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.btn-none:hover {
+    background-color: #ced4da;
+    color: var(--color-primary);
+}
+
+.btn-red {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+}
+
+.btn-red:hover {
+    background-color: #c82333;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-blue-100);
+    color: var(--color-gray-900);
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+    height: fit-content;
+    box-sizing: border-box;
+}
+
+/* --- Main Layout: INITIAL STATE --- */
+#question-page-container {
+    /* Initial state is a flex container */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%; 
+    max-width: none;
+    margin: 0;
+    flex-direction: row; /* Default layout: Question | Answers */
+}
+
+#question-panel {
+    width: 50vw;
+    /* Removed min-height: 100vh to ensure correct content height calculation for trigger */
+    padding: var(--space-lg);
+    box-sizing: border-box;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Only transform is transitioned smoothly for the initial move. Position change is instantaneous. */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s, border-left 0.3s; 
+}
+
+#void-filler {
+    /* NEW: Element to fill the space left by the fixed question panel */
+    display: none;
+    height: 0; 
+    width: 50vw;
+    background-color: transparent;
+    /* Transition for the smooth vertical movement of the answers thread */
+    transition: height 0.3s ease-in-out; 
+    /* margin-right: 50vw; This is unnecessary and was causing layout issues with 100% width parent. */
+}
+
+#answers-panel {
+    width: 50vw; 
+    flex-grow: 0;
+    padding: 0;
+    transition: all 0.3s;
+}
+
+#answers-panel-inner-content {
+    padding: var(--space-lg);
+}
+
+/* --- SCROLL-ACTIVATED SPLIT STATE --- */
+body.split-active {
+    overflow-x: hidden;
+}
+
+body.split-active #question-page-container {
+    /* Set to block flow to allow the fixed panel to be overlaid */
+    display: block;
+}
+
+body.split-active #question-panel {
+    /* Final fixed state (transform is set by JS to animate from initial position) */
+    position: fixed !important; /* Force position fixed */
+    top: 0 !important;
+    left: unset !important; /* Clear left from JS positioning */
+    right: 0 !important; /* Final position is the right edge */
+    width: 50vw;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: none;
+    border-left: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    z-index: 100;
+}
+
+body.split-active #void-filler {
+    display: block; 
+    /* Height is animated by JS from the panel's full height down to 0 */
+    width: 50vw;
+}
+
+body.split-active #answers-panel {
+    /* Answers Panel occupies the left 50vw space */
+    width: 50vw; 
+    margin-right: 50vw; /* This pushes the element left in block flow */
+}
+
+/* Hide the trigger element when not needed */
+#split-trigger-point {
+    height: 0;
+    margin-top: calc(0.2 * 100vh);
+    pointer-events: none;
+    opacity: 0;
+}
+body.split-active #split-trigger-point {
+    display: none;
+}
+
+/* --- Existing Styles below --- */
+.header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs); font-size: var(--font-size-xs); color: var(--color-text-muted); }
+.author-info { display: flex; align-items: center; gap: var(--space-xxs); }
+.author-role { font-weight: 600; padding: 2px 6px; border-radius: var(--radius-sm); margin-left: var(--space-xs); }
+.role-admin { color: var(--role-admin-text); } .role-expert { color: var(--role-expert-text); } .role-mentor { color: var(--role-mentor-text); } .role-student { color: var(--role-student-text); }
+#question-title { font-size: var(--font-size-xl); font-weight: 800; margin-bottom: var(--space-sm); margin-top: var(--space-sm); line-height: 1.1; }
+.tags-container { margin-bottom: var(--space-md); display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.tag-pill { font-size: var(--font-size-base); font-weight: 500; }
+.question-footer { justify-self: end; position: absolute; bottom: 0; display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-lg); padding: var(--space-sm); width: calc(100% - 2*var(--space-lg)); border-top: 1px solid var(--color-border); }
+#answer-cta-btn { width: auto; padding: var(--space-sm) var(--space-md); }
+.question-action-controls { display: flex; align-items: center; gap: var(--space-xs); }
+.question-action-controls button { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-sm); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; }
+.question-action-controls .btn-error-small { color: var(--color-error); border-color: var(--color-error); }
+.vote-btn { font-size: var(--font-size-base); padding: 8px 12px; }
+.voted-up { background-color: var(--color-success); color: var(--color-surface); border-color: var(--color-success); }
+.voted-down { background-color: var(--color-error-feedback); color: var(--color-surface); border-color: var(--color-error-feedback); }
+.vote-count-display { padding: 0 var(--space-xs); font-weight: 600; font-size: var(--font-size-base); }
+.answer-count-header { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-sm); padding-bottom: var(--space-xxs); border-bottom: 2px solid var(--color-primary); }
+.answer-card { background-color: var(--color-surface); padding: var(--space-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-bottom: var(--space-sm); position: relative; }
+.answer-card.accepted { border: 2px solid var(--color-success); background-color: var(--color-green-50); }
+.accepted-badge { position: absolute; top: 0; right: 0; background-color: var(--color-success); color: var(--color-surface); padding: 5px 10px; font-size: var(--font-size-sm); font-weight: 600; border-bottom-left-radius: var(--radius-md); }
+.answer-footer { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); padding-top: var(--space-xs); border-top: 1px solid var(--color-border-light); }
+.answer-footer .action-btns button { padding: var(--space-xs); font-size: var(--font-size-sm); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; margin-left: var(--space-xs); }
+.answer-footer .action-btns button:hover { background-color: var(--color-secondary-background); }
+.answer-footer .action-btns .btn-primary-small { color: var(--color-primary); border-color: var(--color-primary); padding: var(--space-xs); background: none; }
+.answer-footer .action-btns .btn-primary-small:hover { background-color: var(--color-secondary-background); } /* Updated hover for primary small */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+.modal-content { background-color: var(--color-surface); margin: 10vh auto; padding: var(--space-lg); border-radius: var(--radius-lg); width: 90%; max-width: 600px; box-shadow: var(--shadow-md); }
+.modal-content h2 { font-size: var(--font-size-lg); border-bottom: 1px solid var(--color-border); padding-bottom: var(--space-xs); margin-bottom: var(--space-md); margin-top: 0; }
+.close-btn { color: var(--color-gray-600); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+.modal-content form label { display: block; margin-top: var(--space-sm); font-weight: 600; font-size: var(--font-size-sm); color: var(--color-text-muted); }
+.modal-content form textarea, .modal-content form input[type="text"] { width: 100%; padding: var(--space-xs); margin-top: var(--space-xxs); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-sizing: border-box; font-size: var(--font-size-base); font-family: var(--font-body); }
+.modal-content form input[type="text"]:focus, .modal-content form textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(31, 116, 255, 0.2); }
+.modal-content form .button { width: auto; align-self: flex-start; margin-top: var(--space-md); }
+#error-popup { display: none; position: fixed; top: var(--space-lg); right: var(--space-lg); background-color: var(--color-error-feedback); color: white; padding: var(--space-sm); border-radius: var(--radius-md); z-index: 2000; box-shadow: var(--shadow-md); font-size: var(--font-size-base); font-weight: 600; }

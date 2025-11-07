@@ -7,36 +7,28 @@
     include_once('../app/views/partials/header.view.php');
 
 ?>
-<div class="requestbrowser-container">
-    <div class="requestbrowser-wrapper">
-        <div class="title">
-            All Requests
-        </div>
-        <div class="search-container">
-            <input type="text" placeholder="Search your requests" class="search-input">
-            <button class="search-btn">
-                filter
-            </button>
+<div class="requestbrowser-container main-content-container">
+<header class="exercise-browser-header">
+            <h3 class="main-title">All Requests</h3>
+        </header>
+        
+        <div class="filter-bar">
+            <input type="text" id="exercise-filter-input" placeholder="enter a username name">
+            <button class="btn-filter" id="filter-btn">filter</button>
         </div>
         <div class="tab-btns">
-            <div class="button" data-index="0">
-                pending
+            <div class="tab-button active" data-index="0">
+                active
             </div>
-            <div class="btn-none button" data-index="1">
-                approved
-            </div>
-            <div class="btn-none button" data-index="2">
-                rejected
-            </div>                    
+            <div class="tab-button" data-index="1">
+                banned
+            </div>        
         </div>
         <div class="content-tabs">
             <div class="content-tab container active"></div>
 
             <div class="content-tab container"></div>
             <div class="content-tab container"></div>
-        </div>
-
-    </div>
 
 </div>
 

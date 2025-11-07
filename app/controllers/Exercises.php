@@ -437,6 +437,10 @@ public function create()
     
             $exercises = new ExercisesModel;
             $exercise_data = $exercises->first(['id' => $exercise_id]);
+
+            if (!$exercise_data) {
+                header('Location: '.ROOT.'/exercises/show?id=1');
+            }
     
             if(!$exercise_data->status === 'approved'){
                 header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
@@ -622,9 +626,9 @@ public function create()
         $this->view('exercises/expertreview', $data);
     }
 
-    public function viewattempt()
+    public function viewattempt($exercise_id, $attempt_id)
     {
-        $id = $_GET['id'] ?? null;
+        // $id = $_GET['id'] ?? null;
 
         $data = [
             'exercise_details' => [
@@ -667,6 +671,11 @@ public function create()
             ]
         ];
 
+        $data = [
+            'exercise_id' => $exercise_id,
+            'attempt_id' => $attempt_id
+        ];
+
         $this->view('exercises/viewattempt', $data);
     }
 
@@ -687,4 +696,257 @@ public function create()
 
         header('Location: '.ROOT.'/exercises?message=Exercise '.$exercise_id.' rejected successfully');
     }
+
+    /**
+     * API: GET /exercises/api/load_attempt_data/{exercise_id}
+     * Loads the full exercise structure including answers and explanations for client-side use.
+     * This replaces the security-conscious separation for self-assessment mode.
+     */
+    public function api_load_attempt_data($exercise_id = null)
+    {
+        if (empty($exercise_id)) {
+            $this->json_error("Missing exercise ID.", 400);
+        }
+        
+        // --- MOCK DATA: Full structure with correct flags and explanations ---
+        $mock_full_data = [
+          "id" => (int)$exercise_id,
+          "title" => "Basic Financial Accounting (Self-Assessment)",
+          "subject" => "Finance",
+          "questions" => [
+            [
+              "question_id" => 601,
+              "prompt" => "Which of these is a current asset?",
+              "weight" => 3,
+              "explanation" => "Accounts Receivable is a current asset, representing money owed by customers expected to be collected within one year. Land and Equipment are long-term assets.",
+              "options" => [
+                ["option_id" => 701, "text" => "Land", "is_correct" => false],
+                ["option_id" => 702, "text" => "Accounts Receivable", "is_correct" => true],
+                ["option_id" => 703, "text" => "Equipment", "is_correct" => false]
+              ]
+            ],
+            [
+              "question_id" => 602,
+              "prompt" => "Identify the elements of the accounting equation. (Select two)",
+              "weight" => 5,
+              "explanation" => "The fundamental accounting equation is Assets = Liabilities + Equity. Both Assets and Liabilities are core elements.",
+              "options" => [
+                ["option_id" => 704, "text" => "Assets", "is_correct" => true],
+                ["option_id" => 705, "text" => "Profit", "is_correct" => false],
+                ["option_id" => 706, "text" => "Liabilities", "is_correct" => true],
+                ["option_id" => 707, "text" => "Market Share", "is_correct" => false]
+              ]
+            ]
+          ]
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_full_data);
+        exit();
+    }
+
+/**
+     * API: GET /exercises/api/published
+     * Fetches exercises available for browsing, supporting filtering/pagination (R6).
+     */
+    public function api_get_published()
+    {
+        $offset = $_GET['offset'] ?? 0;
+        $limit = $_GET['limit'] ?? 10;
+        
+        // --- MOCK DATA for published exercises list ---
+        $mock_published_data = $this->generate_mock_exercises('all', $offset, $limit);
+        
+        header('Content-Type: application/json');
+        echo json_encode($mock_published_data['exercises']);
+        exit();
+    }
+
+    /**
+     * API: GET /exercises/api/pending_review
+     * Fetches the list of exercises pending review for the current Subject Expert (R5).
+     */
+    public function api_get_pending_review()
+    {
+        // Assume current user is Expert in 'Physics' and 'Maths'
+        // --- MOCK DATA for pending review list ---
+        $mock_pending_list = [
+            [
+                "id" => 150,
+                "title" => "Newtonian Gravity Concepts",
+                "subject" => "Physics",
+                "creator_name" => "Mentor Alex",
+                "created_at" => "2025-11-01 10:00:00"
+            ],
+            [
+                "id" => 151,
+                "title" => "Advanced Vector Spaces",
+                "subject" => "Maths",
+                "creator_name" => "Admin Bob",
+                "created_at" => "2025-11-02 15:30:00"
+            ]
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_pending_list);
+        exit();
+    }
+    
+    /**
+     * API: POST /exercises/api/attempt/{exercise_id}
+     * Submits a user's answers and returns the calculated results (R7).
+     */
+    public function api_submit_attempt($exercise_id = null)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($exercise_id)) {
+             $this->json_error("Invalid request or missing exercise ID.", 400);
+        }
+        // $input = json_decode(file_get_contents('php://input'), true); // Use this to get the input
+
+        // --- MOCK DATA for attempt results (simulating scoring) ---
+        $mock_result = [
+            "attempt_id" => 2001,
+            "total_score" => 12.5, 
+            "total_max_score" => 15,
+            "details" => [
+                [
+                    "question_id" => 301,
+                    "prompt" => "What is the primary purpose of Encapsulation?",
+                    "user_score" => 5,
+                    "max_weight" => 5,
+                    "explanation" => "Encapsulation hides implementation details, improving code maintainability and security.",
+                    "options" => [
+                        ["option_id" => 401, "text" => "To hide implementation details", "is_correct" => true, "was_selected" => true],
+                        ["option_id" => 402, "text" => "To allow classes to inherit properties", "is_correct" => false, "was_selected" => false],
+                    ]
+                ]
+            ]
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_result);
+        exit();
+    }
+    
+    /**
+     * API: GET /exercises/api/history
+     * Fetches a list of the user's previously attempted exercises (R9).
+     */
+    public function api_get_attempt_history()
+    {
+        // --- MOCK DATA for attempt history list ---
+        $mock_history = [
+            [
+                "attempt_id" => 2001,
+                "exercise_title" => "Introduction to OOP Fundamentals",
+                "subject" => "Computer Science",
+                "score" => 12.5,
+                "max_score" => 15,
+                "attempted_at" => "2025-11-04 10:05:00"
+            ],
+            [
+                "attempt_id" => 2002,
+                "exercise_title" => "Advanced Algebra Practice",
+                "subject" => "Maths",
+                "score" => 7,
+                "max_score" => 10,
+                "attempted_at" => "2025-11-03 09:15:00"
+            ]
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_history);
+        exit();
+    }
+
+    /**
+     * API: GET /exercises/api/history/{attempt_id}
+     * Fetches the detailed results and explanations for a past attempt (R9).
+     */
+    public function api_get_attempt_details($attempt_id = null)
+    {
+        if (empty($attempt_id)) {
+            $this->json_error("Missing attempt ID.", 400);
+        }
+        
+        // --- MOCK DATA for attempt details ---
+        $mock_details = [
+            "attempt_id" => $attempt_id,
+            "exercise_title" => "Introduction to OOP Fundamentals",
+            "total_score" => 12.5, 
+            "total_max_score" => 15,
+            "details" => [
+                [
+                    "question_id" => 301,
+                    "prompt" => "What is the primary purpose of Encapsulation?",
+                    "user_score" => 5,
+                    "max_weight" => 5,
+                    "explanation" => "Encapsulation hides implementation details, improving code maintainability and security.",
+                    "options" => [
+                        ["option_id" => 401, "text" => "To hide implementation details", "is_correct" => true, "was_selected" => true],
+                        ["option_id" => 402, "text" => "To allow classes to inherit properties", "is_correct" => false, "was_selected" => false],
+                    ]
+                ]
+            ]
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_details);
+        exit();
+    }
+
+    /**
+     * API: POST /exercises/api/vote/{exercise_id}
+     * Submits a vote (upvote/downvote) for an exercise (R8).
+     */
+    public function api_submit_vote($exercise_id = null)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($exercise_id)) {
+            $this->json_error("Invalid request or missing exercise ID.", 400);
+        }
+        // $input = json_decode(file_get_contents('php://input'), true); // Get input
+        // $vote_type = $input['vote_type'] ?? 'Upvote'; // Use this for actual logic
+
+        // --- MOCK DATA for vote submission (Simulating Upvote) ---
+        $mock_response = [
+            "success" => true,
+            "message" => "Vote successfully registered.",
+            "current_vote_status" => 'Upvoted'
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_response);
+        exit();
+    }
+
+    /**
+     * API: GET /exercises/api/vote/{exercise_id}
+     * Gets the current user's vote status for an exercise.
+     */
+    public function api_get_vote_status($exercise_id = null)
+    {
+        if (empty($exercise_id)) {
+            $this->json_error("Missing exercise ID.", 400);
+        }
+        
+        // --- MOCK DATA for vote status ---
+        $mock_response = [
+            "current_vote_status" => 'None' 
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($mock_response);
+        exit();
+    }
+    
+    // Helper to send JSON error responses
+    private function json_error($message, $code = 400)
+    {
+        http_response_code($code);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => $message]);
+        exit();
+    }    
 }
+
+

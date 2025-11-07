@@ -4,13 +4,19 @@ body {
     /* background-color is already set in the global base styles, removing duplication */
     margin: 0;
     /* Maintain padding top for fixed nav, but use a spacing token */
-    padding-top: var(--space-xl); 
+    /* padding-top: var(--space-xl);  */
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 0 var(--space-sm); /* Using space-sm for side padding */
+    margin-top: var(--space-xl);
+}
+
+header
+{
+    margin-bottom: var(--space-lg);
 }
 
 h1 {

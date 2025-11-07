@@ -6,15 +6,27 @@ body {
     font-family: var(--font-body);
     background-color: var(--color-background);
     margin: 0;
-    padding-top: var(--space-lg);
+    /* padding-top: var(--space-lg); */
+}
+
+header
+{
+    margin-bottom: 30px;
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
+    margin-top: var(--space-xl);
     padding: 0 var(--space-sm);
 }
 
+.main-title {
+    font-size: 3em;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
 
 h1 {
     font-size: var(--font-size-lg); /* Using the new large font size token */

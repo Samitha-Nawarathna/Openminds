@@ -1,95 +1,134 @@
 <?php
 
-    $title = "view exercise | Openminds";
-    $filename = "exercises/view";
+    $title = "Creator Review | Openminds";
+    $filename = "exercises/view"; // New file name
 
     include_once "../app/views/partials/header.view.php";
 
-    function format_count($n) {
-        if ($n >= 1000) {
-            return round($n / 1000, 1) . 'k';
-        }
-        return $n;
+?>
+
+<?php 
+// Helper function to format vote counts
+function format_count($n) {
+    if ($n >= 1000) {
+        return round($n / 1000, 1) . 'k';
+    }
+    return $n;
+}
+?>
+
+<?php 
+// Assuming $data contains exercise_id passed from the Controller (e.g., from the pending review list).
+$exercise_id = $data['exercise_id'] ?? 105; // Default to mock ID
+// Use the same API as loading the attempt exercise content, but it will be read-only here.
+$review_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id; 
+
+$edit_url = ROOT . '/exercises/edit?id=' . $exercise_id;
+$approve_url = ROOT . '/exercises/approve';
+$reject_url = ROOT . '/exercises/reject';
+?>
+
+<style>
+    .action-grid {
+        display: grid;
+        gap: var(--space-xs);
+        margin-top: var(--space-md);
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto auto;
+        width: 100%;
+    }
+    .action-grid .btn-full-row {
+        grid-column: 1 / -1; /* Spans both columns */
     }
 
+    .btn-full-width
+    {
+        width: 100%;
+    }
+</style>
 
 
-?>
+<div id="action-modal" class="modal">
+    <div class="modal-content">
 
-<div class="attempt-wrapper">
+    <span class="close-btn" onclick="window.closeModal('action-modal')">&times;</span>
 
-    <div class="attempt-main-content">
-        <div class="review-management-panel">
-            <div class="score-card">
-                <div class="score-text">Average Score</div>
-                <div class="score-value"><?= number_format($data['review_data']['average_score'], 1) ?></div>
-                <a href="<?= ROOT ?>/analysis" class="analysis-link">full analysis ></a>
-            </div>
 
-            <div class="management-card">
-                <a href="<?= ROOT ?>/exercises/edit?id=<?=$data['exercise_details']['id']?>" class="btn-edit">Edit</a>
-                <a href="<?= ROOT ?>/exercises/hide?id=<?=$data['exercise_details']['id']?>" class="btn-hide">Hide</a>
-                <a href="<?= ROOT ?>/exercises/delete" class="btn-delete">Delete</a>
-            </div>
+    <div id="modal-details-meta" class="meta-data" style="padding-top:var(--space-xs);">
+            <p>Exercise ID: <strong><?= $exercise_id ?></strong></p>
+            <p>Created By: <span id="modal-creator">N/A</span></p>
         </div>
-    
 
-        <div class="question-flipper">
-            <div class="decorative-card"></div>
+        <h2 id="modal-title">Review Actions</h2>
+        <p>This exercise is pending review. Select an action below.</p>
+        
+
+        <div class="action-grid">
+            <a id="edit-modal-btn" href="<?= $edit_url ?>" class="btn-blue btn primary btn-full-row btn-full-width">Edit Exercise Details</a>
             
-            <div class="question-card">
-                <header class="question-header">
-                    <span id="question-number">Question 1 of 3</span>
-                </header>
-                
-                <p class="question-text" id="question-text-p">
-                    </p>
-
-                <div class="options-list" id="options-list">
-                    </div>
-
-                <footer class="question-navigation">
-                    <button class="btn-back" id="btn-back">Back</button>
-                    <button class="btn-next" id="btn-next">Next</button>
-                </footer>
-            </div>
+            <button id="approve-modal-btn" class="btn secondary btn-full-width" data-action="approve">Hide</button>
+            <button id="reject-modal-btn" class="btn-red btn-full-width" data-action="reject">Delete</button>
         </div>
     </div>
+</div>
 
-        <div class="exercise-details-card">
-            <h2><?= htmlspecialchars($data['exercise_details']['title']) ?></h2>
-            <div class="meta-info">
-                by <strong><?= htmlspecialchars($data['exercise_details']['creator']) ?></strong>
-                <span class="role"><?= htmlspecialchars($data['exercise_details']['role']) ?></span>
-                at <?= htmlspecialchars($data['exercise_details']['created_at']) ?>
-            </div>
-            <div class="vote-stats">
-                <button id="btn-upvote" class="vote-btn upvote">
-                    👍 <span id="upvote-count"><?= format_count($data['exercise_details']['upvotes']) ?></span>
-                </button>
-                <button id="btn-downvote" class="vote-btn downvote">
-                    👎 <span id="downvote-count"><?= format_count($data['exercise_details']['downvotes']) ?></span>
-                </button>
-            </div>
-            <div class="tags-list">
-                <?php foreach ($data['exercise_details']['tags'] as $tag): ?>
-                    <span class="tag-pill"><?= htmlspecialchars($tag) ?></span>
-                <?php endforeach; ?>
-            </div>
-        </div>
+<div id="main-exercise-content" class="container hidden">
+    
+    <div class="exercise-header" style="display:none;">
+        <h1 id="exercise-title">Loading...</h1>
+        <p><span id="exercise-subject"></span></p>
     </div>
 
-    <script>
-        // Pass the questions data and view mode flag
-        const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
-        const VIEW_MODE = '<?= $view_mode ?>';
-    </script>
+    <div class="question-block">
+        <p id="question-prompt" class="question-prompt">...</p>
+        
+        <div id="answer-options" class="answer-options-list">
+            </div>
 
-    <script>
-        // Pass the questions data to the JavaScript file
-        const ALL_QUESTIONS_DATA = <?= json_encode($data['questions']) ?>;
-    </script>
+        <div id="explanation-box" class="explanation-box">
+            <h3 class="explain-icon">📖</h3>
+            <p id="explanation-text">Explanation content will appear here.</p>
+        </div>
+    </div>
+</div>
 
-<?php
-    include_once "../app/views/partials/footer.view.php";
-?>
+<div class="control-bar">
+    <div class="left-controls">
+        <div id="progress-area" class="progress-area">
+            Question <span id="current-q-index">0</span> of <span id="total-q-count">0</span>
+        </div>
+
+        <a href="#" id="details-link" class="details-link">Details</a>
+
+    </div>
+    
+    <div id="review-action-buttons" class="action-buttons" style="gap: var(--space-xs);">
+        <a id="edit-btn" href="<?= $edit_url ?>" class="btn-none btn primary">Edit</a>
+        <button id="approve-btn" class="btn-blue btn secondary" data-action="approve">Hide</button>
+        <button id="reject-btn" class="btn-red" data-action="reject">Delete</button>
+    </div>
+
+    <div id="navigation-buttons" class="action-buttons">
+        <button id="prev-btn" class="btn-none btn secondary" disabled>Previous</button>
+        <button id="next-btn" class="btn-blue btn primary">Next</button>
+    </div>
+</div>
+
+<script>
+    // Constants for JS
+    const REVIEW_API_URL = '<?= $review_api_url ?>';
+    const APPROVE_URL = '<?= $approve_url ?>';
+    const REJECT_URL = '<?= $reject_url ?>';
+    const EXERCISE_ID = '<?= $exercise_id ?>';
+    
+    // Placeholder function for modal confirmation
+    window.handleReviewAction = function(action) {
+        if (confirm(`Are you sure you want to ${action} this exercise (ID: ${EXERCISE_ID})?`)) {
+            // In a real application, you'd send an AJAX POST request here.
+            alert(`ACTION: Submitting POST to ${action === 'approve' ? APPROVE_URL : REJECT_URL} with ID: ${EXERCISE_ID}`);
+            window.location.href = '<?= ROOT ?>/exercises/expertreview'; // Redirect to review list
+        }
+    };
+</script>
+
+<?php include_once "../app/views/partials/footer.view.php"; ?>

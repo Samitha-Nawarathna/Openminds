@@ -32,15 +32,16 @@ export async function get_content(review, limit, offset)
         const item = res[i];
       
         content +=
-        `<div class="card"><a href="${ROOT}/expertrequest/show?id=${item['id']}">
+        `<a href="${ROOT}/expertrequest/show?id=${item['id']}" class="profile-item no-style-link">
                     <div class="left-align">
                         <img src="`+ROOT+item["profile_picture_url"]+`" alt="profile-picture" class="profile-picture-xs">
                         <div class="desription">`+item["description"].substring(0, max_chars)+`...</div>
                     </div>
                     <div class="right-align">
-                        <div class="tile role">`+item["subject"]+`</div>
+                        <div class="role-pill">`+item["subject"]+`</div>
                     </div>
-                </a></div>`;
+                </a>`;
+
 
     }
       

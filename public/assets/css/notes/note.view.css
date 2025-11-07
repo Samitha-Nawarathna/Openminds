@@ -6,12 +6,13 @@ body {
     font-family: var(--font-body);
     background-color: var(--color-background);
     margin: 0;
-    padding-top: var(--space-lg);
+    /* padding-top: var(--space-lg); */
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
+    margin-top: var(--space-xl);
     padding: 0 var(--space-sm);
 }
 
@@ -32,10 +33,19 @@ h3 {
     color: var(--color-text); /* Using the dark text color token */
 }
 
+.main-title {
+    font-size: 3em;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+
 .title-area
 {
     display: flex;
     gap: var(--space-xs);
+    margin-bottom: 30px;
 }
 
 .caption
@@ -382,3 +392,4 @@ h3 {
 .nav-button.right {
     right: 0;
 }
+

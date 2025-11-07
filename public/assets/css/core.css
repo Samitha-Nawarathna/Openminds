@@ -58,7 +58,7 @@
     --color-surface: #ffffff;                    /* Retained pure white for card surfaces */
     --color-background: var(--color-gray-50);    /* New Background: #f5f5f5 */
     --color-border: var(--color-gray-200);       /* New Border: #cccccc */
-    --color-placeholder: var(--color-gray-300);  /* New Placeholder Gray: #a9a9a9 */
+    --color-placeholder: var(--color-gray-600);  /* New Placeholder Gray: #a9a9a9 */
     --color-text: var(--color-gray-900);         /* New Text: #222222 */
     --color-success: var(--color-green-500);     /* New Success Green: #34c759 */
 
@@ -99,6 +99,13 @@
     /* Shadow */
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06); /* New helper token */
     --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.main-title {
+    font-size: 3em;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
 }
 
 /* -----------------------------
@@ -680,12 +687,14 @@ form .input-group textarea {
     opacity: 0;
     z-index: 0;
     transition: transform 0.5s ease, opacity 1s ease;
-    height: 50vh;
+    /* height: ; */
     overflow-y: auto;
     overflow-x: hidden;
-    background-color: var(--color-surface);
+    background-color: var(--color-blue-50);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: var(--space-xs);
 }
 
 .content-tab.active {

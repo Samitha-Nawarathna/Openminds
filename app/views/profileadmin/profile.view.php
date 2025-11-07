@@ -164,6 +164,7 @@
 
             <form class='confirmation-btn' action='' method='post'>
                 <input type='submit' class='button btn-error' value='Confirm'>
+                <input type="hidden" name="user_id" value="<?=$profile_id?>">
             </form>
 
             </div>

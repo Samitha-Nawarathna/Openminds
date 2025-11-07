@@ -320,4 +320,261 @@ class Question extends Controller
         //show success message or error
         header("Location: /question/view?id=" . $_GET['q_id']);
     }
+
+    //---------------------------------------------------------------//
+    //-----------------------AJAX METHODS----------------------------//
+    //---------------------------------------------------------------//
+
+    public function api_create_answer()
+    {
+        $data = $this->json_request();
+
+
+        $current_user = $_SESSION['user_id'] ?? null;
+        $content = $data['content'];
+        $q_id = $data['q_id'];
+
+        // Save answer to the database
+        $answer = new Answer;
+
+        $answer_id = $answer->insert([
+            'content' => $content,
+            'q_id' => $q_id,
+            'creator_id' => $current_user,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // Return success response
+        echo json_encode(['status' => 'success', 'answer_id' => $answer_id]);
+
+    }
+
+    public function api_vote_question()
+    {
+        $data = $this->json_request();
+
+        $current_user = $_SESSION['user_id'] ?? null;
+        $q_id = $data['q_id'];
+        $votetype = $data['votetype'];
+
+        $user_vote_question = new Uservotequestion;
+
+        // Check if user has already voted
+        $existing_vote = $user_vote_question->first(['user_id' => $current_user, 'q_id' => $q_id]);
+
+        if ($existing_vote) {
+            // Update existing vote
+            if ($existing_vote->votetype === $votetype) {
+                $user_vote_question->delete($existing_vote->id);    
+            }else
+            {
+                //fix vote id issue 
+                $user_vote_question->update($existing_vote->id, [
+                    'votetype' => $votetype
+                ]);
+            }
+            
+        } else {
+            // Insert new vote
+            $user_vote_question->insert([
+                'user_id' => $current_user,
+                'q_id' => $q_id,
+                'votetype' => $votetype
+            ]);
+        }
+
+        // Return success response
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function api_vote_answer()
+    {
+        $data = $this->json_request();
+
+        $current_user = $_SESSION['user_id'] ?? null;
+        $q_id = $data['q_id'];
+        $votetype = $data['votetype'];
+
+        $user_vote_answer = new Uservoteanswer;
+
+        // Check if user has already voted
+        $existing_vote = $user_vote_answer->first(['user_id' => $current_user, 'q_id' => $q_id]);
+
+        if ($existing_vote) {
+            // Update existing vote
+            if ($existing_vote->votetype === $votetype) {
+                $user_vote_answer->delete($existing_vote->id);    
+            }else
+            {
+                //fix vote id issue 
+                $user_vote_answer->update($existing_vote->id, [
+                    'votetype' => $votetype
+                ]);
+            }
+            
+        } else {
+            // Insert new vote
+            $user_vote_answer->insert([
+                'user_id' => $current_user,
+                'q_id' => $q_id,
+                'votetype' => $votetype
+            ]);
+        }
+
+        // Return success response
+        echo json_encode(['status' => 'success']);        
+    }
+
+    public function api_edit_question()
+    {
+        $data = $this->json_request();
+
+        $q_id = $data['id'];
+        $title = $data['title'];
+        $content = $data['content']; 
+        $user_id = $_SESSION['user_id'];
+
+        if (!isset($user_id)) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $questions = new QuestionModel;
+        $question = $questions->first(['id' => $q_id]);
+
+        if ($question->creator_id != $user_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $result = $questions->update($q_id, [
+            'title' => $title,
+            'content' => $content,
+        ]);
+
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Update failed']);
+            return;
+        }
+
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function api_edit_answer()
+    {
+        $data = $this->json_request();
+
+        $q_id = $data['id'];
+        $content = $data['content']; 
+        $user_id = $_SESSION['user_id'];
+
+        if (!isset($user_id)) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $answers = new Answer;
+        $answer = $answer->first(['id' => $q_id]);
+
+        if ($answer->creator_id != $user_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $result = $answers->update($q_id, [
+            'title' => $title,
+            'content' => $content,
+        ]);
+
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Update failed']);
+            return;
+        }
+
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function api_delete_question()
+    {
+        $data = $this->json_request();
+
+        $q_id = $data['id'];
+        $user_id = $_SESSION['user_id'];
+
+        if (!isset($user_id)) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $questions = new QuestionModel;
+        $answers = new Answer;
+        $question = $questions->first(['id' => $q_id]);
+
+        $answer = $answers->first(['q_id' => $q_id]);
+
+        if ($answer)
+        {
+            echo json_encode(['status' => 'error', 'message' => 'has answers']);
+            return;
+        }
+
+        if ($question->creator_id != $user_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $result = $questions->delete($q_id);
+
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
+            return;
+        }
+
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function api_delete_answer()
+    {
+        $data = $this->json_request();
+
+        $a_id = $data['id'];
+        $user_id = $_SESSION['user_id'];
+
+        if (!isset($user_id)) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $answers = new Answer;
+        $answer = $answers->first(['id' => $a_id]);
+
+
+        if ($answer->creator_id != $user_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $result = $answer->delete($q_id);
+
+        if (!$result) {
+            echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
+            return;
+        }
+
+        echo json_encode(['status' => 'success']);
+
+    }
+
+    public function api_load_more()
+    {
+        $data = json_request();
+
+        $q_id = $data['$q_id'];
+        $limit = $data['limit'];
+        $lost_q_id = $data['last_q_id'];
+
+        //implement here
+    }
+    
+
 }

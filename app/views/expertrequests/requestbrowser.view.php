@@ -7,34 +7,23 @@
     include_once('../app/views/partials/header.view.php');
 
 ?>
-<div class="requestbrowser-container background-gradient">
-    <div class="requestbrowser-wrapper">
-        <div class="title">
-            Your Requests
-        </div>
-        <div class="option-container">
-            <div class="search-container">
-                <input type="text" placeholder="Search your requests" class="search-input">
-                <button class="search-btn">
-                    filter
-                </button>
-            </div>
-            <form action="<?=ROOT?>expertrequest/create" method="get">
-                <button class="button create-btn">
-                    + Create
-                </button>
-            </form>
+<div class="profilebrowser-container main-content-container">
+    <header class="exercise-browser-header">
+            <h3 class="main-title">Requests</h3>
+        </header>
+        
+        <div class="filter-bar">
+            <input type="text" id="exercise-filter-input" placeholder="enter a username name">
+            <button class="btn-filter" id="filter-btn">filter</button>
+            <a href="<?=ROOT?>/exercises/create" class="btn-create">+ Create</a>
         </div>
         <div class="tab-btns">
-            <div class="button" data-index="0">
-                pending
+            <div class="tab-button active" data-index="0">
+                active
             </div>
-            <div class="btn-none button" data-index="1">
-                approved
-            </div>
-            <div class="btn-none button" data-index="2">
-                rejected
-            </div>                    
+            <div class="tab-button" data-index="1">
+                banned
+            </div>        
         </div>
         <div class="content-tabs">
             <div class="content-tab container active"></div>
@@ -44,6 +33,7 @@
         </div>
 
     </div>
+
 
 </div>
 

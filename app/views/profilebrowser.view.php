@@ -10,22 +10,20 @@
     include_once('../app/views/partials/header.view.php');
 
 ?>
-<div class="profilebrowser-container background-gradient">
-    <div class="profilebrowser-wrapper">
-        <div class="title">
-            Profiles
-        </div>
-        <div class="search-container">
-            <input type="text" placeholder="Search user profiles" class="search-input">
-            <button class="search-btn">
-                filter
-            </button>
+<div class="profilebrowser-container main-content-container">
+    <header class="exercise-browser-header">
+            <h3 class="main-title">Profiles</h3>
+        </header>
+        
+        <div class="filter-bar">
+            <input type="text" id="exercise-filter-input" placeholder="enter a username name">
+            <button class="btn-filter" id="filter-btn">filter</button>
         </div>
         <div class="tab-btns">
-            <div class="button" data-index="0">
+            <div class="tab-button active" data-index="0">
                 active
             </div>
-            <div class="btn-none button" data-index="1">
+            <div class="tab-button" data-index="1">
                 banned
             </div>        
         </div>

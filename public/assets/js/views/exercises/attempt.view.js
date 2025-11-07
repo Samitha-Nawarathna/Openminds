@@ -1,248 +1,411 @@
-import { ROOT } from '../../core/config.js';
+import { ROOT } from "../../core/config.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- State Variables ---
-    const allQuestions = ALL_QUESTIONS_DATA;
-    let currentQuestionIndex = 0;
-    const userAnswers = {}; // Stores { questionId: selectedOptionIndex }
+    // --- Global Variables (Loaded from PHP view) ---
+    // API_URL (Full exercise data), SUBMIT_URL (Final score submission)
+    // VOTE_STATUS_URL, VOTE_SUBMIT_URL
+    
+    let EXERCISE_DATA = {}; // Holds the full exercise structure (questions, options, answers, explanations)
+    let currentQIndex = 0;
+    let userAnswers = {}; // {q_id: [option_id_1, option_id_2], ...}
+    let currentVoteStatus = 'None'; // User's current vote status
+    let questionIsChecked = false; // State to track if the current question has been checked
 
     // --- DOM Elements ---
-    const questionNumberEl = document.getElementById('question-number');
-    const questionTextEl = document.getElementById('question-text-p');
-    const optionsListEl = document.getElementById('options-list');
-    const btnBack = document.getElementById('btn-back');
-    const btnNext = document.getElementById('btn-next');
+    
+    // Main Content
+    const mainContentEl = document.getElementById('main-exercise-content');
+    const titleEl = document.getElementById('exercise-title');
+    const subjectEl = document.getElementById('exercise-subject');
+    const promptEl = document.getElementById('question-prompt');
+    const optionsEl = document.getElementById('answer-options');
+    const explanationBox = document.getElementById('explanation-box');
+    const explanationTextEl = document.getElementById('explanation-text');
 
-    /**
-     * Renders a question and its options based on the given index.
-     * @param {number} index - The index of the question in the allQuestions array.
-     */
+    // Control Bar
+    const progressEl = document.getElementById('current-q-index');
+    const totalEl = document.getElementById('total-q-count');
+    const feedbackEl = document.getElementById('feedback-area');
+    const checkBtn = document.getElementById('check-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const explainBtn = document.getElementById('explain-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const detailsLink = document.getElementById('details-link');
 
-    const btnUpvote = document.getElementById('btn-upvote'); 
-    const btnDownvote = document.getElementById('btn-downvote');
+    // Modal Elements
+    const modalEl = document.getElementById('details-modal');
+    const startBtn = document.getElementById('start-btn');
+    const modalTitleEl = document.getElementById('modal-title');
+    const modalSubjectEl = document.getElementById('modal-subject');
+    const modalTagsEl = document.getElementById('modal-tags');
+    const modalCreatorNameEl = document.getElementById('modal-creator-name');
+    const modalCreatorRoleEl = document.getElementById('modal-creator-role');
+    const modalDateEl = document.getElementById('modal-date');
+    const upvoteBtn = document.getElementById('upvote-btn');
+    const downvoteBtn = document.getElementById('downvote-btn');
     const upvoteCountEl = document.getElementById('upvote-count');
     const downvoteCountEl = document.getElementById('downvote-count');
+    const voteMessageEl = document.getElementById('vote-message');
 
-    // --- Utility Functions ---
 
-    function formatCount(n) {
-        if (n >= 1000) {
-            return Math.round(n / 100) / 10 + 'k';
-        }
-        return n.toString();
-    }
+    // ---------------------------------------------------------------------
+    // --- A. INITIALIZATION AND MODAL MANAGEMENT ---
+    // ---------------------------------------------------------------------
 
-    // --- NEW: Mock AJAX Functions for Voting ---
-    
-    /**
-     * @param {string} voteType - 'upvote' or 'downvote'
-     * @returns {Promise<boolean>} - Resolves true if successful.
-     */
-    function mockSendVote(voteType) {
-        console.log(`[MOCK AJAX] Sending vote for Exercise ID: ${EXERCISE_ID}, Type: ${voteType}`);
-        
-        return new Promise(resolve => {
-            // Simulate network delay
-            setTimeout(() => {
-                // Simulate success
-                console.log(`[MOCK AJAX] Vote received successfully: ${voteType}`);
-                resolve(true); 
-            }, 300);
-        });
-    }
-
-    /**
-     * Updates local counts and UI after a vote change.
-     * @param {string} newStatus - 'upvote', 'downvote', or null (unvoted)
-     */
-    function updateVoteUI(newStatus) {
-        // Step 1: Adjust local counts based on the transition
-        
-        // If the user is unvoting (e.g., clicks 'upvote' when already 'upvote')
-        if (newStatus === userVoteStatus) {
-            if (userVoteStatus === 'upvote') UPVOTE_COUNT--;
-            if (userVoteStatus === 'downvote') DOWNVOTE_COUNT--;
-            userVoteStatus = null;
-        } 
-        // If the user is changing their vote (e.g., from 'downvote' to 'upvote')
-        else if (userVoteStatus !== null) {
-            if (userVoteStatus === 'upvote') UPVOTE_COUNT--;
-            if (userVoteStatus === 'downvote') DOWNVOTE_COUNT--;
-            
-            if (newStatus === 'upvote') UPVOTE_COUNT++;
-            if (newStatus === 'downvote') DOWNVOTE_COUNT++;
-            userVoteStatus = newStatus;
-        } 
-        // If the user is voting for the first time
-        else {
-            if (newStatus === 'upvote') UPVOTE_COUNT++;
-            if (newStatus === 'downvote') DOWNVOTE_COUNT++;
-            userVoteStatus = newStatus;
-        }
-
-        // Step 2: Update the DOM text and active classes
-        
-        // Update counts
-        if (upvoteCountEl) upvoteCountEl.textContent = formatCount(UPVOTE_COUNT);
-        if (downvoteCountEl) downvoteCountEl.textContent = formatCount(DOWNVOTE_COUNT);
-
-        // Update button states (toggle active classes for styling)
-        if (btnUpvote) btnUpvote.classList.toggle('active', userVoteStatus === 'upvote');
-        if (btnDownvote) btnDownvote.classList.toggle('active', userVoteStatus === 'downvote');
-
-        console.log(`New Counts: Upvote=${UPVOTE_COUNT}, Downvote=${DOWNVOTE_COUNT}. Status: ${userVoteStatus}`);
-    }
-
-    /**
-     * Universal handler for vote button clicks.
-     * @param {string} voteType - 'upvote' or 'downvote'
-     */
-    async function handleVoteClick(voteType) {
-        // Determine the target status (null if unvoting, voteType if voting/changing)
-        const targetStatus = (userVoteStatus === voteType) ? null : voteType;
-        
-        // Immediately update UI to show optimistic change (optional, but good UX)
-        // A more robust app would wait for AJAX success before updating, or rollback on failure.
-        const prevStatus = userVoteStatus;
-        
-        // We simulate the change first to get the new UI state
-        updateVoteUI(targetStatus); 
-
+    /** Fetches the full exercise data and initializes the page */
+    async function loadExerciseData() {
         try {
-            const success = await mockSendVote(targetStatus || 'unvote'); // 'unvote' is just a backend action
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Failed to fetch exercise data');
+            EXERCISE_DATA = await response.json();
+            
+            // Populate header and progress bar
+            titleEl.textContent = EXERCISE_DATA.title;
+            subjectEl.textContent = `Subject: ${EXERCISE_DATA.subject}`;
+            totalEl.textContent = EXERCISE_DATA.questions.length;
 
-            if (!success) {
-                // Rollback UI if the mock AJAX failed
-                console.error("Vote failed, rolling back UI.");
-                updateVoteUI(prevStatus);
+            // Populate the Modal (using mock meta as EXERCISE_DATA is basic mock)
+            populateModalDetails(EXERCISE_DATA);
+
+        } catch (error) {
+            console.error('Error loading exercise:', error);
+            modalTitleEl.textContent = "Error loading exercise details.";
+        }
+    }
+
+    /** Fills the modal with metadata and prepares vote tracking */
+    function populateModalDetails(data) {
+        // NOTE: These metadata values are mock values not strictly in the current EXERCISE_DATA mock 
+        // but represent the expected fields from the database.
+        const mockMeta = {
+            title: data.title,
+            subject: data.subject,
+            tags: ["Finance", "Basic", "Level 1"],
+            creator_name: "John Doe",
+            creator_role: "Expert",
+            created_at: "2025-10-25",
+            upvotes: 45, // Initial dummy count
+            downvotes: 5, // Initial dummy count
+        };
+        
+        modalTitleEl.textContent = mockMeta.title;
+        modalSubjectEl.textContent = mockMeta.subject;
+
+        modalTagsEl.innerHTML = mockMeta.tags.map(tag => `<span class="tag-pill">${tag}</span>`).join(' ');
+        modalCreatorNameEl.textContent = mockMeta.creator_name;
+        modalCreatorRoleEl.textContent = mockMeta.creator_role;
+        modalDateEl.textContent = mockMeta.created_at;
+
+        upvoteCountEl.textContent = mockMeta.upvotes;
+        downvoteCountEl.textContent = mockMeta.downvotes;
+        
+        // Fetch and display current user vote status
+        fetchVoteStatus();
+    }
+
+    /** Handles the Start Assessment button click */
+    function startAssessment() {
+        modalEl.classList.add('hidden');
+        mainContentEl.classList.remove('hidden');
+        if (EXERCISE_DATA.questions.length > 0) {
+            renderQuestion(currentQIndex);
+            checkBtn.disabled = false;
+        }
+    }
+
+    /** Opens the Details modal (called by the link in the control bar) */
+    function showDetailsModal(e) {
+        e.preventDefault();
+        modalEl.classList.remove('hidden');
+    }
+
+    // ---------------------------------------------------------------------
+    // --- B. VOTE MANAGEMENT (API) ---
+    // ---------------------------------------------------------------------
+
+    /** Fetches the user's current vote status and updates buttons */
+    async function fetchVoteStatus() {
+        try {
+            const response = await fetch(VOTE_STATUS_URL);
+            if (response.ok) {
+                const data = await response.json();
+                currentVoteStatus = data.current_vote_status;
+                updateVoteButtons();
             }
         } catch (error) {
-            console.error("Network error during voting:", error);
-            updateVoteUI(prevStatus); // Rollback
+            console.error("Could not fetch vote status.", error);
         }
     }
-    function displayQuestion(index) {
-        const question = allQuestions[index];
-        
-        // Update header and question text
-        questionNumberEl.textContent = `Question ${index + 1} of ${allQuestions.length}`;
-        questionTextEl.textContent = question.question_text;
-        
-        // Clear previous options
-        optionsListEl.innerHTML = '';
 
-        // Create and append new options
-        question.options.forEach((option, optionIndex) => {
-            const li = document.createElement('li');
+    /** Updates the visual state of the upvote/downvote buttons */
+    function updateVoteButtons() {
+        upvoteBtn.classList.remove('voted');
+        downvoteBtn.classList.remove('voted');
+        voteMessageEl.textContent = '';
+
+        if (currentVoteStatus === 'Upvoted') {
+            upvoteBtn.classList.add('voted');
+            voteMessageEl.textContent = 'You have upvoted this.';
+        } else if (currentVoteStatus === 'Downvoted') {
+            downvoteBtn.classList.add('voted');
+            voteMessageEl.textContent = 'You have downvoted this.';
+        }
+    }
+
+    /** Submits a vote via API */
+    async function submitVote(voteType) {
+        const isRemoveVote = currentVoteStatus === voteType;
+        const newVoteType = isRemoveVote ? 'None' : voteType;
+
+        try {
+            const response = await fetch(VOTE_SUBMIT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vote_type: newVoteType })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // IMPORTANT: Update local state and counts based on the intended action
+                // (Note: In a real system, the API should return the new total counts)
+                
+                // Adjust counts locally for mock environment
+                const oldStatus = currentVoteStatus;
+                if (oldStatus === 'Upvoted') upvoteCountEl.textContent = parseInt(upvoteCountEl.textContent) - 1;
+                if (oldStatus === 'Downvoted') downvoteCountEl.textContent = parseInt(downvoteCountEl.textContent) - 1;
+                
+                currentVoteStatus = data.current_vote_status;
+
+                if (currentVoteStatus === 'Upvoted') upvoteCountEl.textContent = parseInt(upvoteCountEl.textContent) + 1;
+                if (currentVoteStatus === 'Downvoted') downvoteCountEl.textContent = parseInt(downvoteCountEl.textContent) + 1;
+
+                updateVoteButtons();
+            } else {
+                console.error("Vote submission failed.");
+            }
+        } catch (error) {
+            console.error("Vote API Error:", error);
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // --- C. QUESTION RENDERING AND STATE MANAGEMENT (Client-Side) ---
+    // ---------------------------------------------------------------------
+
+    /** Renders the question UI based on the index */
+    function renderQuestion(index) {
+        questionIsChecked = false;
+        explanationBox.classList.add('hidden');
+        feedbackEl.innerHTML = '';
+        
+        // Button State Reset
+        checkBtn.classList.remove('hidden');
+        checkBtn.disabled = true;
+        explainBtn.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.add('hidden');
+        optionsEl.innerHTML = ''; 
+
+        const question = EXERCISE_DATA.questions[index];
+        if (!question) return;
+        
+        // Determine input type
+        const correctCount = question.options.filter(opt => opt.is_correct).length;
+        const inputType = correctCount > 1 ? 'checkbox' : 'radio';
+
+        promptEl.textContent = `${index + 1}. ${question.prompt}`;
+        progressEl.textContent = index + 1;
+
+        question.options.forEach(option => {
+            const label = document.createElement('label');
+            label.className = 'option-label';
             
             const input = document.createElement('input');
-            input.type = 'radio';
-            input.name = `question_${question.id}`;
-            input.id = `q${question.id}_opt${optionIndex}`;
-            input.value = optionIndex;
-            
-            const label = document.createElement('label');
-            label.htmlFor = input.id;
-            label.textContent = option;
-            
-            // Check if this answer was previously selected
-            if (userAnswers[question.id] === optionIndex) {
+            input.type = inputType;
+            input.name = `q_${question.question_id}`;
+            input.value = option.option_id;
+            input.dataset.optionId = option.option_id;
+
+            // Restore user selection if already attempted
+            const savedAnswers = userAnswers[question.question_id] || [];
+            if (savedAnswers.includes(option.option_id)) {
                 input.checked = true;
             }
-            
-            label.prepend(input);
-            li.appendChild(label);
-            optionsListEl.appendChild(li);
+
+            // Listener to enable check button
+            input.addEventListener('change', () => {
+                if (!questionIsChecked) {
+                    checkBtn.disabled = false;
+                }
+            });
+
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(option.text));
+            optionsEl.appendChild(label);
         });
 
-        // Update button states
-        btnBack.disabled = (index === 0);
-        btnNext.textContent = (index === allQuestions.length - 1) ? 'Finish' : 'Next';
-    }
-
-    /**
-     * Stores the selected answer for the current question.
-     */
-    function recordAnswer() {
-        const currentQuestion = allQuestions[currentQuestionIndex];
-        const selectedOption = optionsListEl.querySelector(`input[name="question_${currentQuestion.id}"]:checked`);
-        
-        if (selectedOption) {
-            userAnswers[currentQuestion.id] = parseInt(selectedOption.value, 10);
+        // If user already answered this (e.g., navigated back), re-display the results
+        if (userAnswers[question.question_id]) {
+            showPostCheckState();
+            checkQuestion(true); // Re-run logic to apply colors/feedback without resaving answers
         }
     }
 
-    /**
-     * Finishes the exercise and logs the answers.
-     */
-    function finishExercise() {
-        recordAnswer(); // Record the final answer
+    /** Saves answer and displays feedback */
+    function checkQuestion(recheck = false) {
+        if (!recheck && questionIsChecked) return; 
 
-        let form = document.getElementById('exercise-attempt-form');
-        if (!form)
-        {
-            //create form
-            form = document.createElement('form');
-            form.id = 'exercise-attempt-form';
-            form.method = 'POST';
-            form.action = `${ROOT}/exercises/viewattempt`;
-            //add hidden element for send id
-
-
-            const inputId = document.createElement('input');
-            inputId.type = 'hidden';
-            inputId.name = 'exercise_id';
-            inputId.value = EXERCISE_ID;
-            form.appendChild(inputId);
-
-            //add hidden element for answers
-            const inputAnswers = document.createElement('input');
-            inputAnswers.type = 'hidden';
-            inputAnswers.name = 'answers_json';
-            inputAnswers.value = JSON.stringify(userAnswers);
-            form.appendChild(inputAnswers);
-
-            document.body.appendChild(form);
+        questionIsChecked = true;
+        
+        const question = EXERCISE_DATA.questions[currentQIndex];
+        const selectedInputs = Array.from(optionsEl.querySelectorAll(`input[name="q_${question.question_id}"]:checked`));
+        const selectedOptionIds = selectedInputs.map(input => parseInt(input.value));
+        
+        if (!recheck) {
+            userAnswers[question.question_id] = selectedOptionIds; // Save answer only if it's the first check
         }
+        
+        // Determine correctness
+        let isCorrect = true;
 
-        form.submit();
-        
-        console.log("--- Exercise Attempt Finished ---");
-        console.log("User Answers:", userAnswers);
-        
-        // Example: Calculate score
-        // In a real app, you would have the correct answer index.
-        const score = Object.keys(userAnswers).length; 
-        
-        alert(`Exercise complete! You answered ${score} out of ${allQuestions.length} questions. Check the console for your answers.`);
-        
-        // Optionally, disable buttons or redirect
-        btnNext.disabled = true;
-        btnBack.disabled = true;
+        optionsEl.querySelectorAll('.option-label').forEach(label => {
+            const input = label.querySelector('input');
+            const optionId = parseInt(input.dataset.optionId);
+            const option = question.options.find(o => o.option_id === optionId);
+            
+            // Apply Correctness Styles
+            if (option.is_correct) {
+                label.classList.add('is-correct'); 
+            }
+            
+            // Check for missed correct answers or wrong selections
+            const isUserSelected = selectedOptionIds.includes(optionId);
+
+            if (option.is_correct && !isUserSelected) {
+                isCorrect = false; // Missed a correct answer
+            }
+            
+            if (isUserSelected && !option.is_correct) {
+                label.classList.add('user-wrong'); // Selected a wrong answer
+                isCorrect = false; 
+            }
+            
+            // Disable inputs after checking
+            input.disabled = true;
+        });
+
+        // Set feedback message
+        feedbackEl.innerHTML = isCorrect 
+            ? '<span class="feedback-correct">✅ Correct!</span>' 
+            : '<span class="feedback-wrong">❌ Incorrect.</span>';
+
+        // Transition buttons if this is the initial check
+        if (!recheck) {
+            showPostCheckState();
+        }
     }
 
-    // --- Event Listeners ---
-
-    btnNext.addEventListener('click', () => {
-        recordAnswer(); // Save the answer before moving
+    /** Manages the button state after the user clicks Check Answer */
+    function showPostCheckState() {
+        checkBtn.classList.add('hidden');
+        explainBtn.classList.remove('hidden');
         
-        if (currentQuestionIndex < allQuestions.length - 1) {
-            currentQuestionIndex++;
-            displayQuestion(currentQuestionIndex);
+        // Show Next or Submit button
+        if (currentQIndex < EXERCISE_DATA.questions.length - 1) {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
         } else {
-            finishExercise();
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
         }
-    });
+    }
 
-    btnBack.addEventListener('click', () => {
-        recordAnswer(); // Save the answer before moving
+    /** Moves to the next question or submits */
+    function goToNextQuestion() {
+        if (currentQIndex < EXERCISE_DATA.questions.length - 1) {
+            currentQIndex++;
+            renderQuestion(currentQIndex);
+        }
+    }
+
+    /** Shows the explanation box */
+    function showExplanation() {
+        const question = EXERCISE_DATA.questions[currentQIndex];
+        explanationTextEl.textContent = question.explanation;
+        explanationBox.classList.remove('hidden');
+    }
+
+    // ---------------------------------------------------------------------
+    // --- D. FINAL SUBMISSION (API) ---
+    // ---------------------------------------------------------------------
+
+    /** Submits the final answers to the scoring API */
+    async function submitAssessment() {
+        submitBtn.disabled = true;
+        feedbackEl.textContent = 'Submitting...';
+
+        // Ensure the last question is saved before submitting
+        if (!questionIsChecked) {
+            // Check the last question (client-side) before packing data
+            checkQuestion(false); 
+        }
+
+        const submissionPayload = {
+            exercise_id: EXERCISE_DATA.id,
+            answers: Object.keys(userAnswers).map(qId => ({
+                question_id: parseInt(qId),
+                selected_option_ids: userAnswers[qId]
+            }))
+        };
         
-        if (currentQuestionIndex > 0) {
-            currentQuestionIndex--;
-            displayQuestion(currentQuestionIndex);
-        }
-    });
+        try {
 
-    // --- Initialization ---
-    displayQuestion(0); // Display the first question on page load
+            
+
+            const response = await fetch(SUBMIT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissionPayload)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // alert(`Assessment Submitted! Score: ${result.total_score} / ${result.total_max_score}\nAttempt ID: ${result.attempt_id}`);
+                // Real app: Redirect to results page, e.g., window.location.href = \`/exercises/viewattempt?id=\${result.attempt_id}\`;
+                window.location.href = ROOT + 'exercises/viewattempt/'+ result.attempt_id + '/' + EXERCISE_DATA.id;
+            } else {
+                alert(`Submission failed: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.error('Submission Error:', error);
+            alert('An unexpected error occurred during submission.');
+        } finally {
+             submitBtn.disabled = false;
+        }
+    }
+
+
+    // ---------------------------------------------------------------------
+    // --- E. EVENT LISTENERS ---
+    // ---------------------------------------------------------------------
+    
+    // Attempt Actions
+    checkBtn.addEventListener('click', () => checkQuestion(false));
+    nextBtn.addEventListener('click', goToNextQuestion);
+    explainBtn.addEventListener('click', showExplanation);
+    submitBtn.addEventListener('click', submitAssessment);
+
+    // Modal/Details Actions
+    startBtn.addEventListener('click', startAssessment);
+    detailsLink.addEventListener('click', showDetailsModal);
+    
+    // Vote Actions
+    upvoteBtn.addEventListener('click', () => submitVote('Upvoted'));
+    downvoteBtn.addEventListener('click', () => submitVote('Downvoted'));
+
+    // Initial load when the script runs
+    loadExerciseData();
 });

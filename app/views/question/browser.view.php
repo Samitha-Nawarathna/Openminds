@@ -56,7 +56,9 @@ function generate_mock_questions($type, $offset, $limit) {
 
 
 <div class="main-content-container">
-    <h1>Questions</h1>
+    <header>
+    <h1 class="main-title">Questions</h1>
+    </header>
 
     <div class="filter-bar">
         <input type="text" id="tag-filter-input" placeholder="enter a tag name">

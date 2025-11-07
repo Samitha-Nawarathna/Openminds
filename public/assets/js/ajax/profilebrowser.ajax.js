@@ -34,16 +34,20 @@ export async function get_content(type, limit, offset)
     for (let i = 0; i < res.length; i++) {
         const item = res[i];
         content +=
-        `<div class="card">
-                    <a href="`+ROOT+"profileadmin/profile?id="+item["id"]+`">
+        `
+                    <a href="`+ROOT+"profileadmin/profile?id="+item["id"]+`" class="profile-item no-style-link">
                     <div class="left-align">
                         <img src="`+ROOT+item["profile_picture"]+`" alt="profile-picture" class="profile-picture-xs">
                         <div class="username">`+item["username"]+`</div>
                     </div>
                     <div class="right-align">
-                        <div class="tile role">`+item["role"]+`</div>
+                        <div class="role-pill">`+item["role"]+`</div>
                     </div>
-                </div>`;
+                </a>    
+                `;
+
+
+
 
     }
       

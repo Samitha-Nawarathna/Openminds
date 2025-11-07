@@ -9,7 +9,7 @@
 
 <div class="main-content-container">
     <div class="title-area">
-    <h1>Notes</h1>
+    <h1 class="main-title">Notes</h1>
       <span class="tag-pill"><?= htmlspecialchars($data['browsing_topic_title']) ?></span>
     </div>    
 

@@ -1,6 +1,6 @@
 import { get_content } from '../../ajax/expertrequests/requestbrowser.ajax.js';
 
-let btns = document.querySelectorAll('.tab-btns .button');
+let btns = document.querySelectorAll('.tab-button');
 let cards = document.querySelectorAll('.content-tab');
 
 let primary = 'btn-primary';
