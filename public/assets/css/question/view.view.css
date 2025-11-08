@@ -182,8 +182,6 @@ body {
 #question-page-container {
     /* Initial state is a flex container */
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 100%; 
     max-width: none;
     margin: 0;
