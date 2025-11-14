@@ -5,7 +5,7 @@ class Notes extends Controller
     public function index()
     {
         $data = [
-            'create_url' => '/your-backend-controller/create-topic-view' // URL for the Create button
+            'create_url' => 'topics/create/' // URL for the Create button
         ];
         
         // Helper function to generate mock topic data
@@ -65,7 +65,7 @@ class Notes extends Controller
             // The context of the note currently being browsed (used for the header pill)
             'browsing_topic_title' => 'Science', 
             'initial_tab' => 'created', 
-            'create_url' => '/your-backend-controller/create-note-view'
+            'create_url' => '/notes/create'
         ];
 
         $data['pinned_notes'] = ["science", "art", "maths", "physics", "chemistry", "history"];
@@ -496,6 +496,29 @@ class Notes extends Controller
             'message' => 'Note shared successfully'
         ]);
     }
+
+    public function pin($note_id)
+    {
+        // Logic to pin the note (e.g., update database)
+        // For now, just return a success response
+
+        $this->json_respond([
+            'status' => 'success',
+            'message' => 'Note pinned successfully'
+        ]);
+    } 
+
+    
+    public function unpin($note_id)
+    {
+        // Logic to pin the note (e.g., update database)
+        // For now, just return a success response
+
+        $this->json_respond([
+            'status' => 'success',
+            'message' => 'Note unpinned successfully'
+        ]);
+    } 
 
 
 

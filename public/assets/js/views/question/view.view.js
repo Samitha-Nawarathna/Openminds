@@ -13,7 +13,14 @@ let answersDisplayed = 0;
 /**
  * Helper to show error messages as a pop-up. Exposed globally.
  */
-
+window.showPopupError = function(message) {
+    const popup = document.getElementById('error-popup');
+    popup.textContent = `Error: ${message}`;
+    popup.style.display = 'block';
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 3000);
+}
 
 /**
  * Opens a modal. Exposed globally.

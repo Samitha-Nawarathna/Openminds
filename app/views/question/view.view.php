@@ -74,6 +74,7 @@ $initialData = [
 $initialDataJson = json_encode($initialData);
 ?>
 
+
 <div id="question-page-container">
     <div id="question-panel">
         <div id="question-content-container">

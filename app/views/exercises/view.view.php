@@ -24,8 +24,8 @@ $exercise_id = $data['exercise_id'] ?? 105; // Default to mock ID
 $review_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id; 
 
 $edit_url = ROOT . '/exercises/edit?id=' . $exercise_id;
-$approve_url = ROOT . '/exercises/approve';
-$reject_url = ROOT . '/exercises/reject';
+$approve_url = ROOT . '/exercises/approve'; // Used for 'Hide' action
+$reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
 ?>
 
 <style>
@@ -44,6 +44,21 @@ $reject_url = ROOT . '/exercises/reject';
     .btn-full-width
     {
         width: 100%;
+    }
+    
+    /* ADDED STYLES FOR FEEDBACK TEXTAREA */
+    .feedback-textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: var(--space-sm);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        margin-top: var(--space-md);
+        resize: vertical;
+        font-family: inherit;
+    }
+    #confirmation-modal .action-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 </style>
 
@@ -72,6 +87,21 @@ $reject_url = ROOT . '/exercises/reject';
     </div>
 </div>
 
+<div id="confirmation-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2 id="confirm-modal-title">Confirm Action</h2>
+        <p id="confirm-modal-text">Please confirm your action.</p>
+        
+        <div id="feedback-wrapper">
+            <textarea id="feedback-text" class="feedback-textarea" placeholder="Enter your reasons for deletion..."></textarea>
+        </div>
+
+        <div class="action-grid" style="margin-top: 20px;">
+            <button id="confirm-submit-btn" class="btn-blue btn-full-width" data-action="">Confirm & Submit</button>
+            <button id="confirm-cancel-btn" class="btn-none btn-full-width">Cancel</button>
+        </div>
+    </div>
+</div>
 <div id="main-exercise-content" class="container hidden">
     
     <div class="exercise-header" style="display:none;">
@@ -116,18 +146,111 @@ $reject_url = ROOT . '/exercises/reject';
 
 <script>
     // Constants for JS
+    // Assuming ROOT is defined in the included partials or global scope
+    const ROOT = '<?= defined("ROOT") ? ROOT : "" ?>'; 
     const REVIEW_API_URL = '<?= $review_api_url ?>';
-    const APPROVE_URL = '<?= $approve_url ?>';
-    const REJECT_URL = '<?= $reject_url ?>';
+    const APPROVE_URL = '<?= $approve_url ?>'; // For 'Hide'
+    const REJECT_URL = '<?= $reject_url ?>'; // For 'Delete'
     const EXERCISE_ID = '<?= $exercise_id ?>';
     
-    // Placeholder function for modal confirmation
+    let currentAction = ''; // Store the pending action (approve/reject)
+
+    /**
+     * Shows the confirmation modal and sets up the final submission.
+     * @param {string} action - 'approve' (Hide) or 'reject' (Delete)
+     */
     window.handleReviewAction = function(action) {
-        if (confirm(`Are you sure you want to ${action} this exercise (ID: ${EXERCISE_ID})?`)) {
-            // In a real application, you'd send an AJAX POST request here.
-            alert(`ACTION: Submitting POST to ${action === 'approve' ? APPROVE_URL : REJECT_URL} with ID: ${EXERCISE_ID}`);
-            window.location.href = '<?= ROOT ?>/exercises/expertreview'; // Redirect to review list
+        currentAction = action; // Store the action globally
+        window.closeModal('action-modal'); // Close the initial modal if it's open
+        
+        const confirmModal = document.getElementById('confirmation-modal');
+        const confirmTitle = document.getElementById('confirm-modal-title');
+        const confirmText = document.getElementById('confirm-modal-text');
+        const feedbackTextarea = document.getElementById('feedback-text');
+        const feedbackWrapper = document.getElementById('feedback-wrapper');
+        const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+
+        // Reset and setup UI based on action
+        feedbackTextarea.value = '';
+        confirmSubmitBtn.classList.remove('btn-red', 'btn-blue');
+        
+        if (action === 'reject') {
+            confirmTitle.textContent = 'Confirm Deletion';
+            confirmText.textContent = 'Please provide detailed reasons for deleting this exercise. This is required.';
+            feedbackTextarea.placeholder = 'Enter detailed reasons for deletion... (Required)';
+            confirmSubmitBtn.textContent = 'Delete & Submit Feedback';
+            confirmSubmitBtn.classList.add('btn-red');
+            feedbackWrapper.style.display = 'block'; // SHOW feedback field
+        } else { // approve (Hide)
+            confirmTitle.textContent = 'Confirm Hide Action';
+            confirmText.textContent = 'Are you sure you want to hide this exercise? It can be unhidden later.';
+            confirmSubmitBtn.textContent = 'Hide & Confirm';
+            confirmSubmitBtn.classList.add('btn-blue');
+            feedbackWrapper.style.display = 'none'; // HIDE feedback field
         }
+        
+        confirmModal.classList.remove('hidden');
+    };
+    
+    // Final handler for the confirmation modal's submit button
+    document.getElementById('confirm-submit-btn').addEventListener('click', function() {
+        const feedbackTextarea = document.getElementById('feedback-text');
+        const action = currentAction; // Retrieve stored action
+
+        // Only retrieve and validate feedback if the action is 'reject' (Delete)
+        let feedback = '';
+        if (action === 'reject') {
+            feedback = feedbackTextarea.value.trim();
+            // Validation for deletion feedback
+            if (feedback.length < 5) {
+                alert('Deletion requires a minimum of 5 characters of feedback.');
+                feedbackTextarea.focus();
+                return;
+            }
+        }
+        
+        // Determine target URL
+        const targetUrl = action === 'approve' ? APPROVE_URL : REJECT_URL;
+        
+        // Use FormData to prepare data for submission (submits feedback as $_POST entry)
+        const formData = new FormData();
+        formData.append('exercise_id', EXERCISE_ID);
+        formData.append('feedback', feedback);
+
+        // Submit data using Fetch API
+        fetch(targetUrl, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                alert(`Successfully submitted ${action === 'approve' ? 'Hide' : 'Delete'} action for Exercise ID ${EXERCISE_ID}.`);
+                // Use the ROOT constant for redirect
+                window.location.href = `${ROOT}/exercises/reviewlist`; // Redirect to a generic list
+            } else {
+                response.json().then(data => {
+                    alert(`Failed to complete action: ${data.message || 'An unknown server error occurred.'}`);
+                    window.closeModal('confirmation-modal');
+                }).catch(() => {
+                    alert(`Failed to complete action (HTTP Status ${response.status}).`);
+                    window.closeModal('confirmation-modal');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Submission Error:', error);
+            alert('A network error occurred during submission.');
+        });
+    });
+
+    // Handle cancel button on the confirmation modal
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+        window.closeModal('confirmation-modal');
+    });
+
+    // Global function to close any modal
+    window.closeModal = function(id) {
+        document.getElementById(id).classList.add('hidden');
     };
 </script>
 

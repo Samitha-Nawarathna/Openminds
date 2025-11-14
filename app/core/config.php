@@ -51,6 +51,8 @@ define('FOOTER_PATH', SERVER_ROOT . "app/views/partials/footer.view.php");
 // FIX: Use forward slashes for the URL to avoid backslash issues.
 define('DEFAULT_PROFILE_PICTURE', ROOT."uploads/0/profile.avif"); 
 
+define('EPS', 0.00001); // A small value for floating-point comparisons
+
 /** sessions config**/
 ini_set('session.use_only_cookies', 1);
 // Corrected typo in setting name
