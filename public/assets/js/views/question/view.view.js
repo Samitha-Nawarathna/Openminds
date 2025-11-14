@@ -5,13 +5,15 @@ const CURRENT_USER_ID = 1;
 let questionData = {};
 let answerList = [];
 let hasMoreAnswers = true;
-let totalAnswerCount = 0; // Will be set by INITIAL_DATA
+let totalAnswerCount = 0; 
 let answersDisplayed = 0;
 
+// --- EXPOSED GLOBAL FUNCTIONS (window.function_name = ...) ---
+
 /**
- * Helper to show error messages as a pop-up.
+ * Helper to show error messages as a pop-up. Exposed globally.
  */
-function showPopupError(message) {
+window.showPopupError = function(message) {
     const popup = document.getElementById('error-popup');
     popup.textContent = `Error: ${message}`;
     popup.style.display = 'block';
@@ -20,11 +22,47 @@ function showPopupError(message) {
     }, 3000);
 }
 
-// --- MOCK API RESPONSES (Used for demonstration of dynamic actions) ---
-// Note: Initial load data is now provided by PHP, but we need the mock functions
-// for dynamic operations (voting, posting, loading more).
+/**
+ * Opens a modal. Exposed globally.
+ */
+window.openModal = function(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+/**
+ * Closes a modal. Exposed globally.
+ */
+window.closeModal = function(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+/**
+ * Opens the Edit Question modal and pre-fills content. Exposed globally.
+ */
+window.openEditQuestionModal = function() {
+    document.getElementById('edit-question-title').value = questionData.title;
+    document.getElementById('edit-question-description').value = questionData.description;
+    document.getElementById('edit-question-tags').value = questionData.tags.join(', ');
+    window.openModal('edit-question-modal');
+}
+
+/**
+ * Opens the Edit Answer modal and pre-fills content. Exposed globally.
+ */
+window.openEditAnswerModal = function(answerId) {
+    const answer = answerList.find(a => a.id === answerId);
+    if (answer) {
+        document.getElementById('edit-answer-id').value = answerId;
+        document.getElementById('edit-answer-content').value = answer.content;
+        window.openModal('edit-answer-modal');
+    }
+}
+
+
+// --- MOCK API RESPONSES ---
 
 const mockInitialAnswers = [
+    // ... (Mock answers definition is kept internal/local)
     { 
         id: 102,
         content: "Since an unbalanced BST effectively becomes a linked list in the worst case (e.g., sequentially inserted data), the Big O notation for search, insertion, and deletion becomes O(n).",
@@ -71,7 +109,6 @@ const mockInitialAnswers = [
         is_accepted: false
     }))
 ];
-
 
 function mockApiLoadMore(offset) {
     return new Promise(resolve => {
@@ -149,7 +186,7 @@ function mockApiCall(endpoint, data) {
     });
 }
 
-// --- RENDERING FUNCTIONS (Omitted for brevity, assumed to be correct) ---
+// --- RENDERING FUNCTIONS (Kept internal/local) ---
 
 function renderHeader(item) {
     const roleClass = `role-${item.author_role.toLowerCase()}`;
@@ -168,6 +205,7 @@ function renderVoteControls(item, type) {
     const upVotedClass = item.user_voted && item.user_vote_type === 'up' ? 'voted-up' : '';
     const downVotedClass = item.user_voted && item.user_vote_type === 'down' ? 'voted-down' : '';
     const id = item.id;
+    // Uses the global functions defined below
     const fn = type === 'question' ? 'handleVoteQuestion' : 'handleVoteAnswer';
 
     return `
@@ -190,6 +228,7 @@ function renderQuestionPanel() {
 
     const actionControls = document.getElementById('question-action-controls');
     if (isAuthor) {
+        // Uses global functions defined below
         actionControls.innerHTML = `
             <button onclick="openEditQuestionModal()" class="btn-none" style="width:auto;">Edit</button>
             <button onclick="handleDeleteQuestion(${q.id})" class="btn-red">Delete</button>
@@ -215,15 +254,16 @@ function renderAnswerCard(answer) {
     const voteControlsHtml = renderVoteControls(answer, 'answer');
 
     let actionBtns = '';
+    // Uses global functions defined below
     if (isAuthor) {
         actionBtns += `<button class="btn-none" onclick="openEditAnswerModal(${answer.id})">Edit</button>`;
         actionBtns += `<button class="btn-red" onclick="handleDeleteAnswer(${answer.id})" style="">Delete</button>`;
     }
     
-    if (isQuestionAuthor && !isAccepted) {
-        actionBtns += `<button onclick="handleAcceptAnswer(${answer.id})" class="btn-primary-small">Accept Answer</button>`;
-    } else if (isQuestionAuthor && isAccepted) {
-         actionBtns += `<button onclick="handleAcceptAnswer(${answer.id})" class="btn-primary-small">Un-accept</button>`;
+    // Uses global function defined below
+    if (isQuestionAuthor) {
+        const actionText = isAccepted ? 'Un-accept' : 'Accept Answer';
+        actionBtns += `<button onclick="handleAcceptAnswer(${answer.id})" class="btn-primary-small">${actionText}</button>`;
     }
 
 
@@ -254,8 +294,9 @@ function renderAnswersList() {
     answersDisplayed = answerList.length;
 }
 
-// --- ACTION HANDLERS (Unchanged logic) ---
-async function handleVoteQuestion(id, type, currentCount) {
+// --- ACTION HANDLERS (EXPOSED GLOBALLY) ---
+
+window.handleVoteQuestion = async function(id, type, currentCount) {
     try {
         const response = await mockApiCall('question/api/vote', { question_id: id, vote_type: type, current_count: currentCount });
         if (response.status === 'success') {
@@ -265,11 +306,11 @@ async function handleVoteQuestion(id, type, currentCount) {
             renderQuestionPanel();
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to vote on question.");
+        window.showPopupError(error.message || "Failed to vote on question.");
     }
 }
 
-async function handleVoteAnswer(id, type, currentCount) {
+window.handleVoteAnswer = async function(id, type, currentCount) {
     try {
         const response = await mockApiCall('question/api/vote_answer', { answer_id: id, vote_type: type, current_count: currentCount });
         if (response.status === 'success') {
@@ -279,14 +320,14 @@ async function handleVoteAnswer(id, type, currentCount) {
                 answer.user_voted = response.user_voted;
                 answer.user_vote_type = response.user_vote_type;
                 renderAnswersList();
-            }}
-      } catch (error) {
-        showPopupError(error.message || "Failed to vote on answer.");
+            }
+        }
+    } catch (error) {
+        window.showPopupError(error.message || "Failed to vote on answer.");
     }
 }
 
-
-async function handleAcceptAnswer(answerId) {
+window.handleAcceptAnswer = async function(answerId) {
     const answerToToggle = answerList.find(a => a.id === answerId);
     const shouldAccept = !answerToToggle.is_accepted;
     
@@ -309,11 +350,11 @@ async function handleAcceptAnswer(answerId) {
             renderAnswersList();
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to toggle accepted status.");
+        window.showPopupError(error.message || "Failed to toggle accepted status.");
     }
 }
 
-async function handleCreateAnswer(event) {
+window.handleCreateAnswer = async function(event) {
     event.preventDefault();
     const content = document.getElementById('new-answer-content').value;
 
@@ -323,15 +364,15 @@ async function handleCreateAnswer(event) {
         if (response.status === 'success' && response.answer) {
             answerList.unshift(response.answer); 
             renderAnswersList();
-            closeModal('create-answer-modal');
+            window.closeModal('create-answer-modal');
             document.getElementById('create-answer-form').reset();
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to post answer.");
+        window.showPopupError(error.message || "Failed to post answer.");
     }
 }
 
-async function handleEditQuestion(event) {
+window.handleEditQuestion = async function(event) {
     event.preventDefault();
     const title = document.getElementById('edit-question-title').value;
     const description = document.getElementById('edit-question-description').value;
@@ -343,14 +384,14 @@ async function handleEditQuestion(event) {
         if (response.status === 'success' && response.question) {
             questionData = response.question;
             renderQuestionPanel();
-            closeModal('edit-question-modal');
+            window.closeModal('edit-question-modal');
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to edit question.");
+        window.showPopupError(error.message || "Failed to edit question.");
     }
 }
 
-async function handleEditAnswer(event) {
+window.handleEditAnswer = async function(event) {
     event.preventDefault();
     const answerId = parseInt(document.getElementById('edit-answer-id').value);
     const content = document.getElementById('edit-answer-content').value;
@@ -363,29 +404,29 @@ async function handleEditAnswer(event) {
             if (index !== -1) {
                 answerList[index] = response.answer;
                 renderAnswersList();
-                closeModal('edit-answer-modal');
+                window.closeModal('edit-answer-modal');
             }
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to edit answer.");
+        window.showPopupError(error.message || "Failed to edit answer.");
     }
 }
 
-function handleDeleteQuestion(id) {
+window.handleDeleteQuestion = function(id) {
     if (!confirm("WARNING: Are you sure you want to delete this entire question?")) return;
     
     mockApiCall('question/api/delete', { question_id: id })
         .then(response => {
             if (response.status === 'success') {
-                showPopupError("Question deleted successfully. (Mock action: No redirect)");
+                window.showPopupError("Question deleted successfully. (Mock action: No redirect)");
             }
         })
         .catch(error => {
-            showPopupError(error.message || "Failed to delete question.");
+            window.showPopupError(error.message || "Failed to delete question.");
         });
 }
 
-async function handleDeleteAnswer(id) {
+window.handleDeleteAnswer = async function(id) {
     if (!confirm("Are you sure you want to delete this answer?")) return;
     
     try {
@@ -396,11 +437,11 @@ async function handleDeleteAnswer(id) {
             renderAnswersList();
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to delete answer.");
+        window.showPopupError(error.message || "Failed to delete answer.");
     }
 }
 
-async function loadMoreAnswers() {
+window.loadMoreAnswers = async function() {
     const offset = answerList.length;
     try {
         const response = await mockApiLoadMore(offset);
@@ -410,57 +451,27 @@ async function loadMoreAnswers() {
             renderAnswersList();
         }
     } catch (error) {
-        showPopupError(error.message || "Failed to load more answers.");
+        window.showPopupError(error.message || "Failed to load more answers.");
     }
 }
 
-// --- MODAL FUNCTIONS (Unchanged logic) ---
+// --- SCROLL INTERACTION LOGIC (EXPOSED GLOBALLY FOR EVENT LISTENER) ---
 
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
-}
+const TRANSITION_DURATION = 300; 
+const SCROLL_BUFFER_PX = 50; 
 
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-function openEditQuestionModal() {
-    document.getElementById('edit-question-title').value = questionData.title;
-    document.getElementById('edit-question-description').value = questionData.description;
-    document.getElementById('edit-question-tags').value = questionData.tags.join(', ');
-    openModal('edit-question-modal');
-}
-
-function openEditAnswerModal(answerId) {
-    const answer = answerList.find(a => a.id === answerId);
-    if (answer) {
-        document.getElementById('edit-answer-id').value = answerId;
-        document.getElementById('edit-answer-content').value = answer.content;
-        openModal('edit-answer-modal');
-    }
-}
-
-
-// --- SCROLL INTERACTION LOGIC (FIXED: Smooth Transition with Hysteresis) ---
-
-const TRANSITION_DURATION = 300; // Match CSS transition duration (0.3s)
-const SCROLL_BUFFER_PX = 50; // Hysteresis buffer in pixels to prevent glitching
-
-function handleScroll() {
+window.handleScroll = function() {
     const questionPanel = document.getElementById('question-panel');
     const body = document.body;
     const filler = document.getElementById('void-filler');
 
     if (!questionPanel || !body || !filler) return;
 
-    // Use scrollHeight for a more reliable measure of the full content height
     const questionHeight = questionPanel.scrollHeight; 
     const viewportHeight = window.innerHeight;
 
-    // Calculate the base trigger position (20vh from bottom of question content)
     const baseTriggerPosition = questionHeight - (viewportHeight * 0.2); 
     
-    // THRESHOLDS for stability (Hysteresis)
     const ACTIVATION_THRESHOLD = baseTriggerPosition;
     const DEACTIVATION_THRESHOLD = baseTriggerPosition - SCROLL_BUFFER_PX;
 
@@ -470,86 +481,61 @@ function handleScroll() {
         // --- TRANSITION IN (To Fixed State) ---
         if (!isSplitActive) {
             
-            // 1. CAPTURE & INVERT (Lock Position Visually - FLIP technique)
             const rect = questionPanel.getBoundingClientRect();
 
-            // Temporarily disable transitions
             questionPanel.style.transition = 'none';
             filler.style.transition = 'none';
 
-            // Lock Question Panel visually in place (Position Matching)
             questionPanel.style.position = 'fixed';
             questionPanel.style.top = '0';
             questionPanel.style.left = '0';
             questionPanel.style.right = 'unset';
-            // Calculate the translation to keep it exactly where it is now
             questionPanel.style.transform = `translateY(${rect.top}px) translateX(${rect.left}px)`;
 
-            // Set Filler height to fill the void
             filler.style.display = 'block';
-            filler.style.height = `${questionHeight}px`; // Match the panel's height
+            filler.style.height = `${questionHeight}px`;
 
-            // Force browser repaint to apply position/transform immediately
             void questionPanel.offsetWidth; 
             
-            // 2. PLAY (Animate to Final State)
-            
-            // Re-enable transitions
             questionPanel.style.transition = 'transform 0.3s ease-in-out, box-shadow 0.3s, border-left 0.3s';
             filler.style.transition = 'height 0.3s ease-in-out';
             
-            // Add active class (for final styles: right: 0, left: unset, border-left)
             body.classList.add('split-active');
             
-            // Animate the transform (Q-panel moves to top-right corner)
             questionPanel.style.transform = 'translateY(0) translateX(50vw)';
 
-            // Animate the filler's height down to 0 (Answers thread moves up smoothly)
             setTimeout(() => {
                 filler.style.height = '0';
             }, 10);
         }
         
     } else if (window.scrollY < DEACTIVATION_THRESHOLD) { 
-        // --- TRANSITION OUT (To Flow State) - Only trigger if scrolled significantly back ---
+        // --- TRANSITION OUT (To Flow State) ---
         if (isSplitActive) {
 
-            // 1. CAPTURE & INVERT (Prepare to revert)
-            
-            // Temporarily disable transitions
             questionPanel.style.transition = 'none';
             filler.style.transition = 'none';
             
-            // Set the current fixed state as the START point of the reverse animation
             questionPanel.style.transform = 'translateY(0) translateX(50vw)';
             
-            // Set the filler to its target height (the Q-panel's original height) 
             filler.style.height = `${questionHeight}px`; 
 
-            // Remove active class (to use the flow CSS position)
             body.classList.remove('split-active'); 
             
-            // Force browser repaint
             void questionPanel.offsetWidth; 
 
-            // 2. PLAY (Animate back to initial state)
-
-            // Re-enable transitions
             questionPanel.style.transition = 'transform 0.3s ease-in-out';
             filler.style.transition = 'height 0.3s ease-in-out';
             
-            // Animate Q-panel back to its flow position (transform: none)
             questionPanel.style.transform = 'none';
             
-            // 3. Cleanup: After transition, remove inline styles and filler
             setTimeout(() => {
-                // Remove inline styles to return control to the CSS flow/rules
                 questionPanel.style.position = '';
                 questionPanel.style.top = '';
                 questionPanel.style.left = '';
                 questionPanel.style.right = '';
                 questionPanel.style.transform = '';
-                questionPanel.style.transition = ''; // Restore initial CSS transition property
+                questionPanel.style.transition = ''; 
                 
                 filler.style.display = 'none';
                 filler.style.height = '0';
@@ -562,7 +548,7 @@ function handleScroll() {
 
 // --- INITIALIZATION ---
 
-async function initPage() {
+function initPage() {
     // Use the global data object injected by PHP
     if (typeof INITIAL_DATA === 'undefined' || !INITIAL_DATA) {
         console.error("Initial data not found. Cannot initialize page.");
@@ -577,31 +563,18 @@ async function initPage() {
     renderQuestionPanel();
     renderAnswersList();
     
-    // Initialize scroll listener after content is rendered
-    window.addEventListener('scroll', handleScroll);
-    // Run once on load in case the content is already past the trigger point
-    handleScroll();
+    // Initialize scroll listener using the global function
+    window.addEventListener('scroll', window.handleScroll);
+    // Run once on load
+    window.handleScroll();
 }
 
-window.handleEditAnswer = handleEditAnswer;
-window.handleEditQuestion = handleEditQuestion;
-window.handleCreateAnswer = handleCreateAnswer;
-window.closeModal = closeModal;
-window.openModal = openModal;
-window.openEditQuestionModal = openEditQuestionModal;
-window.openEditAnswerModal = openEditAnswerModal;
-window.handleAcceptAnswer = handleAcceptAnswer;
-window.handleVoteAnswer = handleVoteAnswer;
-window.handleAcceptAnswer = handleAcceptAnswer;
-window.handleDeleteAnswer = handleDeleteAnswer;
-window.handleDeleteQuestion = handleDeleteQuestion;
-window.loadMoreAnswers = loadMoreAnswers;
-
-// Close modals when clicking outside
+// Close modals when clicking outside using an anonymous global function
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
-        event.target.style.display = "none";
+        window.closeModal(event.target.id);
     }
 }
 
+// Start the application
 initPage();

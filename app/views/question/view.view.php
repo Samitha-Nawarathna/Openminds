@@ -1,255 +1,156 @@
 <?php
 
-    $title = "Creator Review | Openminds";
-    $filename = "exercises/view"; // New file name
+$title = 'Question creator';
+$filename = 'question/view';
 
-    include_once "../app/views/partials/header.view.php";
+include_once '../app/views/partials/header.view.php';
 
 ?>
 
-<?php 
-// Helper function to format vote counts
-function format_count($n) {
-    if ($n >= 1000) {
-        return round($n / 1000, 1) . 'k';
-    }
-    return $n;
+<?php
+// --- MOCK API DATA SETUP (Mimics server-side data retrieval) ---
+$CURRENT_USER_ID = 1; 
+
+$mockQuestionDetails = [
+    'id' => 1,
+    'title' => "What is the Big O Notation for an unbalanced Binary Search Tree?",
+    'description' => "I am studying data structures, and I understand that a balanced BST has an average search time of O(log n). However, what happens when it becomes completely unbalanced? What is the worst-case scenario for operations like search, insertion, and deletion?",
+    'author_id' => 1,
+    'author_name' => "Alice",
+    'author_role' => "student",
+    'time_posted' => "2025-10-30 10:00",
+    'tags' => ["data-structures", "algorithms", "big-o"],
+    'vote_count' => 5,
+    'user_voted' => true,
+    'user_vote_type' => 'up'
+];
+
+$mockInitialAnswers = [
+    ['id' => 102, 'content' => "Since an unbalanced BST effectively becomes a linked list in the worst case (e.g., sequentially inserted data), the Big O notation for search, insertion, and deletion becomes O(n).", 'author_id' => 2, 'author_name' => "You", 'author_role' => "student", 'time_posted' => "2025-10-31 10:15", 'vote_count' => 10, 'user_voted' => false, 'is_accepted' => true],
+    ['id' => 103, 'content' => "Correct. To mitigate this risk, modern systems often rely on self-balancing trees like AVL or Red-Black trees, which guarantee O(log n) worst-case performance by performing rotations.", 'author_id' => 3, 'author_name' => "Dr. Smith", 'author_role' => "admin", 'time_posted' => "2025-10-31 10:30", 'vote_count' => 25, 'user_voted' => true, 'user_vote_type' => 'up', 'is_accepted' => false],
+    ['id' => 104, 'content' => "It's important to remember that 'unbalanced' means skewed, but the average case for a randomly built BST remains O(log n). The O(n) is strictly the worst-case scenario.", 'author_id' => 4, 'author_name' => "Bob Expert", 'author_role' => "expert", 'time_posted' => "2025-10-31 10:45", 'vote_count' => 5, 'user_voted' => false, 'is_accepted' => false]
+];
+
+// Generate 9 more mock answers
+for ($i = 0; $i < 9; $i++) {
+    $mockInitialAnswers[] = [
+        'id' => 105 + $i,
+        'content' => "A student answer number " . ($i + 1) . ". The worst-case for an unbalanced BST is O(n), which is terrible for performance.",
+        'author_id' => 10 + $i,
+        'author_name' => "Student " . ($i + 1),
+        'author_role' => ($i % 3 === 0 ? "mentor" : "student"),
+        'time_posted' => "2025-10-31 11:00",
+        'vote_count' => 1,
+        'user_voted' => false,
+        'is_accepted' => false
+    ];
 }
+
+$totalAnswerCount = count($mockInitialAnswers);
+$answersToDisplay = 10;
+
+// Sort answers (PHP mimic of initial JS sort)
+usort($mockInitialAnswers, function($a, $b) use ($CURRENT_USER_ID) {
+    if ($a['author_id'] === $CURRENT_USER_ID) return -1;
+    if ($b['author_id'] === $CURRENT_USER_ID) return 1;
+    if ($a['is_accepted'] && !$b['is_accepted']) return -1;
+    if (!$a['is_accepted'] && $b['is_accepted']) return 1;
+    $roleOrder = ['admin' => 4, 'expert' => 3, 'mentor' => 2, 'student' => 1];
+    return $roleOrder[strtolower($b['author_role'])] - $roleOrder[strtolower($a['author_role'])];
+});
+
+$initialAnswersList = array_slice($mockInitialAnswers, 0, $answersToDisplay);
+$hasMoreAnswers = $totalAnswerCount > $answersToDisplay;
+
+$initialData = [
+    'question' => $mockQuestionDetails,
+    'answers' => [
+        'list' => $initialAnswersList,
+        'has_more' => $hasMoreAnswers
+    ],
+    'totalAnswerCount' => $totalAnswerCount
+];
+
+$initialDataJson = json_encode($initialData);
 ?>
 
-<?php 
-// Assuming $data contains exercise_id passed from the Controller (e.g., from the pending review list).
-$exercise_id = $data['exercise_id'] ?? 105; // Default to mock ID
-// Use the same API as loading the attempt exercise content, but it will be read-only here.
-$review_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id; 
 
-$edit_url = ROOT . '/exercises/edit?id=' . $exercise_id;
-$approve_url = ROOT . '/exercises/approve'; // Used for 'Hide' action
-$reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
-?>
-
-<style>
-    .action-grid {
-        display: grid;
-        gap: var(--space-xs);
-        margin-top: var(--space-md);
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: auto auto;
-        width: 100%;
-    }
-    .action-grid .btn-full-row {
-        grid-column: 1 / -1; /* Spans both columns */
-    }
-
-    .btn-full-width
-    {
-        width: 100%;
-    }
-    
-    /* ADDED STYLES FOR FEEDBACK TEXTAREA */
-    .feedback-textarea {
-        width: 100%;
-        min-height: 100px;
-        padding: var(--space-sm);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        margin-top: var(--space-md);
-        resize: vertical;
-        font-family: inherit;
-    }
-    #confirmation-modal .action-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-</style>
-<div id="action-modal" class="modal">
-    <div class="modal-content">
-
-    <span class="close-btn" onclick="window.closeModal('action-modal')">&times;</span>
-
-
-    <div id="modal-details-meta" class="meta-data" style="padding-top:var(--space-xs);">
-            <p>Exercise ID: <strong><?= $exercise_id ?></strong></p>
-            <p>Created By: <span id="modal-creator">N/A</span></p>
-        </div>
-
-        <h2 id="modal-title">Review Actions</h2>
-        <p>This exercise is pending review. Select an action below.</p>
-        
-
-        <div class="action-grid">
-            <a id="edit-modal-btn" href="<?= $edit_url ?>" class="btn-blue btn primary btn-full-row btn-full-width">Edit Exercise Details</a>
-            
-            <button id="approve-modal-btn" class="btn secondary btn-full-width" data-action="approve">Hide</button>
-            <button id="reject-modal-btn" class="btn-red btn-full-width" data-action="reject">Delete</button>
-        </div>
-    </div>
-</div>
-
-<div id="confirmation-modal" class="modal hidden">
-    <div class="modal-content">
-        <h2 id="confirm-modal-title">Confirm Action</h2>
-        <p id="confirm-modal-text">Please confirm your action.</p>
-        
-        <div id="feedback-wrapper">
-            <textarea id="feedback-text" class="feedback-textarea" placeholder="Enter your reasons for deletion..."></textarea>
-        </div>
-
-        <div class="action-grid" style="margin-top: 20px;">
-            <button id="confirm-submit-btn" class="btn-blue btn-full-width" data-action="">Confirm & Submit</button>
-            <button id="confirm-cancel-btn" class="btn-none btn-full-width">Cancel</button>
-        </div>
-    </div>
-</div>
-<div id="main-exercise-content" class="container hidden">
-    
-    <div class="exercise-header" style="display:none;">
-        <h1 id="exercise-title">Loading...</h1>
-        <p><span id="exercise-subject"></span></p>
-    </div>
-
-    <div class="question-block">
-        <p id="question-prompt" class="question-prompt">...</p>
-        
-        <div id="answer-options" class="answer-options-list">
+<div id="question-page-container">
+    <div id="question-panel">
+        <div id="question-content-container">
             </div>
 
-        <div id="explanation-box" class="explanation-box">
-            <h3 class="explain-icon">📖</h3>
-            <p id="explanation-text">Explanation content will appear here.</p>
+        <div id="question-footer" class="question-footer">
+            <button id="answer-cta-btn" class="btn-blue" style="width: auto;" onclick="openModal('create-answer-modal')">Post Your Answer</button>
+            <div id="question-action-controls" class="question-action-controls">
+                </div>
         </div>
-    </div>
-</div>
-
-<div class="control-bar">
-    <div class="left-controls">
-        <div id="progress-area" class="progress-area">
-            Question <span id="current-q-index">0</span> of <span id="total-q-count">0</span>
-        </div>
-
-        <a href="#" id="details-link" class="details-link">Details</a>
-
+        <div id="split-trigger-point"></div>
     </div>
     
-    <div id="review-action-buttons" class="action-buttons" style="gap: var(--space-xs);">
-        <a id="edit-btn" href="<?= $edit_url ?>" class="btn-none btn primary">Edit</a>
-        <button id="approve-btn" class="btn-blue btn secondary" data-action="approve">Hide</button>
-        <button id="reject-btn" class="btn-red" data-action="reject">Delete</button>
-    </div>
+    <div id="void-filler"></div> 
 
-    <div id="navigation-buttons" class="action-buttons">
-        <button id="prev-btn" class="btn-none btn secondary" disabled>Previous</button>
-        <button id="next-btn" class="btn-blue btn primary">Next</button>
+    <div id="answers-panel">
+        <div id="answers-panel-inner-content">
+            <div id="answer-count-header" class="answer-count-header">
+                </div>
+            <div id="answers-list">
+                </div>
+            <button id="load-more-btn" class="btn-none" onclick="loadMoreAnswers()" style="width: 100%; display: none;">Load More Answers (0/0)</button>
+        </div>
     </div>
 </div>
+
+<div id="create-answer-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('create-answer-modal')">&times;</span>
+        <h2>Post Your Answer</h2>
+        <form id="create-answer-form" onsubmit="handleCreateAnswer(event)">
+            <label for="new-answer-content">Answer Content:</label>
+            <textarea id="new-answer-content" rows="10" required></textarea>
+            <button type="submit" class="btn-blue">Submit Answer</button>
+        </form>
+    </div>
+</div>
+
+<div id="edit-question-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('edit-question-modal')">&times;</span>
+        <h2>Edit Question</h2>
+        <form id="edit-question-form" onsubmit="handleEditQuestion(event)">
+            <label for="edit-question-title">Title:</label>
+            <input type="text" id="edit-question-title" required>
+            <label for="edit-question-description">Description:</label>
+            <textarea id="edit-question-description" rows="12" required></textarea>
+            <label for="edit-question-tags">Tags (comma separated):</label>
+            <input type="text" id="edit-question-tags">
+            <button type="submit" class="btn-blue">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<div id="edit-answer-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('edit-answer-modal')">&times;</span>
+        <h2>Edit Answer</h2>
+        <form id="edit-answer-form" onsubmit="handleEditAnswer(event)">
+            <input type="hidden" id="edit-answer-id">
+            <label for="edit-answer-content">Answer Content:</label>
+            <textarea id="edit-answer-content" rows="10" required></textarea>
+            <button type="submit" class="btn-blue">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<div id="error-popup"></div>
 
 <script>
-    // Constants for JS
-    // Assuming ROOT is defined in the included partials or global scope
-    const ROOT = '<?= defined("ROOT") ? ROOT : "" ?>'; 
-    const REVIEW_API_URL = '<?= $review_api_url ?>';
-    const APPROVE_URL = '<?= $approve_url ?>'; // For 'Hide'
-    const REJECT_URL = '<?= $reject_url ?>'; // For 'Delete'
-    const EXERCISE_ID = '<?= $exercise_id ?>';
-    
-    let currentAction = ''; // Store the pending action (approve/reject)
-
-    /**
-     * Shows the confirmation modal and sets up the final submission.
-     * @param {string} action - 'approve' (Hide) or 'reject' (Delete)
-     */
-    window.handleReviewAction = function(action) {
-        currentAction = action; // Store the action globally
-        window.closeModal('action-modal'); // Close the initial modal if it's open
-        
-        const confirmModal = document.getElementById('confirmation-modal');
-        const confirmTitle = document.getElementById('confirm-modal-title');
-        const confirmText = document.getElementById('confirm-modal-text');
-        const feedbackTextarea = document.getElementById('feedback-text');
-        const feedbackWrapper = document.getElementById('feedback-wrapper');
-        const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
-
-        // Reset and setup UI based on action
-        feedbackTextarea.value = '';
-        confirmSubmitBtn.classList.remove('btn-red', 'btn-blue');
-        
-        if (action === 'reject') {
-            confirmTitle.textContent = 'Confirm Deletion';
-            confirmText.textContent = 'Please provide detailed reasons for deleting this exercise. This is required.';
-            feedbackTextarea.placeholder = 'Enter detailed reasons for deletion... (Required)';
-            confirmSubmitBtn.textContent = 'Delete & Submit Feedback';
-            confirmSubmitBtn.classList.add('btn-red');
-            feedbackWrapper.style.display = 'block'; // SHOW feedback field
-        } else { // approve (Hide)
-            confirmTitle.textContent = 'Confirm Hide Action';
-            confirmText.textContent = 'Are you sure you want to hide this exercise? It can be unhidden later.';
-            confirmSubmitBtn.textContent = 'Hide & Confirm';
-            confirmSubmitBtn.classList.add('btn-blue');
-            feedbackWrapper.style.display = 'none'; // HIDE feedback field
-        }
-        
-        confirmModal.classList.remove('hidden');
-    };
-    
-    // Final handler for the confirmation modal's submit button
-    document.getElementById('confirm-submit-btn').addEventListener('click', function() {
-        const feedbackTextarea = document.getElementById('feedback-text');
-        const action = currentAction; // Retrieve stored action
-
-        // Only retrieve and validate feedback if the action is 'reject' (Delete)
-        let feedback = '';
-        if (action === 'reject') {
-            feedback = feedbackTextarea.value.trim();
-            // Validation for deletion feedback
-            if (feedback.length < 5) {
-                alert('Deletion requires a minimum of 5 characters of feedback.');
-                feedbackTextarea.focus();
-                return;
-            }
-        }
-        
-        // Determine target URL
-        const targetUrl = action === 'approve' ? APPROVE_URL : REJECT_URL;
-        
-        // Use FormData to prepare data for submission (submits feedback as $_POST entry)
-        const formData = new FormData();
-        formData.append('exercise_id', EXERCISE_ID);
-        formData.append('feedback', feedback);
-
-        // Submit data using Fetch API
-        fetch(targetUrl, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.ok) {
-                alert(`Successfully submitted ${action === 'approve' ? 'Hide' : 'Delete'} action for Exercise ID ${EXERCISE_ID}.`);
-                // Use the ROOT constant for redirect
-                window.location.href = `${ROOT}/exercises/reviewlist`; // Redirect to a generic list
-            } else {
-                response.json().then(data => {
-                    alert(`Failed to complete action: ${data.message || 'An unknown server error occurred.'}`);
-                    window.closeModal('confirmation-modal');
-                }).catch(() => {
-                    alert(`Failed to complete action (HTTP Status ${response.status}).`);
-                    window.closeModal('confirmation-modal');
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Submission Error:', error);
-            alert('A network error occurred during submission.');
-        });
-    });
-
-    // Handle cancel button on the confirmation modal
-    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
-        window.closeModal('confirmation-modal');
-    });
-
-    // Global function to close any modal
-    window.closeModal = function(id) {
-        document.getElementById(id).classList.add('hidden');
-    };
+    // Inject initial data into a global JS variable
+    const INITIAL_DATA = <?php echo $initialDataJson; ?>;
 </script>
 
-<?php include_once "../app/views/partials/footer.view.php"; ?>
+<?php
+
+include_once '../app/views/partials/footer.view.php';
+
+?>

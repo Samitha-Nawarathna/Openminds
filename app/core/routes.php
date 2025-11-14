@@ -82,3 +82,11 @@ App::get('exercises/api/pending_review', 'Exercises@api_get_pending_review');
 App::post('exercises/api/vote/{exercise_id}', 'Exercises@api_submit_vote');
 App::get('exercises/api/vote/{exercise_id}', 'Exercises@api_get_vote_status');
 App::get('exercises/api/load_attempt_data/{exercise_id}', 'Exercises@api_load_attempt_data');
+
+// ----------------------------------------------------------------------
+// --- END OF EXERCISES API ENDPOINTS ---
+// ----------------------------------------------------------------------
+
+App::get('analysis/api/dashboard_data', 'Analysis@api_dashboard_data');
+App::get('analysis/api/influence_data', 'Analysis@api_influence_data');
+App::get('analysis/api/reflection_data', 'Analysis@api_reflection_data'); 

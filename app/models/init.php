@@ -26,3 +26,4 @@ require "NoteTags.php";
 require "NoteShares.php";
 require "Topics.php";
 
+require "Analysis.php";
