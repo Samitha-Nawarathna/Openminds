@@ -160,6 +160,7 @@ class Notes extends Controller
         $current_user_id = $_SESSION['user_id'] ?? null;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle form submission to create a new note
+            // show($_POST);
             $title = $_POST['title'] ?? '';
             $content = $_POST['content'] ?? '';
             $tag_list = explode(",", $_POST['tags']) ?? [];

@@ -7,6 +7,7 @@
 
 ?>
 
+
 <div class="creator-wrapper">
     <!-- <h2>Create Note</h2> -->
     <form action="<?=ROOT?>/notes/create" method="POST" id="note-create-form">
@@ -19,13 +20,20 @@
                 </div>
 
                 <div class="input-group">
-                    <textarea id="note-content" name="content" placeholder="" rows="18" required></textarea>
+                    <?php 
+                        $editor_id = "editor";
+                        $hidden_input_name = "content";
+                        $initial_content = json_encode([]);
+                        $read_only = false;
+                        $placeholder_text = "Start writing your note here...";
+                        include "../app/views/partials/text_editor.php"; 
+                    ?>
                 </div>
-                
+                <input type="hidden" name="<?php echo $hidden_input_name; ?>" id="hidden_input_<?php echo $editor_id; ?>">
                 <input type="hidden" id="hidden-tags-field" name="tags" value="">
                 <input type="hidden" id="hidden-topic-field" name="topic" value="">
 
-                <button type="button" class="button" id="open-metadata-modal-btn">Continue to Save</button>
+                <button id = 'open-metadata-modal-btn' type="button" class="button">Continue to Save</button>
             </div>
 
             </div>

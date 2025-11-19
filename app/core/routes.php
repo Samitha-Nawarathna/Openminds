@@ -89,4 +89,5 @@ App::get('exercises/api/load_attempt_data/{exercise_id}', 'Exercises@api_load_at
 
 App::get('analysis/api/dashboard_data', 'Analysis@api_dashboard_data');
 App::get('analysis/api/influence_data', 'Analysis@api_influence_data');
-App::get('analysis/api/reflection_data', 'Analysis@api_reflection_data'); 
+App::get('analysis/api/reflection_data', 'Analysis@api_reflection_data');
+App::get('analysis/api/systemview_data', 'Analysis@api_systemview_data'); 

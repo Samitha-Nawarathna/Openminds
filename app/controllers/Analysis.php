@@ -85,4 +85,36 @@ class Analysis extends Controller
         
         exit;
     }
+
+    public function api_systemview_data()
+    {
+        // 1. --- Security Check (Crucial for Admin data) ---
+        // You MUST implement a check here to ensure only authorized users (Admins) 
+        // can access this data. Assuming a function/method like check_admin() exists.
+        /*
+        if (!$this->is_admin()) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Unauthorized access.']);
+            exit;
+        }
+        */
+
+        try {
+            // 2. --- Fetch the data from the model ---
+            $data = $this->analytics_model->generateAdminData();
+            
+            // 3. --- Output JSON Response ---
+            header('Content-Type: application/json');
+            echo json_encode($data);
+            
+        } catch (Exception $e) {
+            // Handle database or model errors
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Server error fetching admin data.', 'message' => $e->getMessage()]);
+        }
+        
+        exit;
+    }
 }

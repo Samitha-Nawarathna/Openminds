@@ -9,17 +9,17 @@ define('SERVER_ROOT', dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR)
 if ($_SERVER["SERVER_NAME"] == "localhost")
 {
     // /** database config **/
-    define('DBNAME', 'openminds');
-    define('DBHOST', 'localhost');
-    define('DBUSER', 'root');
-    define('DBPASS', '1234');
-    define('DBDRIVER', '');
-
-    // define('DBNAME', 'samitha_openminds');
-    // define('DBHOST', 'mysql-samitha.alwaysdata.net');
-    // define('DBUSER', 'samitha');
-    // define('DBPASS', 'sam2008itha0522');
+    // define('DBNAME', 'openminds');
+    // define('DBHOST', 'localhost');
+    // define('DBUSER', 'root');
+    // define('DBPASS', '1234');
     // define('DBDRIVER', '');
+
+    define('DBNAME', 'samitha_openminds');
+    define('DBHOST', 'mysql-samitha.alwaysdata.net');
+    define('DBUSER', 'samitha');
+    define('DBPASS', 'sam2008itha0522');
+    define('DBDRIVER', '');
 
     /** file structure config**/
     // ROOT (HTTP path) is used for browser assets/links

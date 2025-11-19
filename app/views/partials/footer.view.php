@@ -2,6 +2,7 @@
 
 include_once('../app/views/partials/message.view.php');
 include_once "../app/views/partials/note_modal.php";
+// include_once "../app/views/partials/text_editor.php";
 
 
 ?>
@@ -14,6 +15,7 @@ include_once "../app/views/partials/note_modal.php";
     setTimeout(() => {
         popup.style.display = 'none';
     }, 3000);
+}
 
     window.showPopupSuccess = function(message) {
     const popup = document.getElementById('error-popup');
@@ -24,6 +26,20 @@ include_once "../app/views/partials/note_modal.php";
         popup.style.display = 'none';
     }, 3000);
 }
+
+function prepareAllQuillData() {
+    // Check if the registry exists
+    if (window.quillSubmitPrep) {
+        // Iterate through every registered editor and call its preparation function
+        for (const editorId in window.quillSubmitPrep) {
+            if (typeof window.quillSubmitPrep[editorId] === 'function') {
+                window.quillSubmitPrep[editorId]();
+            }
+        }
+    }
+}
+
+window.prepareAllQuillData = prepareAllQuillData;
 </script>
 
 

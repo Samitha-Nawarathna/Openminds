@@ -1,468 +1,277 @@
-// document.addEventListener('DOMContentLoaded', () => {
-//     // --- DOM Elements ---
-//     const form = document.getElementById('exercise-editor-form');
-//     const questionsListContainer = document.getElementById('questions-list');
-//     const questionOrderField = document.getElementById('question-order-field');
-//     const btnAddQuestion = document.getElementById('btn-add-question');
-//     const exerciseTitleInput = document.getElementById('exercise-title-input');
+const MOCK_API_SAVE_URL = '<?= $MOCK_API_SAVE_URL ?>';
+const MOCK_API_SUBMIT_URL = '<?= $MOCK_API_SUBMIT_URL ?>';
+
+// --- GLOBAL STATE ---
+let EXERCISE_METADATA = {};
+let EXERCISE_QUESTIONS = [];
+let currentQIndex = -1; // -1 means no question is selected/being edited.
+let nextQId = 1;
+
+// --- DOM Elements ---
+const setupModal = document.getElementById('setup-modal');
+const setupForm = document.getElementById('setup-form');
+const mainBuilderContent = document.getElementById('main-builder-content');
+const controlBar = document.getElementById('control-bar');
+const qListContainer = document.getElementById('question-list-container');
+const qEditorForm = document.getElementById('question-editor-form');
+const optionsContainer = document.getElementById('options-container');
+const submitModal = document.getElementById('submit-modal');
+// NEW DOM ELEMENT REFERENCE
+const editMetadataBtn = document.getElementById('edit-metadata-btn');
+
+// --- STEP 1: SETUP MODAL LOGIC ---
+
+// Function to handle the actual saving of form data and closing the modal
+function updateMetadata() {
+    EXERCISE_METADATA = {
+        title: document.getElementById('exercise-title-input').value,
+        subject: document.getElementById('exercise-subject-input').value,
+        description: document.getElementById('exercise-description-input').value,
+        tags: document.getElementById('exercise-tags-input').value,
+    };
+    setupModal.style.display = 'none';
     
-//     // Tag Elements
-//     const tagsInput = document.getElementById('tags-input');
-//     const selectedTagsDisplay = document.getElementById('selected-tags-display');
-//     const hiddenTagsField = document.getElementById('hidden-tags-field');
+    // Ensure the control bar Save Draft button is re-enabled if needed
+    document.getElementById('save-draft-btn').disabled = false;
+}
 
-//     // Modal Elements
-//     const modal = document.getElementById('question-modal');
-//     const closeBtn = document.querySelector('.close-button');
-//     const btnModalSave = document.getElementById('btn-modal-save');
-//     const modalQuestionText = document.getElementById('modal-question-text');
-//     const modalOptionsText = document.getElementById('modal-options-text');
-//     const modalQuestionId = document.getElementById('modal-question-id');
-//     const modalTitleText = document.getElementById('modal-title-text');
-//     // 
-//     // --- NEW: Elements for Correct Answer Selection ---
-//     const modalOptionsGroup = document.getElementById('modal-options-group'); // Find the existing options textarea
-//     const modalCorrectAnswerList = document.createElement('div');
-//     modalCorrectAnswerList.id = 'modal-correct-answer-list';
-//     modalCorrectAnswerList.className = 'modal-answer-list'; // For styling
-
-//     // Create the new UI group
-//     const answerSelectorGroup = document.createElement('div');
-//     answerSelectorGroup.className = 'input-group';
-//     answerSelectorGroup.id = 'modal-correct-answer-selector-group';
-//     answerSelectorGroup.innerHTML = '<label>Correct Answer(s) (Select all that apply)</label>';
-//     answerSelectorGroup.appendChild(modalCorrectAnswerList);
-
-//     // Inject the new UI group into the modal, right after the options textarea
-//     if (modalOptionsGroup) {
-//         modalOptionsGroup.after(answerSelectorGroup);
-//     }
-//     // --- End New Elements ---
-
-
-//     // --- State ---
-//     let questionsState = INITIAL_QUESTIONS_DATA || [];
-//     let selectedTags = new Set(INITIAL_TAGS || []);
-//     let dragSrcEl = null; 
-
-//     // --- Utility Functions ---
-
-//     function generateUUID() {
-//         return 'q_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-//     }
-
-//     /**
-//      * Dynamically renders checkboxes in the modal to select the correct answer.
-//      * Reads from the modalOptionsText textarea.
-//      */
-//     function updateModalAnswerSelector(options = [], selectedIndices = []) {
-//         const listContainer = document.getElementById('modal-correct-answer-list');
-//         if (!listContainer) return;
-
-//         // Determine options: either from passed data (on open) or from textarea (on typing)
-//         let currentOptions = options.length > 0 ? options : modalOptionsText.value.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-        
-//         // Determine selection: either from passed data (on open) or from current checkboxes (on typing)
-//         let currentSelection = selectedIndices;
-//         if (options.length === 0) { 
-//             // If triggered by typing, preserve existing selections
-//             currentSelection = Array.from(listContainer.querySelectorAll('input:checked')).map(input => parseInt(input.value));
-//         }
-
-//         listContainer.innerHTML = ''; // Clear old checkboxes
-
-//         if (currentOptions.length === 0) {
-//             listContainer.innerHTML = '<em>Type options in the box above to select a correct answer.</em>';
-//             return;
-//         }
-
-//         currentOptions.forEach((optionText, index) => {
-//             const id = `modal-check-${index}`;
-//             const label = document.createElement('label');
-//             label.className = 'checkbox-label'; // For styling
-//             label.setAttribute('for', id);
-
-//             const input = document.createElement('input');
-//             input.type = 'checkbox';
-//             input.id = id;
-//             input.value = index;
-
-//             if (currentSelection.includes(index)) {
-//                 input.checked = true;
-//             }
-
-//             label.appendChild(input);
-//             label.appendChild(document.createTextNode(' ' + (optionText || '(Empty Option)')));
-//             listContainer.appendChild(label);
-//         });
-//     }
-
-
-//     /** Updates the hidden field and button text. */
-//     function updateQuestionOrder() {
-//         const order = questionsState.map(q => q.id).join(',');
-//         questionOrderField.value = order;
-        
-//         questionsListContainer.querySelectorAll('.question-panel').forEach((panel, index) => {
-//             panel.querySelector('.question-number').textContent = `Question ${index + 1}`;
-//         });
-        
-//         btnAddQuestion.textContent = questionsState.length === 0 ? 
-//                                      'add first question' : 
-//                                      'add another question';
-//     }
-
-//     // --- Tag Management Functions ---
-
-//     function updateHiddenTagsField() {
-//         hiddenTagsField.value = Array.from(selectedTags).join(',');
-//     }
-
-//     function renderTag(tagName) {
-//         const tagPill = document.createElement('span');
-//         tagPill.classList.add('tag-pill');
-//         tagPill.innerHTML = `${tagName}<span class="tag-removal" data-tag="${tagName}"> &times;</span>`;
-        
-//         tagPill.querySelector('.tag-removal').addEventListener('click', (e) => {
-//             const tagToRemove = e.target.dataset.tag;
-//             removeTag(tagToRemove);
-//         });
-        
-//         selectedTagsDisplay.appendChild(tagPill);
-//     }
-
-//     function addTag(tagName) {
-//         tagName = tagName.trim();
-//         if (!tagName || selectedTags.has(tagName)) return;
-
-//         selectedTags.add(tagName);
-//         renderTag(tagName);
-//         updateHiddenTagsField();
-//     }
-
-//     function removeTag(tagName) {
-//         if (selectedTags.delete(tagName)) {
-//             updateTagsDisplayArea(); 
-//             updateHiddenTagsField();
-//         }
-//     }
-
-//     function updateTagsDisplayArea() {
-//         selectedTagsDisplay.innerHTML = '';
-//         selectedTags.forEach(renderTag);
-//     }
+// Function to pre-fill the form with current metadata and update the modal button text
+function prepopulateMetadataForm() {
+    document.getElementById('exercise-title-input').value = EXERCISE_METADATA.title || '';
+    document.getElementById('exercise-subject-input').value = EXERCISE_METADATA.subject || '';
+    document.getElementById('exercise-description-input').value = EXERCISE_METADATA.description || '';
+    document.getElementById('exercise-tags-input').value = EXERCISE_METADATA.tags || '';
     
-//     // --- Rendering and DOM Management ---
+    // Change button text for clarity if exercise already exists
+    const submitBtn = setupForm.querySelector('button[type="submit"]');
+    submitBtn.textContent = EXERCISE_METADATA.title ? 'Update Details' : 'Start Building';
+}
 
-//     function createQuestionPanel(q, index) {
-//         const panel = document.createElement('div');
-//         panel.className = 'question-panel';
-//         panel.id = `question-${q.id}`;
-//         panel.dataset.questionId = q.id;
-//         panel.draggable = true;
 
-//         // UPDATED: Use checkboxes and check against 'correct_indices'
-//         const optionsHTML = q.options.map((opt, optIndex) => {
-//             const isCorrect = q.correct_indices && q.correct_indices.includes(optIndex);
-//             const checkedAttr = isCorrect ? 'checked' : '';
-//             // Add a class for styling the correct answer preview
-//             const liClass = isCorrect ? 'class="correct-answer-preview"' : ''; 
-
-//             return `<li ${liClass}><label><input type="checkbox" disabled ${checkedAttr}> ${opt}</label></li>`;
-//         }).join('');
-        
-//         const answerPreviewHTML = `
-//             <div class="answer-preview">
-//                 <span class="preview-type">Type: Multiple Choice</span>
-//                 <ul>${optionsHTML}</ul>
-//             </div>`;
-
-//         panel.innerHTML = `
-//             <div class="question-header">
-//                 <span class="question-number">Question ${index + 1}</span>
-//                 <div class="panel-actions">
-//                     <button type="button" class="btn-edit" data-id="${q.id}">Edit</button>
-//                     <button type="button" class="btn-delete" data-id="${q.id}">Delete</button>
-//                 </div>
-//             </div>
-//             <p class="question-text">${q.question_text}</p>
-//             ${answerPreviewHTML}
-//         `;
-//         return panel;
-//     }
-
-//     function renderQuestionList() {
-//         questionsListContainer.innerHTML = '';
-//         questionsState.forEach((q, index) => {
-//             questionsListContainer.appendChild(createQuestionPanel(q, index));
-//         });
-//         attachPanelListeners();
-//         updateQuestionOrder();
-//     }
-
-//     // --- Modal/Edit Functions ---
-
-//     function openModal(question) {
-//         modalQuestionId.value = question.id || '';
-//         modalQuestionText.value = question.question_text || '';
-//         modalOptionsText.value = (question.options || []).join('\n');
-        
-//         // NEW: Populate the correct answer checkboxes
-//         // Pass the question's options and its saved correct indices
-//         updateModalAnswerSelector(question.options || [], question.correct_indices || []);
-
-//         modalTitleText.textContent = question.id ? 'Edit' : 'Add New';
-//         modal.style.display = 'block';
-//     }
-
-//     function closeModal() {
-//         modal.style.display = 'none';
-//         // Clear the answer selector on close
-//         const listContainer = document.getElementById('modal-correct-answer-list');
-//         if (listContainer) listContainer.innerHTML = '';
-//     }
-
-//     // Save button handler inside the modal (UPDATED)
-//     btnModalSave.addEventListener('click', () => {
-//         const id = modalQuestionId.value;
-//         const text = modalQuestionText.value.trim();
-//         const type = 'multiple_choice'; 
-//         const optionsText = modalOptionsText.value.trim();
-        
-//         if (!text) {
-//             alert("Question text cannot be empty.");
-//             return;
-//         }
-
-//         const options = optionsText.split('\n').map(o => o.trim()).filter(o => o.length > 0);
-//         if (options.length < 2) {
-//              alert("Multiple choice questions require at least two options.");
-//              return;
-//         }
-        
-//         // --- NEW: Get correct answer indices from checkboxes ---
-//         const listContainer = document.getElementById('modal-correct-answer-list');
-//         const selectedCheckboxes = listContainer.querySelectorAll('input[type="checkbox"]:checked');
-//         const correctIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
-
-//         if (correctIndices.length === 0) {
-//             alert("You must select at least one correct answer.");
-//             return;
-//         }
-
-//         const weightContainer = document.getElementById('modal-question-weight');
-//         const weight = weightContainer ? parseFloat(weightContainer.value) : 1;
-//         // --- End New Section ---
-        
-//         let questionIndex = questionsState.findIndex(q => q.id === id);
-
-//         const newQuestionData = {
-//             id: id || generateUUID(),
-//             question_text: text,
-//             answer_type: type,
-//             options: options,
-//             weight: weight,
-//             correct_indices: correctIndices // <-- ADDED THIS
-//         };
-
-//         if (questionIndex !== -1) {
-//             questionsState[questionIndex] = { ...questionsState[questionIndex], ...newQuestionData };
-//         } else {
-//             questionsState.push(newQuestionData);
-//         }
-
-//         renderQuestionList();
-//         closeModal();
-//     });
-
-//     // --- Drag and Drop Handlers (UNCHANGED) ---
-
-//     function handleDragStart(e) {
-//         dragSrcEl = this;
-//         e.dataTransfer.effectAllowed = 'move';
-//         e.dataTransfer.setData('text/plain', this.dataset.questionId);
-//         setTimeout(() => this.classList.add('is-dragging'), 0);
-//     }
-
-//     function handleDragEnd() {
-//         this.classList.remove('is-dragging');
-//         questionsListContainer.querySelectorAll('.question-panel').forEach(p => {
-//             p.classList.remove('drag-over-top', 'drag-over-bottom');
-//         });
-//     }
-
-//     function handleDragOver(e) {
-//         if (e.preventDefault) e.preventDefault();
-//         e.dataTransfer.dropEffect = 'move';
-//         return false;
-//     }
-
-//     function handleDragEnter(e) {
-//         if (this === dragSrcEl) return;
-        
-//         questionsListContainer.querySelectorAll('.question-panel').forEach(p => {
-//             p.classList.remove('drag-over-top', 'drag-over-bottom');
-//         });
-
-//         const rect = this.getBoundingClientRect();
-//         const isBefore = e.clientY < rect.top + rect.height / 2;
-
-//         if (isBefore) {
-//             this.classList.add('drag-over-top');
-//         } else {
-//             this.classList.add('drag-over-bottom');
-//         }
-//     }
-
-//     function handleDrop(e) {
-//         if (e.stopPropagation) e.stopPropagation();
-        
-//         if (dragSrcEl !== this) {
-//             const dragId = e.dataTransfer.getData('text/plain');
-//             const targetEl = this;
-//             const targetId = targetEl.dataset.questionId;
-//             const dragIndex = questionsState.findIndex(q => q.id === dragId);
-//             const targetIndex = questionsState.findIndex(q => q.id === targetId);
-
-//             if (dragIndex === -1 || targetIndex === -1) return;
-
-//             const [draggedItem] = questionsState.splice(dragIndex, 1);
-            
-//             const rect = targetEl.getBoundingClientRect();
-//             const isBefore = e.clientY < rect.top + rect.height / 2;
-            
-//             let newIndex = targetIndex;
-//             if (!isBefore) {
-//                 newIndex = targetIndex + 1;
-//             }
-
-//             if (dragIndex < targetIndex && isBefore) newIndex = targetIndex;
-            
-//             questionsState.splice(newIndex, 0, draggedItem);
-
-//             renderQuestionList();
-//         }
-
-//         return false;
-//     }
-
-//     function attachPanelListeners() {
-//         questionsListContainer.querySelectorAll('.question-panel').forEach(panel => {
-//             // Drag listeners
-//             panel.addEventListener('dragstart', handleDragStart);
-//             panel.addEventListener('dragenter', handleDragEnter);
-//             panel.addEventListener('dragover', handleDragOver);
-//             panel.addEventListener('dragleave', handleDragEnd); 
-//             panel.addEventListener('drop', handleDrop);
-//             panel.addEventListener('dragend', handleDragEnd);
-
-//             // Action button listeners
-//             panel.querySelector('.btn-edit').addEventListener('click', function() {
-//                 const qId = this.dataset.id;
-//                 const question = questionsState.find(q => q.id === qId);
-//                 openModal(question); 
-//             });
-            
-//             panel.querySelector('.btn-delete').addEventListener('click', function() {
-//                 if (confirm('Are you sure you want to delete this question?')) {
-//                     const qId = this.dataset.id;
-//                     questionsState = questionsState.filter(q => q.id !== qId);
-//                     renderQuestionList();
-//                 }
-//             });
-//         });
-//     }
-
-//     // --- Global Event Listeners ---
-
-//     tagsInput.addEventListener('keydown', (e) => {
-//         if (e.key === 'Enter' || e.key === ',') {
-//             e.preventDefault();
-//             const inputVal = tagsInput.value.trim();
-//             if (inputVal) {
-//                 inputVal.split(',').forEach(tag => addTag(tag.trim()));
-//                 tagsInput.value = '';
-//             }
-//         }
-//     });
-
-//     // NEW: Add listener to update checkboxes as user types options
-//     modalOptionsText.addEventListener('input', () => {
-//         // Pass no arguments so it reads from the textarea and preserves selection
-//         updateModalAnswerSelector(); 
-//     });
-
-//     btnAddQuestion.addEventListener('click', () => {
-//         // Default new question structure (UPDATED)
-//         const newQuestion = { 
-//             id: null, 
-//             question_text: '', 
-//             options: ['Option A', 'Option B'],
-//             correct_indices: [] // Start with no correct answer selected
-//         }; 
-//         openModal(newQuestion);
-//     });
+setupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
     
-//     closeBtn.addEventListener('click', closeModal);
-//     window.addEventListener('click', (e) => {
-//         if (e.target === modal) {
-//             closeModal();
-//         }
-//     });
-
-
-//     // Final submit handler (Validation unchanged)
-//     form.addEventListener('submit', (e) => {
-//         e.preventDefault();
-        
-//         // --- Validation Checks ---
-//         if (exerciseTitleInput.value.trim() === '') {
-//             alert("The Exercise Title is required.");
-//             exerciseTitleInput.focus();
-//             return;
-//         }
-
-//         if (questionsState.length === 0) {
-//             alert("You must add at least one question to the exercise.");
-//             return;
-//         }
-//         // --- End Validation Checks ---
-        
-//         updateQuestionOrder(); 
-//         updateHiddenTagsField(); 
-
-//         console.log("--- New Exercise Submission Data ---");
-//         console.log("Exercise ID (Placeholder):", form.elements['exercise_id'].value); 
-//         console.log("Exercise Title:", exerciseTitleInput.value);
-//         console.log("Subject Name:", document.getElementById('exercise-subject-input').value);
-//         console.log("Tags:", hiddenTagsField.value);
-//         console.log("Question Order:", questionOrderField.value);
-//         console.log("Full Question State (JSON):", JSON.stringify(questionsState));
-
-//         let hiddenQuestionsField = document.getElementById('hidden-questions-field');
-
-//         if (!hiddenQuestionsField) {
-//             hiddenQuestionsField = document.createElement('input');
-//             hiddenQuestionsField.type = 'hidden';
-//             hiddenQuestionsField.name = 'questions_data';
-//             hiddenQuestionsField.id = 'hidden-questions-field';
-//             form.appendChild(hiddenQuestionsField);
-//         }
-
-//         // Serialize questionsState (This now includes 'correct_indices')
-//         hiddenQuestionsField.value = JSON.stringify(questionsState);
-
-//         form.submit();
-        
-//         // alert("Exercise creation request sent successfully! (Check console for submitted data)");
-//     });
-
-//     // --- Initialization ---
-
-//     updateTagsDisplayArea();
-//     updateHiddenTagsField();
+    const isInitialSetup = Object.keys(EXERCISE_METADATA).length === 0;
     
-//     // No initial questions to render, but call this to set the button text
-//     updateQuestionOrder(); 
-//     attachPanelListeners(); 
-// });
+    updateMetadata(); // Save the data
+
+    if (isInitialSetup) {
+        // Initial setup flow: reveal UI and start first question
+        mainBuilderContent.style.display = 'flex';
+        controlBar.style.display = 'flex';
+        addNewQuestion(); 
+    }
+});
+
+// NEW EVENT HANDLER: Re-open modal to edit metadata
+editMetadataBtn.addEventListener('click', () => {
+    prepopulateMetadataForm();
+    setupModal.style.display = 'flex';
+});
+
+
+// --- STEP 2 & 3: BUILDER/EDITOR LOGIC ---
+
+function generateOptionHtml(index, text = '', isCorrect = false) {
+    const type = 'radio'; // Assuming single-choice for simplicity
+    return `
+        <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+            <input type="${type}" name="correct-option" id="option-correct-${index}" value="${index}" ${isCorrect ? 'checked' : ''} style="width:auto; margin:0;">
+            <input type="text" id="option-text-${index}" value="${text}" placeholder="Option ${index + 1} text" required>
+            <button type="button" onclick="removeOption(this, ${index})" class="btn-red" style="padding: 8px;">🗑️</button>
+        </div>
+    `;
+}
+
+function renderOptions(options = [{text: '', isCorrect: true}, {text: '', isCorrect: false}]) {
+    optionsContainer.innerHTML = options.map((opt, index) => generateOptionHtml(index, opt.text, opt.isCorrect)).join('');
+}
+
+window.removeOption = function(el, index) {
+    if (optionsContainer.children.length > 2) {
+        el.parentElement.remove();
+    } else {
+        alert('An exercise must have at least two options.');
+    }
+}
+
+document.getElementById('add-option-btn').addEventListener('click', () => {
+    const nextIndex = optionsContainer.children.length;
+    optionsContainer.insertAdjacentHTML('beforeend', generateOptionHtml(nextIndex));
+});
+
+function saveCurrentQuestion() {
+    const qId = document.getElementById('current-q-id').value;
+    const prompt = document.getElementById('q-prompt-input').value.trim();
+    const explanation = document.getElementById('q-explanation-input').value.trim();
+    const weight = parseInt(document.getElementById('q-weight-input').value);
+    
+    if (!prompt || !explanation || isNaN(weight)) {
+        alert('Please fill out the prompt, explanation, and weight.');
+        return false;
+    }
+
+    const options = Array.from(optionsContainer.children).map((div, index) => ({
+        text: div.querySelector(`#option-text-${index}`).value,
+        isCorrect: div.querySelector(`input[name="correct-option"]`).checked, // Assumes radio for simplicity
+    }));
+    
+    if (options.filter(o => o.isCorrect).length === 0) {
+        alert('Please select at least one correct answer.');
+        return false;
+    }
+
+    const newQ = {
+        id: qId ? parseInt(qId) : nextQId++,
+        prompt,
+        explanation,
+        weight,
+        options,
+    };
+
+    if (qId) {
+        // Update existing question
+        EXERCISE_QUESTIONS[currentQIndex] = newQ;
+    } else {
+        // Add new question
+        EXERCISE_QUESTIONS.push(newQ);
+        currentQIndex = EXERCISE_QUESTIONS.length - 1;
+    }
+    
+    renderQuestionList();
+    updateBuilderUI(true);
+    return true;
+}
+
+function loadQuestion(index) {
+    currentQIndex = index;
+    const q = EXERCISE_QUESTIONS[index];
+    
+    document.getElementById('current-q-id').value = q.id;
+    document.getElementById('q-prompt-input').value = q.prompt;
+    document.getElementById('q-explanation-input').value = q.explanation;
+    document.getElementById('q-weight-input').value = q.weight;
+    document.getElementById('current-q-title').textContent = `Question Editor: Q${index + 1}`;
+    
+    renderOptions(q.options);
+    updateBuilderUI();
+}
+
+function addNewQuestion() {
+    if (currentQIndex !== -1 && !saveCurrentQuestion()) {
+         return; // Don't proceed if save fails
+    }
+    
+    currentQIndex = -1; // Mark as new question mode
+    document.getElementById('current-q-id').value = '';
+    document.getElementById('current-q-title').textContent = `Question Editor: New`;
+    qEditorForm.reset();
+    renderOptions(); // Render two blank options
+    updateBuilderUI();
+}
+
+function renderQuestionList() {
+    qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => `
+        <div class="question-item ${index === currentQIndex ? 'active' : ''}" onclick="loadQuestion(${index})">
+            <span>Q${index + 1}: ${q.prompt.substring(0, 30)}...</span>
+            <button type="button" class="btn-none" onclick="event.stopPropagation(); deleteQuestion(${index})">🗑️</button>
+        </div>
+    `).join('');
+    document.getElementById('q-count-status').textContent = `(${EXERCISE_QUESTIONS.length})`;
+}
+
+function updateBuilderUI(isSaved = false) {
+    // Control Bar Logic
+    document.getElementById('prev-q-btn').disabled = currentQIndex <= 0;
+    document.getElementById('save-next-btn').textContent = currentQIndex === EXERCISE_QUESTIONS.length - 1 ? 'Save & Add New →' : 'Save & Next Question →';
+    
+    // Draft Status
+    if (isSaved) {
+        document.getElementById('draft-status').textContent = 'Saved Locally';
+        document.getElementById('draft-status').style.color = 'var(--color-success)';
+    }
+}
+
+// --- EVENT HANDLERS ---
+
+// NOTE: document.getElementById('add-new-q-btn').addEventListener('click', addNewQuestion) is still in the code 
+// but the button's style is set to display:none, effectively disabling it via CSS/HTML attribute.
+
+document.getElementById('save-next-btn').addEventListener('click', () => {
+    if (saveCurrentQuestion()) {
+        if (currentQIndex < EXERCISE_QUESTIONS.length - 1) {
+            loadQuestion(currentQIndex + 1);
+        } else {
+            addNewQuestion();
+        }
+    }
+});
+
+document.getElementById('prev-q-btn').addEventListener('click', () => {
+    // Ensure the current question is saved when navigating backward
+    if (saveCurrentQuestion() && currentQIndex > 0) {
+         loadQuestion(currentQIndex - 1);
+    }
+});
+
+document.getElementById('save-draft-btn').addEventListener('click', () => {
+    if (saveCurrentQuestion()) {
+        // Mock API call
+        window.showPopupError('save draft not implemented!');
+        document.getElementById('draft-status').textContent = 'Draft Saved to Server!';
+        document.getElementById('draft-status').style.color = 'var(--color-primary)';
+    }
+});
+
+window.deleteQuestion = function(index) {
+    if (confirm(`Are you sure you want to delete Question ${index + 1}?`)) {
+        EXERCISE_QUESTIONS.splice(index, 1);
+        
+        let nextIndexToLoad = EXERCISE_QUESTIONS.length > 0 ? Math.min(index, EXERCISE_QUESTIONS.length - 1) : -1;
+        
+        if (index === currentQIndex || EXERCISE_QUESTIONS.length === 0) {
+             if (nextIndexToLoad > -1) {
+                loadQuestion(nextIndexToLoad);
+             } else {
+                 addNewQuestion();
+             }
+        }
+        
+        renderQuestionList();
+        updateBuilderUI();
+    }
+}
+
+
+// --- STEP 4: FINAL SUBMISSION LOGIC ---
+document.getElementById('finalize-btn').addEventListener('click', () => {
+    if (!saveCurrentQuestion()) return;
+
+    const count = EXERCISE_QUESTIONS.length;
+    document.getElementById('submission-q-count').textContent = count;
+    
+    if (count < 3) {
+        document.getElementById('submission-warning').textContent = 'Warning: We recommend at least 3 questions.';
+        document.getElementById('confirm-submit-btn').disabled = false; // Still allow submission
+    } else {
+        document.getElementById('submission-warning').textContent = '';
+        document.getElementById('confirm-submit-btn').disabled = false;
+    }
+
+    submitModal.style.display = 'flex';
+});
+
+document.getElementById('cancel-submit-btn').addEventListener('click', () => {
+    submitModal.style.display = 'none';
+});
+
+document.getElementById('confirm-submit-btn').addEventListener('click', () => {
+    console.log('API: Submitting FINAL exercise for review...', {metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS});
+    alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
+    // In a real app: Redirect to the dashboard or a success page.
+    // window.location.href = '<?= $ROOT ?>/dashboard';
+});
+
+
+// Initial setup: Render options on load
+renderOptions();

@@ -558,6 +558,130 @@ class AnalyticsModel
     }
 
     // =========================================================================
+    // NEW ADMIN METRIC CALCULATION LOGIC
+    // =========================================================================
+
+    /**
+     * Retrieves the total count of active and banned users.
+     */
+    private function getProfileStatus(): array {
+        $sql = "
+            SELECT 
+                SUM(CASE WHEN banned = 0 THEN 1 ELSE 0 END) AS active,
+                SUM(CASE WHEN banned = 1 THEN 1 ELSE 0 END) AS banned
+            FROM user;
+        ";
+        
+        $results = $this->get_row($sql);
+        
+        return [
+            "active" => (int) ($results->active ?? 0),
+            "banned" => (int) ($results->banned ?? 0)
+        ];
+    }
+
+    /**
+     * Calculates system-wide performance metrics for all subjects.
+     */
+    private function getSubjectPerformance(): array {
+        // Calculate calendar week boundaries (Mon-Sun)
+        $lw_end = date('Y-m-d 23:59:59', strtotime('sunday last week'));
+        $lw_start = date('Y-m-d 00:00:00', strtotime('monday last week'));
+        $pw_end = date('Y-m-d 23:59:59', strtotime('-1 day', strtotime($lw_start)));
+        $pw_start = date('Y-m-d 00:00:00', strtotime('-7 days', strtotime($pw_end)));
+        
+        $sql = "
+            SELECT 
+                s.id AS subject_id,
+                s.name AS subject_name,
+                
+                -- All-Time Exercise Count (Uses 'exercises' table directly)
+                (SELECT COUNT(e.id) FROM exercises e WHERE e.subject_id = s.id) AS exercise_count,
+                
+                -- All-Time Average Score (Uses 'events' table, extracts JSON data)
+                (SELECT AVG(CAST(JSON_UNQUOTE(JSON_EXTRACT(evt.data, '$.score')) AS DECIMAL(5, 2)))
+                 FROM events evt
+                 WHERE evt.event_type = 'exercise_attempted' 
+                   AND JSON_UNQUOTE(JSON_EXTRACT(evt.data, '$.subject_id')) = s.id
+                ) AS avg_score,
+
+                -- EXPERT COUNT: Corrected to use the 'expert' table
+                (SELECT COUNT(ex.user_id) FROM experts ex WHERE ex.subject_id = s.id) AS expert_count,
+                
+                -- Activity Count Last Week (LW): Attempts + Creations
+                (SELECT COUNT(evt_lw.id) 
+                 FROM events evt_lw
+                 WHERE JSON_UNQUOTE(JSON_EXTRACT(evt_lw.data, '$.subject_id')) = s.id
+                   AND evt_lw.event_type IN ('exercise_attempted', 'exercise_created')
+                   AND evt_lw.event_time BETWEEN :lw_start AND :lw_end
+                ) AS activity_lw,
+
+                -- Activity Count Prior Week (PW): Attempts + Creations
+                (SELECT COUNT(evt_pw.id) 
+                 FROM events evt_pw
+                 WHERE JSON_UNQUOTE(JSON_EXTRACT(evt_pw.data, '$.subject_id')) = s.id
+                   AND evt_pw.event_type IN ('exercise_attempted', 'exercise_created')
+                   AND evt_pw.event_time BETWEEN :pw_start AND :pw_end
+                ) AS activity_pw
+
+            FROM subjects s;
+        ";
+        
+        $params = [
+            'lw_start' => $lw_start, 'lw_end' => $lw_end, 
+            'pw_start' => $pw_start, 'pw_end' => $pw_end
+        ];
+        
+        $results = $this->query($sql, $params);
+        
+        $formatted_subjects = [];
+        foreach ($results as $row) {
+            $activity_lw = (float) $row->activity_lw;
+            $activity_pw = (float) $row->activity_pw;
+            
+            $formatted_subjects[] = [
+                'name' => $row->subject_name,
+                'growth_rate' => $this->calculateChangePercentage($activity_lw, $activity_pw),
+                'avg_score' => round((float) ($row->avg_score ?? 0), 1),
+                'exercise_count' => (int) ($row->exercise_count ?? 0),
+                'expert_count' => (int) ($row->expert_count ?? 0) // Now using the fetched value
+            ];
+        }
+        
+        return $formatted_subjects;
+    }
+
+    /**
+     * Retrieves high-level KPI metrics for the Admin dashboard overview.
+     */
+    private function getAdminOverviewKPIs(int $total_users, int $active_users, int $banned_users): array {
+        
+        // 1. Pending Expert Requests (using 'expert.approved_at IS NULL')
+        $sql_requests = "
+            SELECT COUNT(user_id) AS pending_requests
+            FROM request
+            WHERE review = 'pending';
+        ";
+        $requests_result = $this->get_row($sql_requests);
+        $pending_expert_requests = (int) ($requests_result->pending_requests ?? 0);
+        
+        // 2. System Health Score (Proxy Calculation)
+        $system_health_score = 100.0;
+        if ($total_users > 0) {
+            // Formula: 100 - (Banned Users / Total Users) * 100
+            $banned_ratio = ($banned_users / $total_users);
+            $system_health_score = round(100.0 - ($banned_ratio * 100), 1);
+        }
+
+        return [
+            "pending_expert_requests" => $pending_expert_requests,
+            "total_active_profiles" => $active_users, // Re-use from getProfileStatus
+            "system_health_score" => $system_health_score,
+        ];
+    }
+    
+
+    // =========================================================================
     // PUBLIC COMPILATION METHODS
     // =========================================================================
 
@@ -642,6 +766,30 @@ class AnalyticsModel
             "weekly_note_activity" => $weekly_note_activity,
             "subject_proficiency" => $subject_proficiency,
             "top_tags_last_4_weeks" => $top_tags,
+        ];
+    }
+
+/**
+     * Compiles all Admin dashboard data. (UPDATED)
+     */
+    public function generateAdminData(): array {
+        
+        $profile_status = $this->getProfileStatus();
+        $total_users = $profile_status['active'] + $profile_status['banned'];
+        
+        // NEW: Get the overview KPIs
+        $overview_kpis = $this->getAdminOverviewKPIs(
+            $total_users, 
+            $profile_status['active'], 
+            $profile_status['banned']
+        );
+        
+        $subjects_performance = $this->getSubjectPerformance();
+        
+        return [
+            "overview_kpis" => $overview_kpis, // NEW STRUCTURE
+            "profile_status" => $profile_status,
+            "subjects" => $subjects_performance
         ];
     }
 }

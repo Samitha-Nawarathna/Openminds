@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hiddenTopicField = document.getElementById('hidden-topic-field');
 
     const noteTitle = document.getElementById("note-title");
-    const noteContent = document.getElementById("note-content");
+    const noteContent = document.getElementById("editor");
 
     noteTitle.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !(noteTitle.value.trim() === ''))
@@ -230,13 +230,27 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Step 2: Close the modal
         closeModal();
-        
-        // Step 3: Programmatically submit the main form
-        form.submit();
+        window.prepareAllQuillData();
+        const testInput = document.getElementById('hidden_input_editor');
 
-        console.log("--- FINAL FORM SUBMISSION TRIGGERED ---");
-        console.log(`Hidden Tags: ${hiddenTagsField.value}`);
-        console.log(`Hidden Topic: ${hiddenTopicField.value}`);
+        if (!testInput || testInput.value.length < 5) {
+            // If the value is STILL not there, log and HALT submission.
+            console.error("CRITICAL ERROR: Data not found in hidden input before submission. Halting form submit.");
+            // This halt is crucial for debugging the timing issue!
+             
+        }else
+        {
+            // Step 3: Programmatically submit the main form
+            form.submit();
+
+            console.log("--- FINAL FORM SUBMISSION TRIGGERED ---");
+            console.log(`Hidden Tags: ${hiddenTagsField.value}`);
+            console.log(`Hidden Topic: ${hiddenTopicField.value}`);
+        }
+
+
+        
+ 
     });
     
     // Initial call to render top tags on load (for the modal)
