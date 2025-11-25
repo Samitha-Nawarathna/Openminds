@@ -185,20 +185,23 @@ body {
     width: 100%; 
     max-width: none;
     margin: 0;
-    flex-direction: row; /* Default layout: Question | Answers */
+    justify-content: right;
 }
 
 #question-panel {
     width: 50vw;
     /* Removed min-height: 100vh to ensure correct content height calculation for trigger */
+    left: 0;
+    top: 0;
     padding: var(--space-lg);
     box-sizing: border-box;
     background-color: var(--color-surface);
     border-right: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
     display: flex;
+    height: 100vh;
     flex-direction: column;
-    position: relative;
+    position: fixed;
     /* Only transform is transitioned smoothly for the initial move. Position change is instantaneous. */
     transition: transform 0.3s ease-in-out, box-shadow 0.3s, border-left 0.3s; 
 }

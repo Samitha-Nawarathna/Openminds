@@ -2,6 +2,7 @@
 
     $title = "Expert Review | Openminds";
     $filename = "exercises/view"; // New file name
+    $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
 

@@ -22,8 +22,15 @@
   --color-yellow-200: #ffe680;
   --color-yellow-400: #ffcd00;
   --color-yellow-600: #b38600;
+
+  --color-pink-100: #ffecf9;
+  --color-pink-300: #ffc9ed;
+  --color-pink-500: #d946a8;
+
   
   /* Secondary / CTA Palette (NEW) */
+  --color-red-100: #ffebef;
+  --color-red-300: #ffc5d0;
   --color-red-500: #ff385c; /* Vibrant CTA color (used for Reserve button) */
   --color-red-700: #d9042b;
 
@@ -327,7 +334,17 @@ nav .right-side ul .profile-pic {
     font-weight: 500;
     height: fit-content;
     box-sizing: border-box;
+    width: fit-content;
 }
+
+.tag-pill.yellow {
+    background-color: var(--color-yellow-200);
+}
+
+.tag-pill.green {
+    background-color: var(--color-green-100);
+}
+
 
 /* Mobile styles */
 @media (max-width: 768px) {
@@ -556,7 +573,7 @@ form .input-group textarea {
 .tile {
     /* Using new colors for a vibrant, colored tile */
     padding: var(--space-sm);
-    background-color: var(--color-secondary-background);
+    background-color: var(--color-pink-100);
     border-radius: var(--radius-md);
     color: var(--color-red);
 }

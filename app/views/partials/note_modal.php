@@ -64,6 +64,7 @@
                     throw new Error('Failed to fetch note data.');
                 }
                 const data = await response.json();
+                console.log(data);
 
                 if (data.status === 'success' && data.note) {
                     const newNote = data.note;

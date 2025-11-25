@@ -19,3 +19,22 @@ export function getLowSaturatedColor() {
     const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
     return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   }
+
+  export function getDateRange(days) {
+    // Get today's date
+    const today = new Date();
+    
+    // Get the date 'days' before (e.g., 7 days)
+    const previousDate = new Date();
+    previousDate.setDate(today.getDate() - days + 1); // +1 to make it inclusive of 7 days
+  
+    // Options for formatting the date (e.g., "Nov 25")
+    const options = { month: 'short', day: 'numeric' };
+    
+    const formattedToday = today.toLocaleDateString('en-US', options);
+    const formattedPreviousDate = previousDate.toLocaleDateString('en-US', options);
+  
+    return `${formattedPreviousDate} - ${formattedToday}`;
+  }
+  
+ 

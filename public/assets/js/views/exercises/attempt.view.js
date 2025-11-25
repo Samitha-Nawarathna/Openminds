@@ -3,7 +3,7 @@ import { ROOT } from "../../core/config.js";
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global Variables (Loaded from PHP view) ---
     // API_URL (Full exercise data), SUBMIT_URL (Final score submission)
-    // VOTE_STATUS_URL, VOTE_SUBMIT_URL
+    // VOTE_STATUS_URL, VOTE_SUBMIT_URL (NOW REMOVED FROM THIS PAGE - will be on results)
     
     let EXERCISE_DATA = {}; // Holds the full exercise structure (questions, options, answers, explanations)
     let currentQIndex = 0;
@@ -13,20 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Elements ---
     
+    // NEW: Loading Overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
     // Main Content
     const mainContentEl = document.getElementById('main-exercise-content');
     const titleEl = document.getElementById('exercise-title');
     const subjectEl = document.getElementById('exercise-subject');
+    const questionContainer = document.getElementById('question-container');
     const promptEl = document.getElementById('question-prompt');
-    const optionsEl = document.getElementById('answer-options');
     const explanationBox = document.getElementById('explanation-box');
     const explanationTextEl = document.getElementById('explanation-text');
 
     // Control Bar
+    const controlBar = document.getElementById('control-bar');
     const progressEl = document.getElementById('current-q-index');
     const totalEl = document.getElementById('total-q-count');
     const feedbackEl = document.getElementById('feedback-area');
     const checkBtn = document.getElementById('check-btn');
+    const prevBtn = document.getElementById('prev-btn'); // NEW
     const nextBtn = document.getElementById('next-btn');
     const explainBtn = document.getElementById('explain-btn');
     const submitBtn = document.getElementById('submit-btn');
@@ -41,20 +46,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCreatorNameEl = document.getElementById('modal-creator-name');
     const modalCreatorRoleEl = document.getElementById('modal-creator-role');
     const modalDateEl = document.getElementById('modal-date');
-    const upvoteBtn = document.getElementById('upvote-btn');
-    const downvoteBtn = document.getElementById('downvote-btn');
-    const upvoteCountEl = document.getElementById('upvote-count');
-    const downvoteCountEl = document.getElementById('downvote-count');
-    const voteMessageEl = document.getElementById('vote-message');
+
+    // NEW: Confirmation Modal Elements
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+    // NOTE: Vote buttons removed from this page - will be implemented on results page
 
 
     // ---------------------------------------------------------------------
     // --- A. INITIALIZATION AND MODAL MANAGEMENT ---
     // ---------------------------------------------------------------------
 
+    /** NEW: Shows loading overlay */
+    function showLoading(message = 'Loading...') {
+        if (loadingOverlay) {
+            const textEl = loadingOverlay.querySelector('p');
+            if (textEl) textEl.textContent = message;
+            loadingOverlay.classList.remove('hidden');
+        }
+    }
+
+    /** NEW: Hides loading overlay */
+    function hideLoading() {
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+        }
+    }
+
+    /** NEW: Shows inline loading state in feedback area */
+    function showInlineLoading(message = 'Processing...') {
+        feedbackEl.innerHTML = `<span class="loading-spinner"></span>${message}`;
+    }
+
     /** Fetches the full exercise data and initializes the page */
     async function loadExerciseData() {
         try {
+            showLoading('Loading exercise data...');
+            
             const response = await fetch(API_URL);
             if (!response.ok) throw new Error('Failed to fetch exercise data');
             EXERCISE_DATA = await response.json();
@@ -67,8 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Populate the Modal (using mock meta as EXERCISE_DATA is basic mock)
             populateModalDetails(EXERCISE_DATA);
 
+            hideLoading();
+
         } catch (error) {
             console.error('Error loading exercise:', error);
+            hideLoading();
+            feedbackEl.innerHTML = '<span style="color: var(--color-error);">Failed to load exercise. Please refresh the page.</span>';
             modalTitleEl.textContent = "Error loading exercise details.";
         }
     }
@@ -84,8 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             creator_name: "John Doe",
             creator_role: "Expert",
             created_at: "2025-10-25",
-            upvotes: 45, // Initial dummy count
-            downvotes: 5, // Initial dummy count
         };
         
         modalTitleEl.textContent = mockMeta.title;
@@ -96,20 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCreatorRoleEl.textContent = mockMeta.creator_role;
         modalDateEl.textContent = mockMeta.created_at;
 
-        upvoteCountEl.textContent = mockMeta.upvotes;
-        downvoteCountEl.textContent = mockMeta.downvotes;
-        
-        // Fetch and display current user vote status
-        fetchVoteStatus();
+        // NOTE: Vote UI removed from this page - will be on results page
     }
 
     /** Handles the Start Assessment button click */
     function startAssessment() {
+        startBtn.textContent = "Continue...";
         modalEl.classList.add('hidden');
         mainContentEl.classList.remove('hidden');
+        
+        // NEW: Set focus to first question for accessibility
         if (EXERCISE_DATA.questions.length > 0) {
             renderQuestion(currentQIndex);
             checkBtn.disabled = false;
+            questionContainer.focus();
         }
     }
 
@@ -117,77 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDetailsModal(e) {
         e.preventDefault();
         modalEl.classList.remove('hidden');
+        // NEW: Focus management for accessibility
+        modalTitleEl.focus();
     }
 
     // ---------------------------------------------------------------------
-    // --- B. VOTE MANAGEMENT (API) ---
+    // --- B. VOTE MANAGEMENT (REMOVED - Will be implemented on results page) ---
     // ---------------------------------------------------------------------
+    // Vote functionality removed from attempt page per UX improvement #4
 
-    /** Fetches the user's current vote status and updates buttons */
-    async function fetchVoteStatus() {
-        try {
-            const response = await fetch(VOTE_STATUS_URL);
-            if (response.ok) {
-                const data = await response.json();
-                currentVoteStatus = data.current_vote_status;
-                updateVoteButtons();
-            }
-        } catch (error) {
-            console.error("Could not fetch vote status.", error);
-        }
-    }
-
-    /** Updates the visual state of the upvote/downvote buttons */
-    function updateVoteButtons() {
-        upvoteBtn.classList.remove('voted');
-        downvoteBtn.classList.remove('voted');
-        voteMessageEl.textContent = '';
-
-        if (currentVoteStatus === 'Upvoted') {
-            upvoteBtn.classList.add('voted');
-            voteMessageEl.textContent = 'You have upvoted this.';
-        } else if (currentVoteStatus === 'Downvoted') {
-            downvoteBtn.classList.add('voted');
-            voteMessageEl.textContent = 'You have downvoted this.';
-        }
-    }
-
-    /** Submits a vote via API */
-    async function submitVote(voteType) {
-        const isRemoveVote = currentVoteStatus === voteType;
-        const newVoteType = isRemoveVote ? 'None' : voteType;
-
-        try {
-            const response = await fetch(VOTE_SUBMIT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ vote_type: newVoteType })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                
-                // IMPORTANT: Update local state and counts based on the intended action
-                // (Note: In a real system, the API should return the new total counts)
-                
-                // Adjust counts locally for mock environment
-                const oldStatus = currentVoteStatus;
-                if (oldStatus === 'Upvoted') upvoteCountEl.textContent = parseInt(upvoteCountEl.textContent) - 1;
-                if (oldStatus === 'Downvoted') downvoteCountEl.textContent = parseInt(downvoteCountEl.textContent) - 1;
-                
-                currentVoteStatus = data.current_vote_status;
-
-                if (currentVoteStatus === 'Upvoted') upvoteCountEl.textContent = parseInt(upvoteCountEl.textContent) + 1;
-                if (currentVoteStatus === 'Downvoted') downvoteCountEl.textContent = parseInt(downvoteCountEl.textContent) + 1;
-
-                updateVoteButtons();
-            } else {
-                console.error("Vote submission failed.");
-            }
-        } catch (error) {
-            console.error("Vote API Error:", error);
-        }
-    }
 
     // ---------------------------------------------------------------------
     // --- C. QUESTION RENDERING AND STATE MANAGEMENT (Client-Side) ---
@@ -199,13 +169,22 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationBox.classList.add('hidden');
         feedbackEl.innerHTML = '';
         
+        // Reset control bar background
+        controlBar.style.backgroundColor = '#fff';
+        
         // Button State Reset
         checkBtn.classList.remove('hidden');
         checkBtn.disabled = true;
         explainBtn.classList.add('hidden');
         nextBtn.classList.add('hidden');
         submitBtn.classList.add('hidden');
-        optionsEl.innerHTML = ''; 
+        
+        // NEW: Show/Hide Previous Button
+        if (index > 0) {
+            prevBtn.classList.remove('hidden');
+        } else {
+            prevBtn.classList.add('hidden');
+        }
 
         const question = EXERCISE_DATA.questions[index];
         if (!question) return;
@@ -214,21 +193,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const correctCount = question.options.filter(opt => opt.is_correct).length;
         const inputType = correctCount > 1 ? 'checkbox' : 'radio';
 
-        promptEl.textContent = `${index + 1}. ${question.prompt}`;
+        // Clear and build question container structure
+        questionContainer.innerHTML = '';
+        
+        // Create and append question prompt
+        const promptEditor = document.createElement('quill-editor');
+        promptEditor.id = 'question-prompt';
+        promptEditor.setAttribute('readonly', '');
+        promptEditor.setAttribute('height', 'fit-content');
+        promptEditor.className = 'question-prompt';
+        promptEditor.setAttribute('content', `${index + 1}. ${question.prompt}`);
+        // NEW: ARIA label for screen readers
+        promptEditor.setAttribute('role', 'heading');
+        promptEditor.setAttribute('aria-level', '2');
+        questionContainer.appendChild(promptEditor);
+        
+        // Create options container
+        const answersDiv = document.createElement('div');
+        answersDiv.id = 'answer-options';
+        answersDiv.className = 'answer-options-list';
+        // NEW: ARIA attributes for option group
+        answersDiv.setAttribute('role', 'group');
+        answersDiv.setAttribute('aria-label', `Answer options for question ${index + 1}`);
+        questionContainer.appendChild(answersDiv);
+        answersDiv.style.margin = "var(--space-sm)";
+        
+        // Update progress
         progressEl.textContent = index + 1;
 
-        question.options.forEach(option => {
+        // Build option elements
+        const savedAnswers = userAnswers[question.question_id] || [];
+        
+        question.options.forEach((option, optIndex) => {
             const label = document.createElement('label');
             label.className = 'option-label';
+            label.style.display = 'flex';
             
             const input = document.createElement('input');
             input.type = inputType;
             input.name = `q_${question.question_id}`;
             input.value = option.option_id;
             input.dataset.optionId = option.option_id;
+            // NEW: ARIA label for option
+            input.setAttribute('aria-label', `Option ${String.fromCharCode(65 + optIndex)}`);
 
             // Restore user selection if already attempted
-            const savedAnswers = userAnswers[question.question_id] || [];
             if (savedAnswers.includes(option.option_id)) {
                 input.checked = true;
             }
@@ -241,8 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             label.appendChild(input);
-            label.appendChild(document.createTextNode(option.text));
-            optionsEl.appendChild(label);
+            const answer = document.createElement('quill-editor');
+            answer.id = 'answer-prompt';
+            answer.setAttribute('readonly', '');
+            answer.setAttribute('height', 'fit-content');
+            answer.className = 'answer-prompt';
+            answer.setAttribute('content', `${option.text}`);
+            answer.style.border = 'none';
+            label.appendChild(answer);
+            answersDiv.appendChild(label);
         });
 
         // If user already answered this (e.g., navigated back), re-display the results
@@ -257,7 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!recheck && questionIsChecked) return; 
 
         questionIsChecked = true;
-        
+        const optionsEl = document.getElementById('answer-options');
+
         const question = EXERCISE_DATA.questions[currentQIndex];
         const selectedInputs = Array.from(optionsEl.querySelectorAll(`input[name="q_${question.question_id}"]:checked`));
         const selectedOptionIds = selectedInputs.map(input => parseInt(input.value));
@@ -277,6 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Apply Correctness Styles
             if (option.is_correct) {
                 label.classList.add('is-correct'); 
+                // NEW: ARIA attribute for screen readers
+                label.setAttribute('aria-label', 'Correct answer');
             }
             
             // Check for missed correct answers or wrong selections
@@ -288,6 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (isUserSelected && !option.is_correct) {
                 label.classList.add('user-wrong'); // Selected a wrong answer
+                // NEW: ARIA attribute for screen readers
+                label.setAttribute('aria-label', 'Incorrectly selected answer');
                 isCorrect = false; 
             }
             
@@ -295,10 +316,20 @@ document.addEventListener('DOMContentLoaded', () => {
             input.disabled = true;
         });
 
-        // Set feedback message
-        feedbackEl.innerHTML = isCorrect 
-            ? '<span class="feedback-correct">✅ Correct!</span>' 
-            : '<span class="feedback-wrong">❌ Incorrect.</span>';
+        // Set feedback message with enhanced ARIA support
+        const feedbackMessage = isCorrect ? 'Correct!' : 'Incorrect!';
+        const feedbackIcon = isCorrect ? '✅' : '❌';
+        feedbackEl.innerHTML = `<span class="${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">
+            ${feedbackIcon} ${feedbackMessage}
+            <span class="sr-only">Your answer is ${feedbackMessage.toLowerCase()}</span>
+        </span>`;
+        
+        // Visual feedback on control bar
+        controlBar.style.backgroundColor = isCorrect 
+            ? 'var(--color-green-100)' 
+            : 'var(--color-red-100)';
+
+        showExplanation();
 
         // Transition buttons if this is the initial check
         if (!recheck) {
@@ -319,6 +350,21 @@ document.addEventListener('DOMContentLoaded', () => {
             nextBtn.classList.add('hidden');
             submitBtn.classList.remove('hidden');
         }
+        
+        // NEW: Keep Previous button visible if not on first question
+        if (currentQIndex > 0) {
+            prevBtn.classList.remove('hidden');
+        }
+    }
+
+    /** NEW: Moves to the previous question */
+    function goToPreviousQuestion() {
+        if (currentQIndex > 0) {
+            currentQIndex--;
+            renderQuestion(currentQIndex);
+            // Scroll to top for better UX
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 
     /** Moves to the next question or submits */
@@ -326,13 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentQIndex < EXERCISE_DATA.questions.length - 1) {
             currentQIndex++;
             renderQuestion(currentQIndex);
+            // Scroll to top for better UX
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
     /** Shows the explanation box */
     function showExplanation() {
         const question = EXERCISE_DATA.questions[currentQIndex];
-        explanationTextEl.textContent = question.explanation;
+        explanationBox.innerHTML = `
+            <h3 class="explain-icon" aria-label="Explanation">📖</h3>
+            <quill-editor 
+                id="explanation-text"
+                readonly
+                height="fit-content"
+                content="${question.explanation}"
+            >
+            </quill-editor>
+        `;
         explanationBox.classList.remove('hidden');
     }
 
@@ -340,10 +397,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- D. FINAL SUBMISSION (API) ---
     // ---------------------------------------------------------------------
 
+    /** NEW: Shows confirmation modal before final submission */
+    function showConfirmationModal() {
+        confirmationModal.classList.remove('hidden');
+        // NEW: Focus management for accessibility
+        confirmSubmitBtn.focus();
+    }
+
+    /** NEW: Hides confirmation modal */
+    function hideConfirmationModal() {
+        confirmationModal.classList.add('hidden');
+    }
+
     /** Submits the final answers to the scoring API */
     async function submitAssessment() {
+        // Hide confirmation modal
+        hideConfirmationModal();
+        
+        // NEW: Disable submit button and show loading state
         submitBtn.disabled = true;
-        feedbackEl.textContent = 'Submitting...';
+        submitBtn.classList.add('btn-loading');
+        showInlineLoading('Submitting your assessment...');
 
         // Ensure the last question is saved before submitting
         if (!questionIsChecked) {
@@ -360,9 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         try {
-
-            
-
             const response = await fetch(SUBMIT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -372,18 +443,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             
             if (response.ok) {
-                // alert(`Assessment Submitted! Score: ${result.total_score} / ${result.total_max_score}\nAttempt ID: ${result.attempt_id}`);
-                // Real app: Redirect to results page, e.g., window.location.href = \`/exercises/viewattempt?id=\${result.attempt_id}\`;
-                window.location.href = ROOT + 'exercises/viewattempt/'+ result.attempt_id + '/' + EXERCISE_DATA.id;
+                // Success feedback
+                feedbackEl.innerHTML = '<span class="feedback-correct">✅ Submitted successfully! Redirecting...</span>';
+                
+                // Redirect to results page (where voting will now happen)
+                setTimeout(() => {
+                    window.location.href = ROOT + 'exercises/viewattempt/'+ result.attempt_id + '/' + EXERCISE_DATA.id;
+                }, 1000);
             } else {
-                alert(`Submission failed: ${result.message}`);
+                // Error handling
+                feedbackEl.innerHTML = `<span style="color: var(--color-error);">Submission failed: ${result.message}</span>`;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-loading');
             }
 
         } catch (error) {
             console.error('Submission Error:', error);
-            alert('An unexpected error occurred during submission.');
-        } finally {
-             submitBtn.disabled = false;
+            feedbackEl.innerHTML = '<span style="color: var(--color-error);">An unexpected error occurred. Please try again.</span>';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading');
         }
     }
 
@@ -394,17 +472,49 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Attempt Actions
     checkBtn.addEventListener('click', () => checkQuestion(false));
+    prevBtn.addEventListener('click', goToPreviousQuestion); // NEW
     nextBtn.addEventListener('click', goToNextQuestion);
     explainBtn.addEventListener('click', showExplanation);
-    submitBtn.addEventListener('click', submitAssessment);
+    
+    // NEW: Submit button now shows confirmation modal first
+    submitBtn.addEventListener('click', showConfirmationModal);
+    
+    // NEW: Confirmation modal actions
+    confirmSubmitBtn.addEventListener('click', submitAssessment);
+    confirmCancelBtn.addEventListener('click', hideConfirmationModal);
+    
+    // NEW: Close confirmation modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !confirmationModal.classList.contains('hidden')) {
+            hideConfirmationModal();
+        }
+    });
 
     // Modal/Details Actions
     startBtn.addEventListener('click', startAssessment);
     detailsLink.addEventListener('click', showDetailsModal);
     
-    // Vote Actions
-    upvoteBtn.addEventListener('click', () => submitVote('Upvoted'));
-    downvoteBtn.addEventListener('click', () => submitVote('Downvoted'));
+    // NOTE: Vote actions removed - will be on results page
+
+    // NEW: Keyboard shortcuts for better UX
+    document.addEventListener('keydown', (e) => {
+        // Only activate shortcuts when not typing in inputs
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        // Enter key = Check Answer or Next Question
+        if (e.key === 'Enter' && !checkBtn.classList.contains('hidden') && !checkBtn.disabled) {
+            checkQuestion(false);
+        } else if (e.key === 'Enter' && !nextBtn.classList.contains('hidden')) {
+            goToNextQuestion();
+        }
+        
+        // Arrow keys for navigation
+        if (e.key === 'ArrowLeft' && !prevBtn.classList.contains('hidden')) {
+            goToPreviousQuestion();
+        } else if (e.key === 'ArrowRight' && !nextBtn.classList.contains('hidden')) {
+            goToNextQuestion();
+        }
+    });
 
     // Initial load when the script runs
     loadExerciseData();

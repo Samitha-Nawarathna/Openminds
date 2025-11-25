@@ -2,6 +2,7 @@
 
     $title = "Creator Review | Openminds";
     $filename = "exercises/view"; // New file name
+    $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
 
@@ -109,15 +110,17 @@ $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
         <p><span id="exercise-subject"></span></p>
     </div>
 
-    <div class="question-block">
-        <p id="question-prompt" class="question-prompt">...</p>
+    <div id="question-container" class="question-block">
+
+        <!-- <p id="question-prompt" class="question-prompt">...</p> -->
         
         <div id="answer-options" class="answer-options-list">
             </div>
 
         <div id="explanation-box" class="explanation-box">
             <h3 class="explain-icon">📖</h3>
-            <p id="explanation-text">Explanation content will appear here.</p>
+
+            <!-- <p id="explanation-text">Explanation content will appear here.</p> -->
         </div>
     </div>
 </div>

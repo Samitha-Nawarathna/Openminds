@@ -179,13 +179,13 @@ class Notes extends Controller
             $tags = new Tags;
 
             // Check if topic exists, if not create it
-            // $topic_data = $topics->first(['name' => $topic]);
+            $topic_data = $topics->first(['name' => $topic]);
 
-            // if (!$topic_data) {
-            //     $topic_id = $topics->insert(['name' => $topic, 'creator_id' => $current_user_id]);
-            // } else {
-            //     $topic_id = $topic_data->id;
-            // }
+            if (!$topic_data) {
+                $topic_id = $topics->insert(['name' => $topic, 'creator_id' => $current_user_id]);
+            } else {
+                $topic_id = $topic_data->id;
+            }
 
             // Create the new note
 
@@ -218,7 +218,7 @@ class Notes extends Controller
             }
 
             //redirect to note view page
-            header("Location: ".ROOT."/notes/show?id=" . $note_id);
+            header("Location: ".ROOT."/notes/view/" . $note_id);
 
 
 

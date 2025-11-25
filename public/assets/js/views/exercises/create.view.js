@@ -77,7 +77,14 @@ function generateOptionHtml(index, text = '', isCorrect = false) {
     return `
         <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
             <input type="${type}" name="correct-option" id="option-correct-${index}" value="${index}" ${isCorrect ? 'checked' : ''} style="width:auto; margin:0;">
-            <input type="text" id="option-text-${index}" value="${text}" placeholder="Option ${index + 1} text" required>
+            <quill-editor 
+                id="option-text-${index}"
+                name="content"
+                content="${text}"
+                placeholder="Option ${index + 1} text"
+                storage-key="demo-editor-2"
+                height="250px">
+            </quill-editor> 
             <button type="button" onclick="removeOption(this, ${index})" class="btn-red" style="padding: 8px;">🗑️</button>
         </div>
     `;

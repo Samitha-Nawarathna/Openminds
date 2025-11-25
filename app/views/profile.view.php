@@ -6,6 +6,7 @@
 
     $title = "Profile";
     $filename = "profile";
+    $add_back = true;
 
     $profile_picture_path = $data["profile_picture_path"];
 
@@ -28,7 +29,7 @@
 
     $total_points = $data["total_points"];
 
-    $subjects = $data["subjects"];
+    $subjects = $data["subjects_str"];
 
     include_once(HEADER_PATH);
 ?>
@@ -58,7 +59,7 @@
             {
                 echo '<div class="expert-in">
                 <p class="">Experts in:</p></div>
-                <div class="subjects">';
+                <div class="subjects" style="margin-left:var(--space-md);">';
                 
                 //iterate through subjects and display them as pills
                 foreach ($subjects as $subject) {

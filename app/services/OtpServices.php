@@ -105,8 +105,24 @@ class OtpServices
                 $login_services->unset_user_data();
                 exit;
 
-            case 'resetpassword':
-                # code...
+            case 'change_password':
+                $profile_service = new ProfileServicecs;
+
+                $result = $profile_service->change_password($user_data);
+
+                if ($result->is_failure()) {
+                    $errors = $result->get_errors();
+                    $message = implode(", ", $errors);
+                    header("Location: ".ROOT."profileupdate/change_password?message=".$message);
+                    exit;   
+                }
+
+                $notification_services = new NotificationServices;
+                $notification_services->send_notification(0, 'You have successfully changed your password!');
+
+
+    
+                header("Location: ".ROOT."profileupdate?message=You have successfully changed your password!");               
                 break;            
             default:
                 # registration

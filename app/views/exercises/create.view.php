@@ -2,6 +2,7 @@
     // create.view.php
     $title = "Create Exercise | Openminds";
     $filename = "exercises/create";
+    $add_back = true;
 
     // Mock PHP placeholders for root paths (assumes standard framework setup)
     $ROOT = ''; 
@@ -56,10 +57,22 @@
             <input type="hidden" id="current-q-id">
 
             <label for="q-prompt-input">Question Prompt (The full text of the question)</label>
-            <textarea id="q-prompt-input" rows="4" required></textarea>
+            <quill-editor 
+                id="q-prompt-input"
+                name="content"
+                placeholder="Enter the question"
+                storage-key="demo-editor-2"
+                height="250px">
+            </quill-editor>
 
             <label for="q-explanation-input" style="margin-top:var(--space-md);">Explanation (Required for Review)</label>
-            <textarea id="q-explanation-input" rows="3" required></textarea>
+            <quill-editor 
+                id="q-explanation-input"
+                name="content"
+                placeholder="Enter the question"
+                storage-key="demo-editor-2"
+                height="250px">
+            </quill-editor>            
 
             <label for="q-weight-input" style="margin-top:var(--space-md);">Question Weight/Points</label>
             <input type="number" id="q-weight-input" min="1" value="1" required style="width: 100px;">

@@ -2,10 +2,48 @@
 
 include_once('../app/views/partials/message.view.php');
 include_once "../app/views/partials/note_modal.php";
-// include_once "../app/views/partials/text_editor.php";
 
 
 ?>
+
+<?php if (!empty($add_back)): ?>
+    <a href="<?=ROOT?>/back" class="back-btn">← Back</a>
+<?php endif; ?>
+
+<style>
+    .back-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+
+    padding: 8px 14px;
+    background: var(--color-bg, #ffffff);
+    border: 2px solid var(--color-text, #000000);
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-text, #000000);
+
+    z-index: 9999;
+    cursor: pointer;
+    user-select: none;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    background: var(--color-hover, #f0f0f0);
+}
+
+.back-btn:active {
+    transform: translateY(0);
+}
+
+</style>
 
 <script>
     window.showPopupError = function(message) {

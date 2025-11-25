@@ -1,5 +1,6 @@
 <?php
 
+
 class Profileupdate extends Controller
 {
     public function index()
@@ -76,6 +77,46 @@ class Profileupdate extends Controller
 
         
         header("Location: ".ROOT."profile");
+    }
+
+    public function change_password()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = $_SESSION['user_id'];
+            $user = new User;
+            $results = $user->first(['id'=>$user_id]);
+    
+    
+            $user_data = [];
+            $user_data['user_id'] = $results->id;
+            $user_data['username'] = $results->username;
+            $user_data['email'] = $results->email;
+            $user_data['type'] = 'change_password';
+            $user_data['current_password'] = $_POST['current_password'];
+            $user_data['new_password'] = $_POST['new_password'];
+
+            $_SESSION['user_data'] = $user_data;
+            
+            $otp_service = new OtpServices;
+            $is_generated = $otp_service->send_otp($user_data);
+    
+            if (!$is_generated)
+            {
+                
+                header("Location: ".ROOT.'profileupdate?message="Error in OTP generation, Please Try again!"');
+    
+                return;
+            }
+    
+            // header("Location: ".ROOT."profile"); // pass responsibility to otp controller
+            $this->view("otp", ['email' => $user_data['email']]); 
+    
+            // $this->view('change_pword');
+
+        }
+
+        $this->view('change_pword');
+
     }
 
 }

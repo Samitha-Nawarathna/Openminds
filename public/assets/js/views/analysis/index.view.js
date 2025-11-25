@@ -1,4 +1,5 @@
 import {ROOT} from '../../core/config.js';
+import {getDateRange} from '../../core/utils.js'
 
 document.addEventListener('DOMContentLoaded', function() {
             
@@ -65,26 +66,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
     
     const overviewPanel = document.getElementById('overview-panel');
-    
+    const dateRangeString = getDateRange(7);
     const kpiDefinitions = {
-        "notes_created": { title: "Notes Created (Last Week)", unit: "", format: v => v },
-        "average_exercise_score": { title: "Avg. Exercise Score", unit: "%", format: v => v.toFixed(1) },
-        "all_votes": { title: "Total Votes", unit: "", format: v => v},
-        "learning_consistency": { title: "Learning Consistency", unit: "", format: v => analyticsData[0].overview.learning_consistency.fraction }
+        "notes_created": { title: `Notes Created (${dateRangeString})`, unit: "", format: v => v },
+        "average_exercise_score": { title: `Avg. Exercise Score (${dateRangeString})`, unit: "%", format: v => v },
+        "all_votes": { title: `Total Votes (${dateRangeString})`, unit: "", format: v => v},
+        "learning_consistency": { title: `Learning Consistency (${dateRangeString})`, unit: "", format: v => v}
     };
     
     Object.keys(kpiDefinitions).forEach(key => {
-        console.log(analyticsData[0].overview);
+        // console.log(analyticsData[0].overview);
         const data = analyticsData[0].overview[key];
+        
         const def = kpiDefinitions[key];
         const isPositive = data.change_percentage >= 0;
         const changeClass = isPositive ? 'positive' : 'negative';
         const sign = isPositive ? '↑' : '↓';
         
+      
         const html = `
             <div class="kpi-card">
                 <div class="kpi-title">${def.title}</div>
-                <div class="kpi-value">${def.format(data.count || data.score || data.fraction)}${def.unit}</div>
+                
+                <div class="kpi-value">${def.format(data.count ?? data.score ?? data.fraction)}${def.unit}</div>
                 <div class="kpi-change ${changeClass}">
                     <span>${sign} ${Math.abs(data.change_percentage).toFixed(1)}%</span>
                     <span style="font-weight: 400; color: ${colorTextLight}; margin-left: 0.5rem;">vs. prior period</span>
@@ -171,59 +175,59 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========================================
 
     // We need a color range for the heatmap that is based on the primary color
-  //   const heatmapColors = [
-  //     { from: 0, to: 0, color: '#F0F0F0', name: 'No Activity' }, // Lightest grey for 0 activity
-  //     { from: 1, to: 5, color: '#D0E9E5', name: 'Low' },
-  //     { from: 6, to: 15, color: '#80D4C8', name: 'Medium' },
-  //     { from: 16, to: 25, color: '#40BFB1', name: 'High' },
-  //     { from: 26, to: 30, color: colorPrimary, name: 'Very High' }
-  // ];
+    const heatmapColors = [
+      { from: 0, to: 0, color: '#F0F0F0', name: 'No Activity' }, // Lightest grey for 0 activity
+      { from: 1, to: 5, color: '#D0E9E5', name: 'Low' },
+      { from: 6, to: 15, color: '#80D4C8', name: 'Medium' },
+      { from: 16, to: 25, color: '#40BFB1', name: 'High' },
+      { from: 26, to: 30, color: colorPrimary, name: 'Very High' }
+  ];
 
-  // const heatmapOptions = {
-  //     series: heatmapActivityData,
-  //     chart: {
-  //         type: 'heatmap',
-  //         height: 180,
-  //         toolbar: { show: false }
-  //     },
-  //     dataLabels: { enabled: false },
-  //     colors: [colorPrimary],
-  //     plotOptions: {
-  //         heatmap: {
-  //             radius: 2, // Slightly rounded corners
-  //             enableShades: false,
-  //             colorScale: {
-  //                 ranges: heatmapColors
-  //             }
-  //         }
-  //     },
-  //     xaxis: {
-  //         categories: Array.from({ length: 52 }, (_, i) => `W${i + 1}`),
-  //         labels: {
-  //             show: true,
-  //             rotate: 0,
-  //             formatter: (val, index) => (index % 5 === 0 ? val : ''), // Show every 5th week number
-  //             style: { colors: colorTextLight }
-  //         },
-  //         tooltip: { enabled: false }
-  //     },
-  //     yaxis: {
-  //         labels: { style: { colors: colorTextLight } }
-  //     },
-  //     grid: { show: false },
-  //     tooltip: {
-  //         y: { formatter: (val) => `${val} activities` }
-  //     },
-  //     legend: {
-  //         show: true,
-  //         position: 'bottom',
-  //         markers: { radius: 12 },
-  //         itemMargin: { horizontal: 10 }
-  //     }
-  // };
+  const heatmapOptions = {
+      series: analyticsData[0].activity_heatmap,
+      chart: {
+          type: 'heatmap',
+          height: 180,
+          toolbar: { show: false }
+      },
+      dataLabels: { enabled: false },
+      colors: [colorPrimary],
+      plotOptions: {
+          heatmap: {
+              radius: 2, // Slightly rounded corners
+              enableShades: false,
+              colorScale: {
+                  ranges: heatmapColors
+              }
+          }
+      },
+      xaxis: {
+          categories: Array.from({ length: 52 }, (_, i) => `W${i + 1}`),
+          labels: {
+              show: true,
+              rotate: 0,
+              formatter: (val, index) => (index % 5 === 0 ? val : ''), // Show every 5th week number
+              style: { colors: colorTextLight }
+          },
+          tooltip: { enabled: false }
+      },
+      yaxis: {
+          labels: { style: { colors: colorTextLight } }
+      },
+      grid: { show: false },
+      tooltip: {
+          y: { formatter: (val) => `${val} activities` }
+      },
+      legend: {
+          show: true,
+          position: 'bottom',
+          markers: { radius: 12 },
+          itemMargin: { horizontal: 10 }
+      }
+  };
   
-  // const activityMatrix = new ApexCharts(document.querySelector("#activity-matrix-container"), heatmapOptions);
-  // activityMatrix.render();
+  const activityMatrix = new ApexCharts(document.querySelector("#activity-matrix-container"), heatmapOptions);
+  activityMatrix.render();
 
     // ========================================
     // 🔨 IMPLEMENTATION 4: TOP SUBJECTS BAR CHART (Toggleable)

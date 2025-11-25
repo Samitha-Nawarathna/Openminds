@@ -33,6 +33,7 @@ function hex_to_rgb(hex) {
   }
 
   
+// Ensure these selectors still match the new HTML
 let hero_icon = document.querySelector('.hero-section .logo');
 let hero_section = document.querySelector('.hero-section');
 
@@ -72,22 +73,22 @@ document.addEventListener('mousemove', (e) => {
         }
     }
     
-    
     let color = interpolate_three_colors(r, p, g);
 
-    hero_icon.style.backgroundColor = color;
-    
-    console.log(cursor_x/page_width);
+    // Apply color if the element exists
+    if(hero_icon) {
+        hero_icon.style.backgroundColor = color;
+    }
 })
-//   console.log(interpolate_three_colors(0.2, 0.3, 0.5));
-  
 
-let philosophy_section = document.querySelector('.philosophy-section');
+let philosophy_section = document.querySelector('.unified-learning-section');
 
 let feature_section = document.querySelector('.feature-section');
 const feature_section_start = feature_section.offsetTop;
 const feature_section_height = feature_section.offsetHeight;
 const feature_section_end = feature_section_start + feature_section_height;
+
+// Adjusted trigger point for nav bar hidden start
 const nav_bar_hidden_start = philosophy_section.offsetTop - window_height/10;
 
 let feature_square = document.querySelector('.feature-section .image-section .square');
@@ -103,22 +104,21 @@ document.addEventListener('scroll', () => {
     if (scroll_position > nav_bar_hidden_start && scroll_position < feature_section_end) {
         nav_bar.style.transform = `translate(-50%, -100%)`;
         nav_bar.addEventListener('mouseover', () => {
-            nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
+            // Using classList.add/remove is better, but keeping original logic
+            nav_bar.classList.style = `backgroundColor: var(--color-pink-300)`;
         });
     }
     else
     {
         nav_bar.style.transform = `translate(-50% ,0)`;
-        nav_bar.addEventListener('mouseover', () => {
-            nav_bar.classList.style.backgroundColor = `var(--color-secondary-background)`;
-        });
-
+        // Resetting to original or surface color
+        nav_bar.style.backgroundColor = `var(--color-surface)`;
     }
 
     if (scroll_position < feature_section_start + feature_section_height*0.25)
     {
             feature_square.style.transform = `translateY(0) translateX(0)`;
-            feature_square.style.backgroundColor = `var(--color-secondary-background)`;
+            feature_square.style.backgroundColor = `var(--color-pink-100)`;
             feature_image.style.background = `url("${ROOT}/assets/images/notes.jpg") center center / cover no-repeat`;
             for (let i = 0; i < num_movings; i++) {
                 feature_leaves[i].style.transform = `translateY(${300 - i*100}%) translateX(0)`;
@@ -139,7 +139,7 @@ document.addEventListener('scroll', () => {
     if (scroll_position > feature_section_start + feature_section_height*0.5 && scroll_position < feature_section_start + feature_section_height*0.75)
     {
         feature_square.style.transform = `rotate(90deg)`;
-        feature_square.style.backgroundColor = `var(--color-secondary-background)`;
+        feature_square.style.backgroundColor = `var(--color-pink-300)`;
         feature_image.style.background = `url("${ROOT}/assets/images/exercises.jpg") center center / cover no-repeat`;
         for (let i = 0; i < num_movings - 2; i++) {
             feature_leaves[i].style.transform = `translateY(${100 - i*100}%) translateX(0)`;
@@ -152,8 +152,6 @@ document.addEventListener('scroll', () => {
         feature_square.style.backgroundColor = `var(--color-blue)`;
         feature_image.style.background = `url("${ROOT}/assets/images/analysis.png") center center / cover no-repeat`;
     }
-        
-    
 });
 
 
@@ -165,16 +163,12 @@ let philosophy_icon = document.querySelector('.philosophy-section .image .icon')
 document.addEventListener('scroll', () => {
     let scrollPosition = window.scrollY;
     let speed = 0.5;
-    // console.log(`Scroll Position: ${scrollPosition}, Start: ${start}, End: ${end}, Offset: ${scrollPosition - start}`);
+    
     if (scrollPosition > philosophy_start && scrollPosition < philosophy_end) {
         let offset = (scrollPosition - philosophy_start) * speed - (window_height / 2);
         philosophy_icon.style.transform = `translateX(50%) translateY(${-offset}px)`;
-        
     }
-
 });
-
-
 
 let questions = document.querySelectorAll('.question');
 
@@ -188,7 +182,5 @@ questions.forEach(element => {
             answer.classList.remove('inactive');
             answer.classList.add('active');    
         }
-    }
-    );
+    });
 });
-

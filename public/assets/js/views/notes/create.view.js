@@ -230,23 +230,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Step 2: Close the modal
         closeModal();
-        window.prepareAllQuillData();
-        const testInput = document.getElementById('hidden_input_editor');
 
-        if (!testInput || testInput.value.length < 5) {
-            // If the value is STILL not there, log and HALT submission.
-            console.error("CRITICAL ERROR: Data not found in hidden input before submission. Halting form submit.");
-            // This halt is crucial for debugging the timing issue!
-             
-        }else
-        {
+
             // Step 3: Programmatically submit the main form
             form.submit();
 
             console.log("--- FINAL FORM SUBMISSION TRIGGERED ---");
             console.log(`Hidden Tags: ${hiddenTagsField.value}`);
             console.log(`Hidden Topic: ${hiddenTopicField.value}`);
-        }
 
 
         

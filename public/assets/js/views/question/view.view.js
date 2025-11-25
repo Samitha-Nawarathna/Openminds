@@ -241,7 +241,13 @@ function renderQuestionPanel() {
         ${headerHtml}
         <h1 id="question-title">${q.title}</h1>
         <div class="tags-container">${tagsHtml}</div>
-        <p id="question-description">${q.description}</p>
+        <quill-editor 
+            id="question-description"
+            readonly
+            height="fit-content"
+            content="${q.description}"
+
+        ></quill-editor>
     `;
 }
 
@@ -271,7 +277,13 @@ function renderAnswerCard(answer) {
         <div class="answer-card ${isAccepted ? 'accepted' : ''}" id="answer-card-${answer.id}">
             ${isAccepted ? '<div class="accepted-badge">✅ Accepted</div>' : ''}
             ${headerHtml}
-            <p id="answer-content-${answer.id}" style="margin-top: ${isAccepted ? '10px' : '0'};">${answer.content}</p>
+                <quill-editor 
+                    id="answer-content-${answer.id}"
+                    readonly
+                    height="fit-content"
+                    content="${answer.content}"
+                    style="margin-top: ${isAccepted ? '10px' : '0'};"
+                ></quill-editor>
             <div class="answer-footer">
                 <div class="action-btns">${actionBtns}</div>
                 <div class="vote-controls">${voteControlsHtml}</div>
@@ -457,96 +469,96 @@ window.loadMoreAnswers = async function() {
 
 // --- SCROLL INTERACTION LOGIC (EXPOSED GLOBALLY FOR EVENT LISTENER) ---
 
-const TRANSITION_DURATION = 300; 
-const SCROLL_BUFFER_PX = 50; 
+// const TRANSITION_DURATION = 300; 
+// const SCROLL_BUFFER_PX = 50; 
 
-window.handleScroll = function() {
-    const questionPanel = document.getElementById('question-panel');
-    const body = document.body;
-    const filler = document.getElementById('void-filler');
+// window.handleScroll = function() {
+//     const questionPanel = document.getElementById('question-panel');
+//     const body = document.body;
+//     const filler = document.getElementById('void-filler');
 
-    if (!questionPanel || !body || !filler) return;
+//     if (!questionPanel || !body || !filler) return;
 
-    const questionHeight = questionPanel.scrollHeight; 
-    const viewportHeight = window.innerHeight;
+//     const questionHeight = questionPanel.scrollHeight; 
+//     const viewportHeight = window.innerHeight;
 
-    const baseTriggerPosition = questionHeight - (viewportHeight * 0.2); 
+//     const baseTriggerPosition = questionHeight - (viewportHeight * 0.2); 
     
-    const ACTIVATION_THRESHOLD = baseTriggerPosition;
-    const DEACTIVATION_THRESHOLD = baseTriggerPosition - SCROLL_BUFFER_PX;
+//     const ACTIVATION_THRESHOLD = baseTriggerPosition;
+//     const DEACTIVATION_THRESHOLD = baseTriggerPosition - SCROLL_BUFFER_PX;
 
-    const isSplitActive = body.classList.contains('split-active');
+//     const isSplitActive = body.classList.contains('split-active');
     
-    if (window.scrollY > ACTIVATION_THRESHOLD) {
-        // --- TRANSITION IN (To Fixed State) ---
-        if (!isSplitActive) {
+//     if (window.scrollY > ACTIVATION_THRESHOLD) {
+//         // --- TRANSITION IN (To Fixed State) ---
+//         if (!isSplitActive) {
             
-            const rect = questionPanel.getBoundingClientRect();
+//             const rect = questionPanel.getBoundingClientRect();
 
-            questionPanel.style.transition = 'none';
-            filler.style.transition = 'none';
+//             questionPanel.style.transition = 'none';
+//             filler.style.transition = 'none';
 
-            questionPanel.style.position = 'fixed';
-            questionPanel.style.top = '0';
-            questionPanel.style.left = '0';
-            questionPanel.style.right = 'unset';
-            questionPanel.style.transform = `translateY(${rect.top}px) translateX(${rect.left}px)`;
+//             questionPanel.style.position = 'fixed';
+//             questionPanel.style.top = '0';
+//             questionPanel.style.left = '0';
+//             questionPanel.style.right = 'unset';
+//             questionPanel.style.transform = `translateY(${rect.top}px) translateX(${rect.left}px)`;
 
-            filler.style.display = 'block';
-            filler.style.height = `${questionHeight}px`;
+//             filler.style.display = 'block';
+//             filler.style.height = `${questionHeight}px`;
 
-            void questionPanel.offsetWidth; 
+//             void questionPanel.offsetWidth; 
             
-            questionPanel.style.transition = 'transform 0.3s ease-in-out, box-shadow 0.3s, border-left 0.3s';
-            filler.style.transition = 'height 0.3s ease-in-out';
+//             questionPanel.style.transition = 'transform 0.3s ease-in-out, box-shadow 0.3s, border-left 0.3s';
+//             filler.style.transition = 'height 0.3s ease-in-out';
             
-            body.classList.add('split-active');
+//             body.classList.add('split-active');
             
-            questionPanel.style.transform = 'translateY(0) translateX(50vw)';
+//             questionPanel.style.transform = 'translateY(0) translateX(50vw)';
 
-            setTimeout(() => {
-                filler.style.height = '0';
-            }, 10);
-        }
+//             setTimeout(() => {
+//                 filler.style.height = '0';
+//             }, 10);
+//         }
         
-    } else if (window.scrollY < DEACTIVATION_THRESHOLD) { 
-        // --- TRANSITION OUT (To Flow State) ---
-        if (isSplitActive) {
+//     } else if (window.scrollY < DEACTIVATION_THRESHOLD) { 
+//         // --- TRANSITION OUT (To Flow State) ---
+//         if (isSplitActive) {
 
-            questionPanel.style.transition = 'none';
-            filler.style.transition = 'none';
+//             questionPanel.style.transition = 'none';
+//             filler.style.transition = 'none';
             
-            questionPanel.style.transform = 'translateY(0) translateX(50vw)';
+//             questionPanel.style.transform = 'translateY(0) translateX(50vw)';
             
-            filler.style.height = `${questionHeight}px`; 
+//             filler.style.height = `${questionHeight}px`; 
 
-            body.classList.remove('split-active'); 
+//             body.classList.remove('split-active'); 
             
-            void questionPanel.offsetWidth; 
+//             void questionPanel.offsetWidth; 
 
-            questionPanel.style.transition = 'transform 0.3s ease-in-out';
-            filler.style.transition = 'height 0.3s ease-in-out';
+//             questionPanel.style.transition = 'transform 0.3s ease-in-out';
+//             filler.style.transition = 'height 0.3s ease-in-out';
             
-            questionPanel.style.transform = 'none';
+//             questionPanel.style.transform = 'none';
             
-            setTimeout(() => {
-                questionPanel.style.position = '';
-                questionPanel.style.top = '';
-                questionPanel.style.left = '';
-                questionPanel.style.right = '';
-                questionPanel.style.transform = '';
-                questionPanel.style.transition = ''; 
+//             setTimeout(() => {
+//                 questionPanel.style.position = '';
+//                 questionPanel.style.top = '';
+//                 questionPanel.style.left = '';
+//                 questionPanel.style.right = '';
+//                 questionPanel.style.transform = '';
+//                 questionPanel.style.transition = ''; 
                 
-                filler.style.display = 'none';
-                filler.style.height = '0';
-                filler.style.transition = '';
-            }, TRANSITION_DURATION);
-        }
-    }
-}
+//                 filler.style.display = 'none';
+//                 filler.style.height = '0';
+//                 filler.style.transition = '';
+//             }, TRANSITION_DURATION);
+//         }
+//     }
+// }
 
 
-// --- INITIALIZATION ---
+// // --- INITIALIZATION ---
 
 function initPage() {
     // Use the global data object injected by PHP
@@ -563,10 +575,10 @@ function initPage() {
     renderQuestionPanel();
     renderAnswersList();
     
-    // Initialize scroll listener using the global function
-    window.addEventListener('scroll', window.handleScroll);
-    // Run once on load
-    window.handleScroll();
+//     // Initialize scroll listener using the global function
+//     window.addEventListener('scroll', window.handleScroll);
+//     // Run once on load
+//     window.handleScroll();
 }
 
 // Close modals when clicking outside using an anonymous global function

@@ -2,6 +2,7 @@
 
     $title = "Create Topic | Openminds";
     $filename = "notes/create_title";
+    $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
 

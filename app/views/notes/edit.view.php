@@ -2,6 +2,7 @@
 
     $title = "Edit | Openminds";
     $filename = "notes/edit";
+    $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
     // show($data);

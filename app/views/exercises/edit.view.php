@@ -2,6 +2,7 @@
     // edit.view.php
     $title = "Edit Exercise | Openminds";
     $filename = "exercises/edit";
+    $add_back = true;
 
     // Mock PHP placeholders for root paths
     $ROOT = ''; 

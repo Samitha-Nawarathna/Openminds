@@ -1,5 +1,6 @@
 <?php
 
+
 class Otppage extends Controller
 {
     public function index()
@@ -66,6 +67,32 @@ class Otppage extends Controller
             'email'=> $user_data['email']
         ]);//error hand;ing
         return 0;
+
+    }
+
+    public function api_verify()
+    {
+        header('Content-Type: application/json');
+
+        $user_data = $_SESSION['user_data'];//sould be guarded!!!!!!!!!
+
+        $otp_services = new OtpServices;
+        $result = $otp_services->verify($user_data);
+
+        if ($result === 1) {
+            $view = $otp_services->process_forward($user_data);
+            
+            echo json_encode([
+                'success' => true,
+                'forward' => $view
+            ]);
+            exit;
+
+        }// better to redirect to propper view
+
+        
+
+        $message;
 
     }
 }

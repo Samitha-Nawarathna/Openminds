@@ -52,19 +52,37 @@ class Profile extends Controller
 
         $total_points = $analysis_services->get_total_points($user_id);
 
+        // $experts_model = new Experts;
+        // $subject_model = new Subjects;
+
+        // $subjects = $experts_model->where(['user_id'=>$user_id], ['subject_id']);
+        // $subjects_str = [];
+
+        // foreach ($subjects as $key => $subject) {
+        //     $result_name = $subject_model->first($subject)->name;
+
+        //     if ($result_name)
+        //     {
+        //         $subjects_str[] = $result_name;
+        //     }
+            
+        // }
+
+        $subjects_str = ["science", "maths"];
+
 
         $this->view("profile", [
             "profile_picture_path"=>ROOT.$results->profile_picture,
             "display_name"=>$results->display_name,
             "created_at"=>$results->created_at,
             "role"=>$role,
-            "subjects"=>$results->subjects,
             "total_notes"=>$total_notes,
             "total_exercises"=>$total_exercises,
             "total_questions"=>$total_questions,
             "total_answers"=>$total_answers,
             "total_upvotes"=>$total_upvotes,
             "total_points"=>$total_points,
+            "subjects_str"=>$subjects_str
         ]);
     }
 

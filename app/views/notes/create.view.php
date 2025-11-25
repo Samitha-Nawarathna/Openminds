@@ -2,6 +2,7 @@
 
     $title = "Create | Openminds";
     $filename = "notes/create";
+    $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
 
@@ -19,17 +20,14 @@
                     <input type="text" id="note-title" class="note-data" name="title" placeholder="Title" required>
                 </div>
 
-                <div class="input-group">
-                    <?php 
-                        $editor_id = "editor";
-                        $hidden_input_name = "content";
-                        $initial_content = json_encode([]);
-                        $read_only = false;
-                        $placeholder_text = "Start writing your note here...";
-                        include "../app/views/partials/text_editor.php"; 
-                    ?>
-                </div>
-                <input type="hidden" name="<?php echo $hidden_input_name; ?>" id="hidden_input_<?php echo $editor_id; ?>">
+                <quill-editor 
+                    id="editor"
+                    name="content"
+                    placeholder="Enter form content..."
+                    storage-key="demo-editor-2"
+                    height="250px">
+                </quill-editor>
+
                 <input type="hidden" id="hidden-tags-field" name="tags" value="">
                 <input type="hidden" id="hidden-topic-field" name="topic" value="">
 

@@ -107,7 +107,14 @@ $initialDataJson = json_encode($initialData);
         <h2>Post Your Answer</h2>
         <form id="create-answer-form" onsubmit="handleCreateAnswer(event)">
             <label for="new-answer-content">Answer Content:</label>
-            <textarea id="new-answer-content" rows="10" required></textarea>
+            <!-- <textarea id="new-answer-content" rows="10" required></textarea> -->
+            <quill-editor 
+                    id="new-answer-content"
+                    name="content"
+                    placeholder="Enter form content..."
+                    storage-key="demo-editor-2"
+                    height="250px">
+                </quill-editor>
             <button type="submit" class="btn-blue">Submit Answer</button>
         </form>
     </div>
@@ -121,7 +128,14 @@ $initialDataJson = json_encode($initialData);
             <label for="edit-question-title">Title:</label>
             <input type="text" id="edit-question-title" required>
             <label for="edit-question-description">Description:</label>
-            <textarea id="edit-question-description" rows="12" required></textarea>
+            <quill-editor 
+                id="edit-question-description"
+                name="content"
+                placeholder="Enter form content..."
+                storage-key="demo-editor-2"
+                height="250px">
+            </quill-editor>            
+            <!-- <textarea id="edit-question-description" rows="12" required></textarea> -->
             <label for="edit-question-tags">Tags (comma separated):</label>
             <input type="text" id="edit-question-tags">
             <button type="submit" class="btn-blue">Save Changes</button>
@@ -136,7 +150,14 @@ $initialDataJson = json_encode($initialData);
         <form id="edit-answer-form" onsubmit="handleEditAnswer(event)">
             <input type="hidden" id="edit-answer-id">
             <label for="edit-answer-content">Answer Content:</label>
-            <textarea id="edit-answer-content" rows="10" required></textarea>
+            <quill-editor 
+                id="edit-answer-content"
+                name="content"
+                placeholder="Enter form content..."
+                storage-key="demo-editor-2"
+                height="250px">
+            </quill-editor>               
+            <!-- <textarea id="edit-answer-content" rows="10" required></textarea> -->
             <button type="submit" class="btn-blue">Save Changes</button>
         </form>
     </div>

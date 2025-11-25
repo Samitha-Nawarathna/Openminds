@@ -111,6 +111,74 @@ class AnalyticsModel
     }
 
     /**
+     * Generates a heatmap of user activity (Mon-Sun vs Week 1-52).
+     * Structure matches ApexCharts Heatmap format.
+     */
+    private function getUserActivityHeatmap($user_id = 1, $year = null): array {
+        // Default to current year if not provided
+        if ($year === null) {
+            $year = (int) date('Y');
+        }
+
+        // 1. Initialize the structure for 7 days (Mon-Sun) to ensure row order
+        $dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $heatmapSeries = [];
+
+        foreach ($dayNames as $day) {
+            $heatmapSeries[$day] = [
+                'name' => $day,
+                'data' => [] 
+            ];
+        }
+
+        // 2. Fetch raw activity counts grouped by Day and Week
+        // WEEK(..., 1) ensures weeks start on Monday (Mode 1)
+        $sql = "
+            SELECT 
+                DATE_FORMAT(event_time, '%a') as day_name, 
+                WEEK(event_time, 1) as week_number, 
+                COUNT(*) as activity_count 
+            FROM events 
+            WHERE user_id = :user_id 
+              AND YEAR(event_time) = :year 
+            GROUP BY day_name, week_number
+        ";
+
+        $results = $this->query($sql, ['user_id' => $user_id, 'year' => $year]);
+
+        // 3. Transform DB results into a lookup array: $map['Mon'][5] = 12
+        $activityData = [];
+        foreach ($results as $row) {
+            // Ensure types are correct
+            $day = $row->day_name;
+            $week = (int) $row->week_number;
+            $count = (int) $row->activity_count;
+            
+            $activityData[$day][$week] = $count;
+        }
+
+        // 4. Build the final dense structure (Weeks 1 to 52)
+        // We loop strictly 1-52 to keep the chart grid consistent.
+        $totalWeeks = 52; 
+
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            foreach ($dayNames as $day) {
+                // Check if data exists for this Day+Week, otherwise 0
+                $count = $activityData[$day][$w] ?? 0;
+
+                // Push data point: { x: 'W1', y: 0 }
+                $heatmapSeries[$day]['data'][] = [
+                    'x' => 'W' . $w,
+                    'y' => $count
+                ];
+            }
+        }
+
+        // 5. Return indexed array (remove 'Mon', 'Tue' keys)
+        return array_values($heatmapSeries);
+    }
+    
+    /**
      * Retrieves top subject scores (all-time and last month).
      * Assumes a 'subjects' table exists with columns 'id' and 'name'.
      */
@@ -709,6 +777,9 @@ class AnalyticsModel
         $subject_scores = $this->getTopSubjectScores($user_id);
         $tag_usage = $this->getTopTagUsage(); // Note: Assumed system-wide in original code
         
+        // NEW: Fetch Heatmap Data
+        $activity_heatmap = $this->getUserActivityHeatmap($user_id);
+
         // --- Consistency Calculation ---
         $consistent_weeks = 0;
         // The trends data is ordered DESC, so we take the first 7 (most recent)
@@ -747,7 +818,8 @@ class AnalyticsModel
             ],
             "weekly_trends" => array_reverse($weekly_trends), // Reverse to display oldest first (line chart)
             "top_subjects" => $subject_scores,
-            "top_tags" => $tag_usage
+            "top_tags" => $tag_usage,
+            "activity_heatmap" => $activity_heatmap // <--- ADDED HEATMAP DATA
         ];
     }
 

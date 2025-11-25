@@ -10,6 +10,8 @@
     $title = 'Update Profile: Openminds';
     $filename = 'profileupdate';
     $no_navbar = 'true';
+    
+    $add_back = true;
 
     //put header
     include_once('../app/views/partials/header.view.php');
@@ -34,7 +36,7 @@
         <input class="button submit" type="submit" value="Save changes">
     </form>
 
-    <form class="update-password-wrapper" action="<?=ROOT?>profileupdate/change_password" method="post">
+    <form class="update-password-wrapper" action="<?=ROOT?>profileupdate/change_password" method="get">
         <input type="submit" value="Change password" class="button change-password-btn btn-none">
     </form>
     </div>
