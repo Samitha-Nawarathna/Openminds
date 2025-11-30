@@ -25,7 +25,7 @@ export async function get_content(review, limit, offset)
       });
 
     res = await res.json();
-    console.log(res);
+    console.log('content',res);
 
 
     for (let i = 0; i < res.length; i++) {

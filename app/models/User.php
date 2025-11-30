@@ -33,21 +33,29 @@ class User
 
     public function update_to_expert($user_id, $subject)
     {
-        return $this->update($user_id, ['role' => 3]);
+        $result = $this->update($user_id, ['role' => 3]);
+
+        
+
+        if ($result === false) {
+            return false;
+        }
+
+
 
         $experts = new Experts;
         $subjects = new Subjects;
 
         $subject_id = $subjects->add_new_subject($subject);
+        // show($subject_id);
         
-        // if ($subject_id === false) {
-        //     return false;
-        // }
+        
+        if ($subject_id === false) {
+            return false;
+        }
 
         return $experts->insert(['user_id' => $user_id, 'subject_id' => $subject_id]);
-
-
-        
+    
     }
 
 }

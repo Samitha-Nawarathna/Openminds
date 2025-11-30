@@ -7,6 +7,7 @@
 
 <div class="edit-wrapper">
     <form action="<?=ROOT?>expertrequest/create" id="detail_form" class="container" method="post" enctype="multipart/form-data">
+    <h1 class="text-main">Create Request</h1>
         <div class="input-group">
             <input type="text" placeholder="Subject Name" name="subject" value="<?= htmlspecialchars($data['subject'] ?? '') ?>">
         </div>

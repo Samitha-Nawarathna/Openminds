@@ -78,7 +78,7 @@ class OtpServices
     public function process_forward($user_data) // rename as redirect_forward
     {
         $type = $user_data['type'];
-        show($user_data);
+        // show($user_data);
 
         switch ($type) {
             case 'login':
@@ -106,11 +106,11 @@ class OtpServices
                 exit;
 
             case 'change_password':
-                $profile_service = new ProfileServicecs;
+                $profile_service = new ProfileServices;
 
                 $result = $profile_service->change_password($user_data);
 
-                if ($result->is_failure()) {
+                if ($result->has_errors()) {
                     $errors = $result->get_errors();
                     $message = implode(", ", $errors);
                     header("Location: ".ROOT."profileupdate/change_password?message=".$message);
@@ -118,7 +118,7 @@ class OtpServices
                 }
 
                 $notification_services = new NotificationServices;
-                $notification_services->send_notification(0, 'You have successfully changed your password!');
+                $notification_services->send_notification(0, 'You have successfully changed your password!', $user_data['user_id']);
 
 
     

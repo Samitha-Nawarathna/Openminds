@@ -15,10 +15,10 @@
         <div class="filter-bar">
             <input type="text" id="exercise-filter-input" placeholder="enter a username name">
             <button class="btn-filter" id="filter-btn">filter</button>
-            <a href="<?=ROOT?>/exercises/create" class="btn-create">+ Create</a>
+            <a href="<?=ROOT?>/expertrequest/create" class="btn-create">+ Create</a>
         </div>
         <div class="tab-btns">
-            <div class="tab-button active" data-index="0">
+            <div class="tab-button btn-primary" data-index="0">
                 active
             </div>
             <div class="tab-button" data-index="1">

@@ -30,6 +30,7 @@ function updateMetadata() {
         tags: document.getElementById('exercise-tags-input').value,
     };
     setupModal.style.display = 'none';
+
     
     // Ensure the control bar Save Draft button is re-enabled if needed
     document.getElementById('save-draft-btn').disabled = false;
@@ -164,6 +165,8 @@ function loadQuestion(index) {
     updateBuilderUI();
 }
 
+window.loadQuestion = loadQuestion;
+
 function addNewQuestion() {
     if (currentQIndex !== -1 && !saveCurrentQuestion()) {
          return; // Don't proceed if save fails
@@ -179,7 +182,7 @@ function addNewQuestion() {
 
 function renderQuestionList() {
     qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => `
-        <div class="question-item ${index === currentQIndex ? 'active' : ''}" onclick="loadQuestion(${index})">
+        <div class="question-item ${index === currentQIndex ? 'active' : ''}" onclick="window.loadQuestion(${index})">
             <span>Q${index + 1}: ${q.prompt.substring(0, 30)}...</span>
             <button type="button" class="btn-none" onclick="event.stopPropagation(); deleteQuestion(${index})">🗑️</button>
         </div>

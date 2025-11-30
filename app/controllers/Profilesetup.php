@@ -22,8 +22,8 @@ class Profilesetup extends Controller
     {
         $default_image_url = ROOT."\uploads\\0\profile.avif";
         $user_data = $_SESSION['user_data'];
-        show($_POST);
-        show($user_data);
+        // show($_POST);
+        // show($user_data);
         $username = $_SESSION['user_data']['username'];
         
         $user = new User;

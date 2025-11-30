@@ -1026,6 +1026,45 @@ class Exercises extends Controller
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => $message]);
         exit();
+    }
+    
+    public function api_load_more() {
+        $this->json_respond([
+            "success" => true,
+            "results_returned" => 4,
+            "next_offset" => 14,
+            "available_more" => false,
+            "data" => [
+                [
+                    "id" => 11,
+                    "title" => "Implement Dijkstra's Algorithm (Intermediate)",
+                    "topic" => "Algorithms",
+                    "difficulty" => "Intermediate",
+                    "published_date" => "2025-11-20"
+                ],
+                [
+                    "id" => 12,
+                    "title" => "Design Pattern: Observer",
+                    "topic" => "Software Design",
+                    "difficulty" => "Advanced",
+                    "published_date" => "2025-11-18"
+                ],
+                [
+                    "id" => 13,
+                    "title" => "Data Visualization Basics",
+                    "topic" => "Data Science",
+                    "difficulty" => "Beginner",
+                    "published_date" => "2025-11-15"
+                ],
+                [
+                    "id" => 14,
+                    "title" => "Write a RESTful API specification",
+                    "topic" => "Web Development",
+                    "difficulty" => "Expert",
+                    "published_date" => "2025-11-10"
+                ]
+            ]
+        ]);
     }    
 }
 

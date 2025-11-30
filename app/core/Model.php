@@ -18,7 +18,7 @@ trait Model
 
         if (!$columns)
         {
-            $query = "SELECT * FROM $this->table WHERE ";
+            $query = "SELECT * FROM $this->table ";
         }else
         {
             $query = "SELECT ";
@@ -29,18 +29,25 @@ trait Model
 
             $query = trim($query, ",");
 
-            $query .= " FROM $this->table WHERE ";
+            $query .= " FROM $this->table";
         }
 
-        foreach (array_keys($data) as $key)
+        if (!empty($data) || !empty($data_not))
         {
-            $query .= "$key=:$key &&";
+            $query .= "WHERE ";
+
+            foreach (array_keys($data) as $key)
+            {
+                $query .= "$key=:$key &&";
+            }
+            foreach (array_keys($data_not) as $key)
+            {
+                $query .= "$key!=:$key &&";
+            }
+            $query = trim($query, " &&");
         }
-        foreach (array_keys($data_not) as $key)
-        {
-            $query .= "$key!=:$key &&";
-        }
-        $query = trim($query, " &&");
+
+
 
         // show($query);
 
@@ -105,19 +112,38 @@ trait Model
 
     public function update($id, $data, $id_column = 'id')
     {
-        $data[$id_column] = $id;
-        $query = "UPDATE $this->table SET ";
-
-        foreach (array_keys($data) as $column) {
-            $query .= "$column = :$column, ";
+        $pdo = $this->connect();
+        $bind_data = [];
+        $set_clauses = [];
+    
+        // 1. Build SET clause and bind data (excluding the ID column)
+        foreach ($data as $column => $value) {
+            // Skip adding the ID column to the SET clause if it was passed in $data
+            if ($column === $id_column) continue;
+            
+            $set_clauses[] = "$column = :$column";
+            $bind_data[":$column"] = $value;
         }
-
-        $query = trim($query, ", ");
-        $query .= " WHERE $id_column = :$id_column";
-
-        echo $query;
-
-        return $this->query($query, $data);
+        
+        // Check if there is anything to update
+        if (empty($set_clauses)) {
+            return 0; // No columns to update
+        }
+    
+        $query = "UPDATE $this->table SET " . implode(', ', $set_clauses);
+        $query .= " WHERE $id_column = :id_value"; // Use a distinct placeholder for the WHERE clause
+    
+        // 2. Add the ID for the WHERE clause binding
+        $bind_data[":id_value"] = $id;
+    
+        $stmt = $pdo->prepare($query);
+        
+        // 3. Execute and return affected rows
+        if ($stmt->execute($bind_data)) {
+            return $stmt->rowCount(); // Correctly returns the number of affected rows
+        }
+    
+        return false;
     }
 
     public function delete($id, $id_column = 'id')

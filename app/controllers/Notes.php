@@ -498,29 +498,92 @@ class Notes extends Controller
         ]);
     }
 
-    public function pin($note_id)
-    {
-        // Logic to pin the note (e.g., update database)
-        // For now, just return a success response
-
+    public function api_pin_note($id) {
+        // Assume logic to pin note $id
         $this->json_respond([
-            'status' => 'success',
-            'message' => 'Note pinned successfully'
+            "success" => true,
+            "message" => "Note 'Deriving Lagrange Mechanics' successfully pinned.",
+            "data" => [
+                "note_id" => (int)$id,
+                "is_pinned" => true,
+                "updated_at" => "2025-11-26 18:30:00"
+            ]
         ]);
-    } 
+    }
 
-    
-    public function unpin($note_id)
-    {
-        // Logic to pin the note (e.g., update database)
-        // For now, just return a success response
-
+    public function api_unpin_note($id) {
+        // Assume logic to unpin note $id
         $this->json_respond([
-            'status' => 'success',
-            'message' => 'Note unpinned successfully'
+            "success" => true,
+            "message" => "Note 'Deriving Lagrange Mechanics' successfully unpinned.",
+            "data" => [
+                "note_id" => (int)$id,
+                "is_pinned" => false,
+                "updated_at" => "2025-11-26 18:30:00"
+            ]
         ]);
-    } 
+    }
 
+    public function api_filter() {
+        // Assume logic to filter notes based on GET params (e.g., topic, tag)
+        $this->json_respond([
+            "success" => true,
+            "total_results" => 25,
+            "page" => 1,
+            "per_page" => 20,
+            "available_more" => true,
+            "data" => [
+                [
+                    "id" => 205,
+                    "title" => "Deriving Lagrange Mechanics (Part 1)",
+                    "excerpt" => "Introduction to the Lagrangian and the Principle of Least Action.",
+                    "topic_id" => 3,
+                    "topic_name" => "Theoretical Physics",
+                    "tags" => ["mechanics", "calculus", "advanced"],
+                    "created_at" => "2025-11-25 10:00:00"
+                ],
+                [
+                    "id" => 206,
+                    "title" => "Properties of the Fourier Transform",
+                    "excerpt" => "Review of linearity, time-shifting, and frequency-shifting properties.",
+                    "topic_id" => 4,
+                    "topic_name" => "Signal Processing",
+                    "tags" => ["math", "analysis", "transform"],
+                    "created_at" => "2025-11-25 14:30:00"
+                ]
+            ]
+        ]);
+    }
 
+    public function api_store_refer_event($note_id) {
+        // Assume logic to log note referral event for $note_id
+        $this->json_respond([
+            "success" => true,
+            "message" => "Note referral event successfully stored.",
+            "data" => [
+                "note_id" => (int)$note_id,
+                "user_id" => 42,
+                "event_type" => "note_referred",
+                "referral_count" => 5
+            ]
+        ]);
+    }
+
+    public function api_load_more() {
+        // Assume logic to load more notes based on GET params (e.g., offset)
+        $this->json_respond([
+            "success" => true,
+            "results_returned" => 5,
+            "next_offset" => 25,
+            "available_more" => false,
+            "data" => [
+                ["id" => 21, "title" => "Understanding Recursive Functions", "created_at" => "2025-11-20 09:00:00"],
+                ["id" => 22, "title" => "Introduction to Quantum Computing", "created_at" => "2025-11-20 11:00:00"],
+                ["id" => 23, "title" => "Data Structures: Hash Tables vs. Trees", "created_at" => "2025-11-20 13:00:00"],
+                ["id" => 24, "title" => "Proof of the Pythagorean Theorem", "created_at" => "2025-11-20 15:00:00"],
+                ["id" => 25, "title" => "Theorems of Thermodynamics", "created_at" => "2025-11-20 17:00:00"]
+            ]
+        ]);
+    }
 
 }

@@ -27,6 +27,8 @@ let btn_unban = document.querySelector('.btn-unban');
 // let btn_change_role = document.querySelector('.btn-changerole');
 
 let confirmation_popup = document.querySelector('.confirmation');
+let subject_popup = document.querySelector('.subject');
+
 
 btn_ban.addEventListener('click', function(e) {
     e.preventDefault();
@@ -56,6 +58,18 @@ let role_form = document.querySelector('.role-form');
 
 btn_change_role_submit.addEventListener('click', function(e) {
     e.preventDefault();
+
+    
+    let role_input = document.getElementById('role').value;
+    console.log(role_input);
+
+    if (role_input == 3)
+    {
+        subject_popup.style.display = 'block';
+        console.log('Subject popup displayed');
+    }
+
+
 
     confirmation_popup.querySelector('.message').innerHTML = 'Are you sure you want to change role?';
     confirmation_popup.style.display = 'block';

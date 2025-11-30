@@ -43,7 +43,9 @@ class Analysis extends Controller
     public function api_dashboard_data()
     {
         // Fetch the data from the model
-        $data = $this->analytics_model->generateAllAnalyticsData();
+        $user_id = $_SESSION['user_id'] ?? null;
+
+        $data = $this->analytics_model->generateAllAnalyticsData($user_id);
         
         // Set the header to indicate JSON response
         header('Content-Type: application/json');
@@ -60,7 +62,9 @@ class Analysis extends Controller
     public function api_influence_data()
     {
         // Fetch the influence data from the model
-        $data = $this->analytics_model->generateInfluenceData();
+        $user_id = $_SESSION['user_id'] ?? null;
+
+        $data = $this->analytics_model->generateInfluenceData($user_id);
         
         // Set the header to indicate JSON response
         header('Content-Type: application/json');

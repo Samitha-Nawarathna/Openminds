@@ -125,24 +125,30 @@ class ExpertRequestsServices
     function approve_request($request_id)
     {
         $request_result = $this->find_by_id($request_id);
+        
+
         if (!$request_result->is_success()) {
             return ServiceResult::failure(['Request not found.']);
         }
 
         $request_data = $request_result->get_data();
+        
 
         $user = new User();
         $user_data = $user->first(['id' => $request_data['user_id']]);
         if ($user_data === false) {
             return ServiceResult::failure(['User not found.']);
         }
+        
 
         // Update user role to expert
         $update_user_result = $user->update_to_expert($user_data->id, $request_data['subject']);
+        
 
         if ($update_user_result === false) {
             return ServiceResult::failure(['Failed to update user role.']);
         }
+
 
         // Update request review status to approved
         $update_request_result = $this->update(['id' => $request_id, 'review' => 'approved']);

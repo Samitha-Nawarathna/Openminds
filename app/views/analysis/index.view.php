@@ -50,6 +50,7 @@ include_once '../app/views/partials/header.view.php';
     <main class="main-content">
         
         <h1 class="main-header">Wellcome Back!</h1>
+        
 
         <section class="overview-grid" id="overview-panel">
             </section>

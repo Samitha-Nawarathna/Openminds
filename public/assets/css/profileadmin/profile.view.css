@@ -210,6 +210,27 @@
     padding: var(--space-sm);
 }
 
+.popup.subject .container
+{
+    display: flex;
+    flex-direction: column !important;
+}
+
+.popup.subject .container .btns
+{
+    display: flex;
+    margin: var(--space-sm);
+    width: 100%;
+    gap: var(--space-sm);
+    
+}
+
+.popup.subject .container .message
+{
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
 @media (max-width: 850px) {
     .body-container
     {

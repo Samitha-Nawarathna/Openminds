@@ -27,3 +27,7 @@ require "NoteShares.php";
 require "Topics.php";
 
 require "Analysis.php";
+
+require "DashboardModel.php";
+
+require "AnnouncementModel.php";

@@ -503,6 +503,18 @@ form .input-group textarea {
     font-weight: 600;
 }
 
+.btn-primary
+{
+    background-color: var(--color-primary) !important;
+    color: var(--color-bg-card) !important;
+}
+
+.btn-none
+{
+    background-color: none;
+    color: var(--color-gray-900);
+}
+
 .button:hover {
     background-color: color-mix(in srgb, var(--color-primary) 90%, black);
 }
@@ -897,4 +909,194 @@ form .input-group textarea {
 
 .slider-nav-btn.next {
     right: 0;
+}
+
+/* -----------------------------
+   📣 ANNOUNCEMENTS UI ADDITIONS
+   Add this to the bottom of core.css or use as a page-specific stylesheet.
+------------------------------ */
+
+/* --- Header Styles (Matches .exercise-browser-header) --- */
+.exercise-browser-header, 
+.announcement-browser-header {
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+/* --- Filter Bar (Matches .filter-bar) --- */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+/* Specific styling for the announcement search input to match #exercise-filter-input */
+#announcement-search {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1em;
+    background: white;
+}
+
+.btn-create {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* --- Tabs Container (Matches .tabs-container) --- */
+.tabs-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 8px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: white;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.tab-button.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* --- List Container --- */
+.list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* --- Announcement List Item --- */
+/* Matches .exercise-item layout style exactly */
+.announcement-item {
+    display: flex;
+    justify-content: space-between; /* Pushes actions to the right */
+    align-items: center;
+    background-color: white;
+    padding: 15px 20px;     /* Exact match to exercise-item */
+    border-radius: 8px;     /* Exact match to exercise-item */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Exact match to exercise-item */
+    border: 1px solid var(--color-border); /* Subtle border to match theme */
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.2s;
+    cursor: default; /* Differs from exercise-item which is a link */
+}
+
+.announcement-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-primary);
+}
+
+/* --- Left Side Information Group --- */
+.info-group {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Consistent spacing between title, pill, badge */
+    flex-grow: 1;
+}
+
+.announcement-title-list {
+    font-size: 1.1em; /* Match exercise-title-list */
+    font-weight: 600;
+    color: #333;      /* Match exercise-title-list */
+}
+
+/* --- Style Pills (Visual Tags) --- */
+/* Matches .subject-pill style */
+.style-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 70px; /* Exact match to subject-pill */
+    text-align: center;
+    text-transform: capitalize;
+}
+
+/* Pill Colors Map */
+.style-pill[data-style="primary-accent"] {
+    background-color: var(--color-blue-100);
+    color: var(--color-blue-700);
+}
+
+.style-pill[data-style="warning"] {
+    background-color: var(--color-yellow-50);
+    color: var(--color-yellow-600);
+}
+
+.style-pill[data-style="info"] {
+    background-color: var(--color-green-50);
+    color: var(--color-green-700);
+}
+
+/* --- Status Badge (Hidden/Active) --- */
+.status-badge {
+    font-size: 0.75em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: var(--color-gray-200);
+    color: var(--color-gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Helper for hidden items */
+.opacity-50 {
+    opacity: 0.6;
+}
+
+/* --- Action Buttons Group --- */
+.announcement-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: 15px;
+}
+
+/* --- Form Style Selector (Radio Buttons as Pills) --- */
+/* Used in Create/Edit pages */
+.style-selector {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.style-option input[type="radio"] {
+    display: none; /* Hide actual radio */
+}
+
+/* Default state for selectable pills */
+.style-option .tag-pill {
+    cursor: pointer;
+    opacity: 0.5;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+/* Selected state */
+.style-option input[type="radio"]:checked + .tag-pill {
+    opacity: 1;
+    border-color: currentColor;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: scale(1.05);
 }

@@ -77,5 +77,43 @@ class TopicController extends Controller
         }
     }
 
+    public function api_pin_topic($id) {
+        $this->json_respond([
+            "success" => true,
+            "message" => "Topic 'Theoretical Physics' successfully pinned.",
+            "data" => [
+                "topic_id" => (int)$id,
+                "is_pinned" => true,
+                "updated_at" => "2025-11-26 18:36:45"
+            ]
+        ]);
+    }
+
+    public function api_unpin_topic($id) {
+        $this->json_respond([
+            "success" => true,
+            "message" => "Topic 'Theoretical Physics' successfully unpinned.",
+            "data" => [
+                "topic_id" => (int)$id,
+                "is_pinned" => false,
+                "updated_at" => "2025-11-26 18:36:45"
+            ]
+        ]);
+    }
+
+    public function api_load_more() {
+        $this->json_respond([
+            "success" => true,
+            "results_returned" => 3,
+            "next_offset" => 13,
+            "available_more" => true,
+            "data" => [
+                ["id" => 11, "name" => "Organic Chemistry", "note_count" => 8],
+                ["id" => 12, "name" => "Differential Equations", "note_count" => 25],
+                ["id" => 13, "name" => "Microeconomics", "note_count" => 5]
+            ]
+        ]);
+    }    
+
 
 }

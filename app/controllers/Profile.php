@@ -52,23 +52,23 @@ class Profile extends Controller
 
         $total_points = $analysis_services->get_total_points($user_id);
 
-        // $experts_model = new Experts;
-        // $subject_model = new Subjects;
+        $experts_model = new Experts;
+        $subject_model = new Subjects;
 
-        // $subjects = $experts_model->where(['user_id'=>$user_id], ['subject_id']);
-        // $subjects_str = [];
+        $subjects = $experts_model->where(['user_id'=>$user_id], ['subject_id']);
+        $subjects_str = [];
 
-        // foreach ($subjects as $key => $subject) {
-        //     $result_name = $subject_model->first($subject)->name;
+        foreach ($subjects as $key => $subject) {
+            $result_name = $subject_model->first(['id'=>$subject->subject_id])->name;
 
-        //     if ($result_name)
-        //     {
-        //         $subjects_str[] = $result_name;
-        //     }
+            if ($result_name)
+            {
+                $subjects_str[] = $result_name;
+            }
             
-        // }
+        }
 
-        $subjects_str = ["science", "maths"];
+        // $subjects_str = ["science", "maths"];
 
 
         $this->view("profile", [

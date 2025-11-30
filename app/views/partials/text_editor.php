@@ -189,6 +189,32 @@ class QuillEditor {
             }
         }
 
+        get value() {
+            if (!this.quill) {
+                // Return attribute value if Quill hasn't initialized yet
+                return this.getAttribute('value') || '';
+            }
+            return JSON.stringify(this.getDelta());
+        }
+
+        /**
+         * Setter for the 'value' property.
+         * Sets content by attempting to parse as Delta first.
+         */
+        set value(contentString) {
+            if (!this.quill) {
+                // If not initialized, set the attribute so it loads later
+                this.setAttribute('value', contentString);
+                return;
+            }
+            
+            // Set content and update the hidden input
+            this.loadFromAttribute(contentString);
+            
+            // Also update the attribute for consistency/reflection
+            this.setAttribute('value', contentString);
+        }        
+
         // --- Getters for attributes ---
         
         get storageKey() {

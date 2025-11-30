@@ -22,7 +22,7 @@ let index2type = {0: "active", 1: "banned"};
 let currentIndex = 0;
 let type = index2type[currentIndex];
 
-get_content(type, 0, 10).then(content => {
+get_content(type, 10, 0).then(content => {
     cards[currentIndex].innerHTML = content;
 });
 
@@ -40,7 +40,7 @@ btns.forEach(btn => {
     nextCard.classList.add("incoming");
     type = index2type[targetIndex];
 
-    get_content(type, 0, 10).then(content => {
+    get_content(type, 10, 0).then(content => {
         nextCard.innerHTML = content;
     });
 

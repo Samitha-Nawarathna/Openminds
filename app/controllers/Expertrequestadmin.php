@@ -30,14 +30,14 @@ final class Expertrequestadmin extends Controller
     public function approve()
     {
         $request_id = $_POST['id'] ?? null;
-        
         if ($request_id === false) {
+
             header("Location: ".ROOT."_404");
         }
 
         $expert_requests_service = new ExpertRequestsServices();
         $approve_result = $expert_requests_service->approve_request($request_id);
-
+        
         $request_model = new ExpertRequests();
         $reciver_id = $request_model->first(['id' => $request_id])->user_id;
 
