@@ -4,7 +4,7 @@
     include_once "../app/views/partials/header.view.php";
 ?>
 
-<div class="main-content-container" style="max-width: 800px; margin: 0 auto;">
+<div class="main-content-container" style="max-width: 100vw; margin: 0 auto;">
     
     <div class="container">
         <h1 class="form-title">Create New Announcement</h1>
@@ -41,7 +41,7 @@
 
             <!-- Actions -->
             <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-md);">
-                <a href="<?=ROOT?>/announcements/admin" class="button-secondary" style="text-align: center;">Cancel</a>
+                <a href="<?=ROOT?>/announcements/admin" class="button-secondary no-style-link" style="text-align: center;">Cancel</a>
                 <button type="submit" class="button btn-primary">Publish Announcement</button>
             </div>
             

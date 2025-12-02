@@ -20,6 +20,14 @@ class Announcements extends Controller {
             'announcement' => (array) $this->get_announcement_model()->first(['id' => $id])
         ]);
     }
+
+    public function show($id)
+    {
+        
+        $this->view('announcements/view', [
+          'announcement' => (array) $this->get_announcement_model()->first(['id' => $id])  
+        ]);
+    }
     // --- Helper Method ---
 
     /**

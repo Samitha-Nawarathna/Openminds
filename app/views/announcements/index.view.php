@@ -15,7 +15,7 @@
         <!-- Input field for search -->
         <input type="text" id="announcement-search" placeholder="Search by title or content...">
         <!-- Link to the dedicated Create Page -->
-        <a href="<?=ROOT?>/announcements/admin/create" class="btn-create">+ Create</a>
+        <a href="<?=ROOT?>/announcements/create" class="btn-create">+ Create</a>
     </div>
 
     <!-- Tabs for Filtering Status -->
@@ -140,27 +140,30 @@
 
         // Build HTML
         listContainer.innerHTML = allAnnouncements.map(item => `
+            <a class="no-style-link" href="<?=ROOT?>/announcements/view/${item.id}">
             <div class="announcement-item ${item.is_active == 0 ? 'opacity-50' : ''}" id="row-${item.id}">
-                <div class="info-group">
-                    <span class="announcement-title-list">${escapeHtml(item.title)}</span>
-                    <span class="style-pill" data-style="${item.style}">
-                        ${item.style.replace('-', ' ')}
-                    </span>
-                    ${item.is_active == 0 ? '<span class="status-badge">Hidden</span>' : ''}
-                </div>
+                    <div class="info-group">
+                        <span class="announcement-title-list">${escapeHtml(item.title)}</span>
+                        <span class="style-pill" data-style="${item.style}">
+                            ${item.style.replace('-', ' ')}
+                        </span>
+                        ${item.is_active == 0 ? '<span class="status-badge">Hidden</span>' : ''}
+                    </div>
+                    
+                    <div class="announcement-actions">
+                        <a href="<?=ROOT?>/announcements/edit/${item.id}" class="btn-none no-style-link" style="padding: 5px 10px; font-size: 0.8rem;">Edit</a>
+                        
+                        <button class="btn-none toggle-status-btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="toggleStatus(${item.id}, ${item.is_active})">
+                            ${item.is_active == 1 ? 'Hide' : 'Unhide'}
+                        </button>
+                        
+                        <button class="btn-error" style="padding: 5px 10px; font-size: 0.8rem; border-radius: var(--radius-sm); background-color: var(--color-red-100); border:1px solid var(--color-error); color:var(--color-error);" onclick="openDeleteModal(${item.id})">
+                            Delete
+                        </button>
+                    </div>
                 
-                <div class="announcement-actions">
-                    <a href="<?=ROOT?>/announcements/admin/edit/${item.id}" class="btn-none" style="padding: 5px 10px; font-size: 0.8rem;">Edit</a>
-                    
-                    <button class="btn-none toggle-status-btn" onclick="toggleStatus(${item.id}, ${item.is_active})">
-                        ${item.is_active == 1 ? 'Hide' : 'Unhide'}
-                    </button>
-                    
-                    <button class="btn-error" style="padding: 5px 10px; font-size: 0.8rem;" onclick="openDeleteModal(${item.id})">
-                        Delete
-                    </button>
-                </div>
             </div>
+            </a>
         `).join('');
     }
 
