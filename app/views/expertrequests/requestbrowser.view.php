@@ -19,11 +19,14 @@
         </div>
         <div class="tab-btns">
             <div class="tab-button btn-primary" data-index="0">
-                active
+                pending
             </div>
             <div class="tab-button" data-index="1">
-                banned
-            </div>        
+                approved
+            </div>   
+            <div class="tab-button" data-index="2">
+                rejected
+            </div>      
         </div>
         <div class="content-tabs">
             <div class="content-tab container active"></div>

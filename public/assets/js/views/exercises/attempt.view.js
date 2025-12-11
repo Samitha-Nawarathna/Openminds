@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let userAnswers = {}; // {q_id: [option_id_1, option_id_2], ...}
     let currentVoteStatus = 'None'; // User's current vote status
     let questionIsChecked = false; // State to track if the current question has been checked
+    let SUBMIT_URL = ROOT + 'api/exercises/attempt';
 
     // --- DOM Elements ---
     

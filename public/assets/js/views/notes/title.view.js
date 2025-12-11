@@ -36,48 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Simulates an AJAX call to the backend to fetch topics.
     // NOTE: This logic needs to be a bit more robust than the previous mock 
     // since we're no longer relying on PHP for the first load.
-    function mockFetchTopics(offset, filterName) {
-        console.log(`[MOCK AJAX] Fetching topics from offset ${offset} with filter: "${filterName}"`);
+    async function mockFetchTopics(offset, filterName) {
+        console.log(`[API CALL] Fetching topics from offset ${offset} with filter: "${filterName}"`);
         
-        return new Promise(resolve => {
-            setTimeout(() => {
-                // --- MOCK DATA GENERATION ---
-                // This simulates the server dynamically generating data.
-                let mockTopics = [];
-                let hasMore = true;
-                
-                // Use a counter to easily simulate different data on subsequent loads
-                const startId = offset + 1;
-                const endId = offset + ITEMS_PER_LOAD;
-
-                if (offset === 0) {
-                    // For a fresh load (when filtering)
-                    // We can't generate the *exact* PHP data, so we simplify:
-                    mockTopics = [
-                        { id: 't1', name: 'Science' }, { id: 't2', name: 'Maths' },
-                        { id: 't3', name: 'Linear algebra' }, { id: 't4', name: 'Calculus' },
-                        { id: 't5', name: 'Integration' }
-                    ];
-                    // Simulate that the filter found a short list
-                    hasMore = mockTopics.length >= ITEMS_PER_LOAD; 
-                } else if (offset === 10) {
-                    // Simulate loading more data
-                    mockTopics = [
-                        { id: 't11', name: 'Cosmology' },
-                        { id: 't12', name: 'Topology' }
-                    ];
-                    hasMore = false; // Last load
-                } else {
-                    hasMore = false;
-                }
-                
-                resolve({
-                    topics: mockTopics,
-                    has_more: hasMore
-                });
-
-            }, 400); // Simulate network latency
-        });
+        try {
+            const response = await fetch(`${ROOT}/topics/api/load_more?offset=${offset}&filter=${encodeURIComponent(filterName)}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return {
+                topics: data.topics,
+                has_more: data.has_more
+            };
+        } catch (error) {
+            console.error("Error fetching topics:", error);
+            return {
+                topics: [],
+                has_more: false
+            };
+        }
     }
 
     // --- RENDERING FUNCTIONS ---
@@ -149,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const response = await mockFetchTopics(currentOffset, filterName);
+            console.log(response);
             
             response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
 

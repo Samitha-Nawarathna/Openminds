@@ -1,5 +1,7 @@
-const MOCK_API_SAVE_URL = '<?= $MOCK_API_SAVE_URL ?>';
-const MOCK_API_SUBMIT_URL = '<?= $MOCK_API_SUBMIT_URL ?>';
+import {ROOT} from '../../core/config.js';
+
+const MOCK_API_SAVE_URL = ROOT + 'exercises/save';
+const MOCK_API_SUBMIT_URL = ROOT + 'exercises/create';
 
 // --- GLOBAL STATE ---
 let EXERCISE_METADATA = {};
@@ -277,6 +279,11 @@ document.getElementById('cancel-submit-btn').addEventListener('click', () => {
 
 document.getElementById('confirm-submit-btn').addEventListener('click', () => {
     console.log('API: Submitting FINAL exercise for review...', {metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS});
+    fetch(MOCK_API_SUBMIT_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS}),
+    })
     alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
     // In a real app: Redirect to the dashboard or a success page.
     // window.location.href = '<?= $ROOT ?>/dashboard';

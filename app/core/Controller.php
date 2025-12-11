@@ -59,12 +59,28 @@ class Controller
 
     protected function json_request()
     {
-        $json = file_get_contents('php://input');
-        return json_decode($json, true);
+        $json_string = file_get_contents('php://input');
+        $data = json_decode($json_string, true);
+    
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('JSON Decode Error: ' . json_last_error_msg());
+            
 
+            return []; 
+        }
+        
+        if ($data === null) {
+            return [];
+        }
+    
+        return $data;
     }
     protected function json_respond($data)
     {
+        if (ob_get_level() > 0) {
+            ob_clean(); 
+        }
+
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;

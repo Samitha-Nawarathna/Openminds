@@ -309,7 +309,15 @@ class Question extends Controller
         } else {
             // Fetch answer from the database using $a_id
             // Show the edit form
-            $this->view('question/edit_answer', ['a_id' => $a_id]);
+            $data = [
+                'question_id'     => 1,
+                'question_title'  => 'What are myelinated axons?',
+                'answer_id' => 'a_202',
+                'answer_content' => 'This is the existing content of the answer that is being edited.',
+                
+            ];
+
+            $this->view('question/edit_answer', $data);
         }
     }
 
@@ -574,6 +582,7 @@ class Question extends Controller
         $lost_q_id = $data['last_q_id'];
 
         //implement here
+        echo json_encode(['status' => 'success', 'topics'=> [['id'=>'t_10','name'=>'New Topic 1'],['id'=>'t_11','name'=>'New Topic 2']] , 'has_more' => false]);
     }
     
 

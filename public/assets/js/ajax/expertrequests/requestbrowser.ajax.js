@@ -14,7 +14,9 @@ export async function get_content(review, limit, offset)
     send_data["limit"] = limit;
     send_data["offset"] = offset;
 
-    let res = await fetch(ROOT + 'ajax/retrive_user_expertrequests', {  
+    // console.log(send_data);
+
+    let res = await fetch(ROOT + '/ajax/retrive_user_expertrequests', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json' 
@@ -24,8 +26,10 @@ export async function get_content(review, limit, offset)
         })
       });
 
+    // console.log('response',res);
     res = await res.json();
-    console.log('content',res);
+    // console.log('content',res);
+    // return res;
 
 
     for (let i = 0; i < res.length; i++) {

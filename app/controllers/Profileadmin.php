@@ -130,6 +130,7 @@ class Profileadmin extends Controller
 
     public function changerole()
     {
+        
         $this->admin_guard();
 
         $user_id = $_POST['user_id'] ?? null;

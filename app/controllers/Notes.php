@@ -586,4 +586,82 @@ class Notes extends Controller
         ]);
     }
 
+        // --- New API Endpoint for Search and Filtering ---
+        public function api_search_notes()
+        {
+            // 1. Instantiate the Model
+            $note_model = new NoteModel();
+    
+            // --- 2. Define MOCK SEARCH PARAMETERS for Testing ---
+            // Modify these parameters to test different filtering scenarios.
+            $search_params = [
+                // PAGINATION
+                'offset'    => 0, // Start at the first record (page 1)
+                'limit'     => 10, // Fetch 10 records per "page"
+    
+                // EQUALITY FILTERS (WHERE column IN (values))
+                'where'     => [
+                    // Example: Only show notes from owner IDs 94 and 101
+                    // 'owner_id'      => [94, 101], 
+                    // Example: Only show pinned notes (pinned = 1)
+                    // 'pinned'        => [1], 
+                ],
+    
+                // INEQUALITY FILTERS (WHERE column NOT IN (values))
+                'where_not' => [
+                    // Example: Exclude notes associated with topic ID 6
+                    'topic_id'      => [6],
+                ],
+    
+                // STRING MATCHING (WHERE column LIKE '%term%')
+                'like'      => [
+                    // Example: Search for the word 'science' in the title OR content
+                    'title'     => 'science',
+                    // 'content'   => 'science', 
+                ],
+                
+                // NUMERICAL/DATE RANGE FILTERS (WHERE column BETWEEN min AND max)
+                // 'range'     => [
+                //     // Example: Only show notes created in the last 6 weeks (adjust date as needed)
+                //     'created_at' => [
+                //         '2025-10-01 00:00:00', // Start Date
+                //         '2025-12-31 23:59:59', // End Date
+                //     ],
+                // ],
+    
+                // ORDERING
+                'order_by'  => 'created_at',
+                'order_dir' => 'DESC', // Newest first
+                'unique' => true
+            ];
+            
+            // --- To test the next page of results, change the offset: ---
+            // $search_params['offset'] = 10; 
+    
+            // --- To test a different search term: ---
+            // $search_params['like']['title'] = 'algebra';
+            // $search_params['like']['content'] = 'algebra';
+            // $search_params['where']['pinned'] = [0]; // Unpinned notes
+    
+            // 3. Execute the search
+            $results = $note_model->filter_and_search($search_params);
+    
+            // 4. Return the results as JSON
+            if ($results !== false) {
+                $this->json_respond([
+                    "success" => true,
+                    "total_results" => count($results), // Note: This is only the count of the LMITED results
+                    "next_offset" => $search_params['offset'] + $search_params['limit'],
+                    "data" => $results
+                ]);
+            } else {
+                $this->json_respond([
+                    "success" => false,
+                    "message" => "Failed to execute search query."
+                ], 500); // 500 Internal Server Error
+            }
+        }
+        
+
+
 }

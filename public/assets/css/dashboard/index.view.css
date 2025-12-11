@@ -196,57 +196,6 @@
         .col-left, .col-right { overflow-y: auto; padding-right: 8px; }
         .col-center { overflow-y: auto; padding-right: 8px; }
 
-        /* Smooth Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--color-gray-200); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--color-gray-300); }
-
-        /* --- LEFT COLUMN (Navigation) --- */
-        .nav-section { margin-bottom: 2.5rem; } 
-        
-        .nav-header { 
-            font-size: 0.7rem; 
-            text-transform: uppercase; 
-            color: var(--color-text-light); 
-            letter-spacing: 0.12em; 
-            margin-bottom: 0.75rem;
-            font-weight: 700; 
-            padding-left: 0.75rem;
-            opacity: 0.8;
-        }
-        
-        .nav-link { 
-            display: flex; 
-            align-items: center; 
-            gap: 0.85rem; 
-            padding: 0.75rem 1rem; 
-            color: var(--color-text-dark); 
-            text-decoration: none; 
-            border-radius: var(--radius-md); 
-            transition: all 0.2s; 
-            font-size: 0.95rem; 
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-        .nav-link:hover { 
-            background-color: var(--color-gray-100); 
-            color: var(--color-primary-accent);
-        }
-        .nav-link.active { 
-            background-color: var(--color-blue-50); 
-            color: var(--color-primary-accent); 
-            font-weight: 600;
-        }
-        
-        .nav-link.sub-link {
-            padding-left: 2.25rem;
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: var(--color-gray-600);
-        }
-        .nav-link.sub-link:hover { color: var(--color-text-dark); }
-
         /* --- CENTER COLUMN (Content) --- */
         h3 {
             font-size: var(--font-size-md);

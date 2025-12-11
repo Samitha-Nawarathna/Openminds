@@ -34,7 +34,7 @@ trait Model
 
         if (!empty($data) || !empty($data_not))
         {
-            $query .= "WHERE ";
+            $query .= " WHERE ";
 
             foreach (array_keys($data) as $key)
             {
@@ -160,4 +160,121 @@ trait Model
         return $this->query($sql, $params);
     }
 
+    public function filter_and_search(array $params)
+    {
+        // Default values
+        $offset = $params['offset'] ?? 0;
+        $limit = $params['limit'] ?? null;
+        $columns = $params['select'] ?? ['*'];
+        $where_filters = $params['where'] ?? [];
+        $where_not_filters = $params['where_not'] ?? [];
+        $range_filters = $params['range'] ?? [];
+        $like_filters = $params['like'] ?? [];
+        $order_by = $params['order_by'] ?? null;
+        $order_dir = $params['order_dir'] ?? 'ASC';
+        $unique = $params['unique'] ?? false;
+    
+        // NEW
+        $group_by = $params['group_by'] ?? [];
+        $having_filters = $params['having'] ?? [];
+    
+        // Logic Operator (Default to AND)
+        $logic_operator = isset($params['logic']) && strtoupper($params['logic']) === 'OR' ? ' OR ' : ' AND ';
+    
+        // Construct SELECT
+        $select_clause = $unique ? "SELECT DISTINCT " : "SELECT ";
+        $sql = $select_clause . implode(', ', $columns) . " FROM {$this->table}";
+        $bind_data = [];
+        $where_clauses = [];
+        $placeholder_counter = 0;
+    
+        // --- WHERE filters ---
+        foreach ($where_filters as $column => $values) {
+            if (!is_array($values)) $values = [$values];
+            if (empty($values)) continue;
+    
+            $placeholders = [];
+            foreach ($values as $value) {
+                ++$placeholder_counter;
+                $p = ":w_{$column}_{$placeholder_counter}";
+                $placeholders[] = $p;
+                $bind_data[$p] = $value;
+            }
+    
+            if (count($placeholders) === 1)
+                $where_clauses[] = "$column = {$placeholders[0]}";
+            else
+                $where_clauses[] = "$column IN (" . implode(', ', $placeholders) . ")";
+        }
+    
+        // --- WHERE NOT ---
+        foreach ($where_not_filters as $column => $values) {
+            if (!is_array($values)) $values = [$values];
+            if (empty($values)) continue;
+    
+            $placeholders = [];
+            foreach ($values as $value) {
+                ++$placeholder_counter;
+                $p = ":wn_{$column}_{$placeholder_counter}";
+                $placeholders[] = $p;
+                $bind_data[$p] = $value;
+            }
+    
+            if (count($placeholders) === 1)
+                $where_clauses[] = "$column != {$placeholders[0]}";
+            else
+                $where_clauses[] = "$column NOT IN (" . implode(', ', $placeholders) . ")";
+        }
+    
+        // --- RANGE ---
+        foreach ($range_filters as $column => $r) {
+            if (!is_array($r) || count($r) != 2) continue;
+            $pmin = ":r_{$column}_min";
+            $pmax = ":r_{$column}_max";
+            $bind_data[$pmin] = $r[0];
+            $bind_data[$pmax] = $r[1];
+            $where_clauses[] = "($column BETWEEN $pmin AND $pmax)";
+        }
+    
+        // --- LIKE ---
+        foreach ($like_filters as $column => $term) {
+            if (empty($term)) continue;
+            ++$placeholder_counter;
+            $p = ":l_{$column}_{$placeholder_counter}";
+            $where_clauses[] = "$column LIKE $p";
+            $bind_data[$p] = (strpos($term, '%') !== false) ? $term : "%$term%";
+        }
+    
+        // WHERE clause
+        if (!empty($where_clauses)) {
+            $sql .= " WHERE " . implode($logic_operator, $where_clauses);
+        }
+    
+        // --- GROUP BY (NEW) ---
+        if (!empty($group_by)) {
+            $sql .= " GROUP BY " . implode(', ', $group_by);
+        }
+    
+        // --- HAVING (NEW) ---
+        if (!empty($having_filters)) {
+            $having_clauses = [];
+            foreach ($having_filters as $expr => $value) {
+                ++$placeholder_counter;
+                $p = ":h_" . preg_replace('/[^a-zA-Z0-9_]/', '', $expr) . "_$placeholder_counter";
+                $having_clauses[] = "$expr = $p";
+                $bind_data[$p] = $value;
+            }
+            $sql .= " HAVING " . implode(' AND ', $having_clauses);
+        }
+    
+        // ORDER BY
+        if ($order_by) {
+            $sql .= " ORDER BY $order_by " . (strtoupper($order_dir) === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        // show($sql);
+    
+        return $this->query($sql, $bind_data, $limit, $offset);
+    }
+    
 }

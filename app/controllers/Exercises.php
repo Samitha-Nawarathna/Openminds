@@ -276,7 +276,10 @@ class Exercises extends Controller
     public function attempt()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Process exercise attempt submission
+            $id = $_POST['exercise_id'] ?? 1;
+            // Process submitted answers here
+
+            header('Location: '.ROOT.'/exercises/viewattempt/'.$id.'/12345');
             exit();
         }
         //check if same user is attempting again, creator attempting again etc..
@@ -1065,7 +1068,84 @@ class Exercises extends Controller
                 ]
             ]
         ]);
-    }    
+    }
+    
+    public function filter()
+    {
+        // 1. Validate Request
+        if (!$this->is_get()) {
+            $this->json_respond(['error' => 'Method not allowed']); // Uses Controller::json_respond
+        }
+
+        $exerciseModel = new ExercisesModel();
+        
+        // 2. Collect Inputs
+        $tab = $_GET['tab'] ?? 'all';
+        $search = $_GET['q'] ?? '';
+        $subject = $_GET['subject'] ?? '';
+        $sort = $_GET['sort'] ?? 'id-DESC'; // Format: "column-direction"
+        $offset = $_GET['offset'] ?? 0;
+        $limit = $_GET['limit'] ?? 5;
+        $user_id = $_SESSION['user_id'] ?? 0; // Assuming session is active
+
+        // 3. Build Filter Params for Model::filter_and_search
+        $filter_params = [
+            'select' => ['*'], // Or specific columns
+            'limit' => $limit,
+            'offset' => $offset,
+            'where' => [],
+            'like' => []
+        ];
+
+        // A. Handle "Tabs" (Business Logic)
+        if ($tab === 'created') {
+            $filter_params['where']['user_id'] = $user_id; // "Created by you"
+        } 
+        elseif ($tab === 'attempted') {
+            // Note: This might require a JOIN or a separate lookup in a real app if 'attempted' status is in another table.
+            // For this example, assuming 'relation' or similar logic exists, or we query a pivot table first.
+            // Simplified: $filter_params['where']['status'] = 'attempted'; 
+        }
+        elseif ($tab === 'pending') {
+             // Admin/Expert guard check recommended here
+             $filter_params['where']['status'] = 'pending';
+        }
+
+        // B. Handle Search (Title)
+        if (!empty($search)) {
+            $filter_params['like']['title'] = $search; // Matches Model's LIKE logic
+        }
+
+        // C. Handle Advanced Filters
+        if (!empty($subject)) {
+            $filter_params['where']['subject'] = $subject;
+        }
+
+        // D. Handle Sorting
+        if (!empty($sort)) {
+            $parts = explode('-', $sort);
+            if (count($parts) === 2) {
+                $filter_params['order_by'] = $parts[0];   // e.g., 'title'
+                $filter_params['order_dir'] = $parts[1];  // e.g., 'ASC'
+            }
+        }
+
+        // 4. Fetch Data
+        $exercises = $exerciseModel->filter_and_search($filter_params);
+
+        // 5. Check if there are more results (for Load More button)
+        // A common trick is to fetch limit + 1, then pop the last one to know if more exist.
+        // But since we are using offset/limit standard, we can just check if count == limit
+        // or run a separate count query. For simplicity here:
+        $has_more = (count($exercises) == $limit); 
+        // Note: The most accurate way is a separate count query or fetching +1.
+
+        // 6. Return JSON
+        $this->json_respond([
+            'exercises' => $exercises,
+            'has_more' => $has_more
+        ]);
+    }
 }
 
 

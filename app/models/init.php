@@ -31,3 +31,11 @@ require "Analysis.php";
 require "DashboardModel.php";
 
 require "AnnouncementModel.php";
+
+//views
+
+require "views/ExerciseSummary.php";
+require "views/NoteDetail.php";
+require "views/ProfileSummary.php";
+require "views/UserRequests.php";
+require "views/TOpicActivity.php";

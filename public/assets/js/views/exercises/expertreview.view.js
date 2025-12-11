@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     approveModalBtn.addEventListener('click', () => window.handleReviewAction('approve'));
     rejectModalBtn.addEventListener('click', () => window.handleReviewAction('reject'));
     
+    
     // Control Bar Action Handlers
     approveBtn.addEventListener('click', () => window.handleReviewAction('approve'));
     rejectBtn.addEventListener('click', () => window.handleReviewAction('reject'));

@@ -36,12 +36,15 @@ App::post('topics/api/unpin/{id}', 'TopicController@api_unpin_topic');
 //topic module api
 App::post('topics/api/create', 'TopicController@api_create');
 App::post('topics/api/filter', 'TopicController@api_filter');
-App::post('topics/api/is_name_available', 'TopicController@api_is_name_available');
+App::get('topics/api/is_name_available/{name}', 'TopicController@api_is_name_available');
 //api endpoint for generic topic filter
 //Note: api_filter is already defined above, assuming this is redundant or refers to the POST filter
 //App::get('topics/api/filter', 'TopicController@api_filter'); 
 //api endpoint for load more topics.
 App::get('topics/api/load_more', 'TopicController@api_load_more');
+// App::post('topic/api_is_name_available', 'TopicController@api_is_name_available');
+App::post('topics/api/search_notes', 'TopicController@api_search_notes');
+App::post('topics/api/move_notes_to_topic', 'TopicController@api_move_notes_to_topic');
 
 
 //tag module api
@@ -148,3 +151,8 @@ App::get('api/dashboard/exercises/created', 'Dashboard@getCreatedExercises');
 App::get('api/dashboard/exercises/answered', 'Dashboard@getAnsweredExercises');
 App::get('api/dashboard/exercises/attempt', 'Dashboard@getAttemptExercises'); // Mapping to 'Published' list
 App::get('api/dashboard/exercises/pending', 'Dashboard@getPendingReviewRequests');
+
+
+//profile browser module
+App::get('profilebrowser', 'Profilebrowser@index');
+App::post('profilebrowser/api/search_and_filter', 'Profilebrowser@api_search_and_filter');
