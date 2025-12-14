@@ -175,372 +175,415 @@
 </script>
 
 <style>
-            /* Smooth Scrollbar */
-            ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--color-gray-200); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--color-gray-300); }
+    /* ---------------------------------- */
+    /* Root Variables and General Styling */
+    /* ---------------------------------- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-gray-200); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-gray-300); }
 
-        :root {
-            --color-primary-accent: #2563eb;
-            --color-text-dark: #1f2937;
-            --color-text-light: #6b7280;
-            --color-gray-100: #f3f4f6;
-            --color-gray-600: #4b5563;
-            --color-blue-50: #eff6ff;
-            --color-border: #e5e7eb;
-            --radius-md: 0.5rem;
-            --sidebar-width: 260px;
-            --sidebar-collapsed-width: 70px;
-        }
+    :root {
+        --color-primary-accent: #2563eb;
+        --color-text-dark: #1f2937;
+        --color-text-light: #6b7280;
+        --color-gray-100: #f3f4f6;
+        --color-gray-600: #4b5563;
+        --color-blue-50: #eff6ff;
+        --color-border: #e5e7eb;
+        --radius-md: 0.5rem;
+        --sidebar-width: 260px;
+        --sidebar-collapsed-width: 70px;
+        --space-xl: 2rem;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f9fafb;
-        }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f9fafb;
+    }
 
-        .sidebar-container {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: white;
-            border-right: 1px solid var(--color-border);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            z-index: 1000;
-        }
+    /* ---------------------------------- */
+    /* Sidebar Layout and Collapsing */
+    /* ---------------------------------- */
+    .sidebar-container {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: var(--sidebar-width);
+        background: white;
+        border-right: 1px solid var(--color-border);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        z-index: 1000;
+    }
 
-        .sidebar-container.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
+    .sidebar-container.collapsed {
+        width: var(--sidebar-collapsed-width);
+    }
 
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem 1rem;
-            border-bottom: 1px solid var(--color-border);
-            height: 65px;
-        }
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        height: 65px;
+    }
 
-        .collapsed .sidebar-header {
-            justify-content: center;
-            padding: 1.25rem 0.5rem;
-        }
+    .collapsed .sidebar-header {
+        justify-content: center;
+        padding: 1.25rem 0.5rem;
+    }
 
-        .sidebar-logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--color-primary-accent);
-            white-space: nowrap;
-            opacity: 1;
-            transition: opacity 0.2s;
-        }
+    .sidebar-logo {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-primary-accent);
+        white-space: nowrap;
+        opacity: 1;
+        transition: opacity 0.2s;
+    }
 
-        .collapsed .sidebar-logo {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-        }
+    .collapsed .sidebar-logo {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+    }
 
-        .toggle-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            min-width: 32px;
-        }
+    .toggle-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        min-width: 32px;
+    }
 
-        .toggle-btn:hover {
-            background: var(--color-gray-100);
-        }
+    .toggle-btn:hover {
+        background: var(--color-gray-100);
+    }
 
-        .toggle-btn svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--color-text-dark);
-            fill: none;
-            stroke-width: 2;
-            transition: transform 0.3s;
-        }
+    .toggle-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke: var(--color-text-dark);
+        fill: none;
+        stroke-width: 2;
+        transition: transform 0.3s;
+    }
 
-        .collapsed .toggle-btn svg {
-            transform: rotate(180deg);
-        }
+    .collapsed .toggle-btn svg {
+        transform: rotate(180deg);
+    }
 
-        .sidebar-content {
-            padding: 1.5rem 1rem;
-            overflow-y: auto;
-            height: calc(100vh - 65px);
-        }
+    .sidebar-content {
+        padding: 1.5rem 1rem;
+        overflow-y: auto;
+        height: calc(100vh - 65px);
+    }
 
-        .nav-section {
-            margin-bottom: 2.5rem;
-        }
+    .nav-section {
+        margin-bottom: 2.5rem;
+    }
 
-        .nav-header {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: var(--color-text-light);
-            letter-spacing: 0.12em;
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-            padding-left: 0.75rem;
-            opacity: 0.8;
-            white-space: nowrap;
-            transition: opacity 0.2s;
-        }
+    .nav-header {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--color-text-light);
+        letter-spacing: 0.12em;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        padding-left: 0.75rem;
+        opacity: 0.8;
+        white-space: nowrap;
+        transition: opacity 0.2s;
+    }
 
-        .collapsed .nav-header {
-            opacity: 0;
-            height: 0;
-            margin: 0;
-            padding: 0;
-        }
+    .collapsed .nav-header {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            padding: 0.75rem 1rem;
-            color: var(--color-text-dark);
-            text-decoration: none;
-            border-radius: var(--radius-md);
-            transition: all 0.2s;
-            font-size: 0.95rem;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-            position: relative;
-            white-space: nowrap;
-        }
+    /* ---------------------------------- */
+    /* Navigation Links */
+    /* ---------------------------------- */
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.75rem 1rem;
+        color: var(--color-text-dark);
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        position: relative;
+        white-space: nowrap;
+        width: 100%; /* Important for submenus */
+    }
 
-        .nav-link:hover {
-            background-color: var(--color-gray-100);
-            color: var(--color-primary-accent);
-        }
+    .nav-link:hover {
+        background-color: var(--color-gray-100);
+        color: var(--color-primary-accent);
+    }
 
-        .nav-link.active {
-            background-color: var(--color-blue-50);
-            color: var(--color-primary-accent);
-            font-weight: 600;
-        }
+    .nav-link.active {
+        background-color: var(--color-blue-50);
+        color: var(--color-primary-accent);
+        font-weight: 600;
+    }
 
-        .nav-link svg {
-            min-width: 20px;
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+    .nav-link svg {
+        min-width: 20px;
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
 
-        .nav-link-text {
-            opacity: 1;
-            transition: opacity 0.2s;
-        }
+    .nav-link-text {
+        opacity: 1;
+        transition: opacity 0.2s;
+    }
 
-        .collapsed .nav-link {
-            justify-content: center;
-            padding: 0.75rem;
-        }
+    .collapsed .nav-link {
+        justify-content: center;
+        padding: 0.75rem;
+    }
 
-        .collapsed .nav-link-text {
-            opacity: 0;
-            position: absolute;
-            pointer-events: none;
-        }
+    .collapsed .nav-link-text {
+        opacity: 0;
+        position: absolute;
+        pointer-events: none;
+    }
 
-        .nav-link.sub-link {
-            padding-left: 2.25rem;
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: var(--color-gray-600);
-        }
+    /* Tooltip for collapsed state */
+    .collapsed .nav-link::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        margin-left: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--color-text-dark);
+        color: white;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 1001;
+    }
 
-        .collapsed .nav-link.sub-link {
-            padding-left: 0.75rem;
-        }
+    .collapsed .nav-link:hover::after {
+        opacity: 1;
+    }
 
-        .nav-link.sub-link:hover {
-            color: var(--color-text-dark);
-        }
+    /* ---------------------------------- */
+    /* Submenu Specific Styling (Analysis Dropdown) */
+    /* ---------------------------------- */
 
-        .admin-divider {
-            border-top: 1px solid var(--color-border);
-            margin: 1.5rem 0.5rem;
-            padding-top: 1rem;
-            transition: margin 0.3s;
-        }
+    .submenu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+        /* Use max-height for smooth transition */
+        max-height: 0; 
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .collapsed .admin-divider {
-            margin: 0.5rem 0.25rem;
-            padding-top: 0.5rem;
-        }
+    .submenu.open {
+        /* Set a value larger than the max height of all sub-links combined */
+        max-height: 500px; 
+    }
 
-        /* Tooltip for collapsed state */
-        .collapsed .nav-link::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: 100%;
-            margin-left: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            background: var(--color-text-dark);
-            color: white;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            z-index: 1001;
-        }
+    .submenu .nav-link {
+        /* Indent the sub-links */
+        padding-left: 3rem; 
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: var(--color-gray-600);
+    }
+    
+    .submenu .nav-link:hover {
+        color: var(--color-text-dark);
+    }
 
-        .collapsed .nav-link:hover::after {
-            opacity: 1;
-        }
+    /* Toggled link style (Analysis) */
+    .dropdown-toggle {
+        justify-content: flex-start; /* Keep text/icon aligned left in expanded state */
+    }
 
-        /* Main content area - no adjustment needed since sidebar is fixed */
-        .main-content {
-            padding: 2rem;
-            /* No margin-left needed - content stays in place */
-        }
+    .dropdown-icon {
+        width: 16px;
+        height: 16px;
+        margin-left: auto; /* Push icon to the right */
+        transform: rotate(0deg);
+        transition: transform 0.3s;
+    }
 
-        /* Scrollbar styling */
-        .sidebar-content::-webkit-scrollbar {
-            width: 6px;
-        }
+    .dropdown-toggle.open .dropdown-icon {
+        transform: rotate(-180deg);
+    }
+    
+    /* Adjustments for Collapsed State */
+    .collapsed .dropdown-toggle .dropdown-icon {
+        display: none; /* Hide arrow in collapsed state */
+    }
+    
+    .collapsed .submenu {
+        display: none; /* Submenu should always be hidden in collapsed main state */
+    }
+    
+    /* ---------------------------------- */
+    /* Admin Privileges */
+    /* ---------------------------------- */
+    .admin-divider {
+        border-top: 1px solid var(--color-border);
+        margin: 1.5rem 0.5rem;
+        padding-top: 1rem;
+        transition: margin 0.3s;
+    }
 
-        .sidebar-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb {
-            background: var(--color-border);
-            border-radius: 3px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb:hover {
-            background: var(--color-gray-600);
-        }
-
-        .page-wrapper
-        {
-            padding-left: var(--space-xl);
-        }
-
+    .collapsed .admin-divider {
+        margin: 0.5rem 0.25rem;
+        padding-top: 0.5rem;
+    }
 </style>
 
 
 <aside class="sidebar-container" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">Openminds</div>
-            <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M15 18l-6-6 6-6"/>
-                </svg>
-            </button>
-        </div>
+    <div class="sidebar-header">
+        <div class="sidebar-logo">Openminds</div>
+        <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+    </div>
 
-        <div class="sidebar-content">
-            <div class="nav-section">
-                <div class="nav-header">Main Menu</div>
-                <a href="<?=ROOT?>/dashboard" class="nav-link active" data-tooltip="Dashboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                        <polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
-                    <span class="nav-link-text">Dashboard</span>
+    <div class="sidebar-content">
+        <div class="nav-section">
+            <div class="nav-header">Main Menu</div>
+            
+            <a href="<?=ROOT?>/dashboard" class="nav-link" data-tooltip="Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span class="nav-link-text">Dashboard</span>
+            </a>
+            
+            <a href="<?=ROOT?>/notes" class="nav-link" data-tooltip="Notes">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span class="nav-link-text">Notes</span>
+            </a>
+            
+            <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                <span class="nav-link-text">Q & A</span>
+            </a>
+            
+            <a href="#" class="nav-link dropdown-toggle" data-tooltip="Analytics" data-dropdown-target="analysis-submenu">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <span class="nav-link-text">Analytics</span>
+                <svg class="dropdown-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </a>
+            <div class="submenu" id="analysis-submenu">
+                <a href="<?=ROOT?>/analysis" class="nav-link sub-link" data-tooltip="Overview">
+                    <span class="nav-link-text">Overview</span>
                 </a>
-                <a href="<?=ROOT?>/notes" class="nav-link" data-tooltip="Notes">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    <span class="nav-link-text">Notes</span>
+                <a href="<?=ROOT?>/analysis/reflection" class="nav-link sub-link" data-tooltip="Reflection">
+                    <span class="nav-link-text">Reflection</span>
                 </a>
-                <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                        <path d="M12 17h.01"/>
-                    </svg>
-                    <span class="nav-link-text">Q & A</span>
+                <a href="<?=ROOT?>/analysis/influence" class="nav-link sub-link" data-tooltip="Influence">
+                    <span class="nav-link-text">Influence</span>
                 </a>
-                <a href="<?=ROOT?>/analysis" class="nav-link" data-tooltip="Analytics">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                    </svg>
-                    <span class="nav-link-text">Analytics</span>
+                <a href="<?=ROOT?>/analysis/insights" class="nav-link sub-link" data-tooltip="Insights & Recommendations">
+                    <span class="nav-link-text">Insights & Recommendations</span>
                 </a>
-                <a href="<?=ROOT?>/exercises" class="nav-link" data-tooltip="Exercise">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/>
-                        <path d="m2.5 21.5 1.4-1.4"/>
-                        <path d="m20.1 3.9 1.4-1.4"/>
-                        <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/>
-                        <path d="m9.6 14.4 4.8-4.8"/>
-                    </svg>
-                    <span class="nav-link-text">Exercise</span>
+                <a href="<?=ROOT?>/analysis/systemview" class="nav-link sub-link" data-tooltip="System Overview">
+                    <span class="nav-link-text">System Overview</span>
                 </a>
             </div>
+            <a href="<?=ROOT?>/exercises" class="nav-link" data-tooltip="Exercise">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/>
+                    <path d="m2.5 21.5 1.4-1.4"/>
+                    <path d="m20.1 3.9 1.4-1.4"/>
+                    <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/>
+                    <path d="m9.6 14.4 4.8-4.8"/>
+                </svg>
+                <span class="nav-link-text">Exercise</span>
+            </a>
+        </div>
 
-            <div class="nav-section">
-                <div class="nav-header">User Management</div>
-                <a href="<?=ROOT?>/expertrequest" class="nav-link" data-tooltip="Expert Requests (My)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <circle cx="10" cy="8" r="5"/>
-                        <path d="M2 21a8 8 0 0 1 14 0"/>
-                        <path d="m18.5 17.5 4.5 4.5"/>
-                    </svg>
-                    <span class="nav-link-text">Expert Requests (My)</span>
-                </a>
+        <div class="nav-section">
+            <div class="nav-header">User Management</div>
+            <a href="<?=ROOT?>/expertrequest" class="nav-link" data-tooltip="Expert Requests (My)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="10" cy="8" r="5"/><path d="M2 21a8 8 0 0 1 14 0"/><path d="m18.5 17.5 4.5 4.5"/></svg>
+                <span class="nav-link-text">Expert Requests (My)</span>
+            </a>
 
+            <?php if ($nav_role === "admin"): ?>
                 <div class="admin-divider">
                     <div class="nav-header">Admin Privileges</div>
-                    <a href="<?=ROOT?>/expertrequestadmin" class="nav-link nav-link" data-tooltip="Expert Requests (Admin)">
+                    <a href="<?=ROOT?>/expertrequestadmin" class="nav-link" data-tooltip="Expert Requests (Admin)">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
                             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                            <path d="M12 11h4"/>
-                            <path d="M12 16h4"/>
-                            <path d="M8 11h.01"/>
-                            <path d="M8 16h.01"/>
-                        </svg>
+                            <path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
                         <span class="nav-link-text">Expert Requests (Admin)</span>
                     </a>
-                    <a href="<?=ROOT?>/profileadmin" class="nav-link nav-link" data-tooltip="User Profiles">
+                    <a href="<?=ROOT?>/profileadmin" class="nav-link" data-tooltip="User Profiles">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                         <span class="nav-link-text">User Profiles</span>
                     </a>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
-    </aside>
+    </div>
+</aside>
 
 
-    <script>
-    const sidebar = document.getElementById('sidebar');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('toggleBtn');
+        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const currentPath = window.location.pathname;
+        
+        // --- Sidebar Collapse/Expand Logic ---
+        
+        // Restore saved state on page load
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
 
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
@@ -548,15 +591,81 @@
             // Save state to localStorage
             const isCollapsed = sidebar.classList.contains('collapsed');
             localStorage.setItem('sidebarCollapsed', isCollapsed);
-        });
-
-        // Restore saved state on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedState = localStorage.getItem('sidebarCollapsed');
-            if (savedState === 'true') {
-                sidebar.classList.add('collapsed');
+            
+            // If collapsing, ensure all submenus are closed (UX clean up)
+            if (isCollapsed) {
+                 document.querySelectorAll('.submenu.open').forEach(submenu => {
+                    submenu.classList.remove('open');
+                });
+                document.querySelectorAll('.dropdown-toggle.open').forEach(toggle => {
+                    toggle.classList.remove('open');
+                });
             }
         });
+        
+        // --- Submenu Collapse/Expand Logic ---
+        
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                // Ignore click if the sidebar is collapsed (let tooltip handle it)
+                if (sidebar.classList.contains('collapsed')) return;
+                
+                e.preventDefault(); 
+                
+                const targetId = toggle.getAttribute('data-dropdown-target');
+                const targetSubmenu = document.getElementById(targetId);
+                
+                if (targetSubmenu) {
+                    const isOpening = !targetSubmenu.classList.contains('open');
+                    
+                    // Collapse any other open submenus
+                    document.querySelectorAll('.submenu.open').forEach(submenu => {
+                        if (submenu !== targetSubmenu) {
+                            submenu.classList.remove('open');
+                        }
+                    });
+                    
+                    // Remove 'open' class from all other toggles
+                    document.querySelectorAll('.dropdown-toggle.open').forEach(t => {
+                        if (t !== toggle) {
+                            t.classList.remove('open');
+                        }
+                    });
 
-    </script>
-
+                    // Toggle the state of the clicked submenu
+                    if (isOpening) {
+                        targetSubmenu.classList.add('open');
+                        toggle.classList.add('open');
+                    } else {
+                        targetSubmenu.classList.remove('open');
+                        toggle.classList.remove('open');
+                    }
+                }
+            });
+        });
+        
+        // --- Active Link Logic ---
+        
+        navLinks.forEach(link => {
+            const linkHref = link.href.split('?')[0]; // Remove query params for comparison
+            const currentPathStripped = currentPath.replace(/\/$/, ''); // Remove trailing slash
+            
+            // Check for exact match (e.g., /dashboard)
+            if (linkHref === currentPathStripped) {
+                link.classList.add('active');
+            }
+        });
+        
+        // If a sub-link is active, ensure its parent dropdown is open on load
+        const activeSubLink = document.querySelector('.submenu .nav-link.active');
+        if (activeSubLink) {
+            const parentSubmenu = activeSubLink.closest('.submenu');
+            const parentToggle = document.querySelector(`.dropdown-toggle[data-dropdown-target="${parentSubmenu.id}"]`);
+            
+            if (parentSubmenu && parentToggle) {
+                parentSubmenu.classList.add('open');
+                parentToggle.classList.add('open');
+            }
+        }
+    });
+</script>
