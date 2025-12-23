@@ -1,7 +1,31 @@
 import {ROOT} from '../../core/config.js';
 
-const MOCK_API_SAVE_URL = ROOT + 'exercises/save';
-const MOCK_API_SUBMIT_URL = ROOT + 'exercises/create';
+const MOCK_API_SAVE_URL = ROOT + 'exercises/api/save_draft';
+const MOCK_API_SUBMIT_URL = ROOT + 'api/exercises/create';
+
+// Helper to safely read content from Quill-editor-like elements
+function getEditorContent(id) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    // Quill-like web component stores initial content in attribute 'content'
+    if (el.value !== undefined) return el.value;
+    if (el.getAttribute && el.getAttribute('content') !== null) return el.getAttribute('content');
+    return el.innerText || '';
+}
+
+// Helper to set content on Quill-like editors or inputs
+function setEditorContent(id, content) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.value !== undefined) {
+        el.value = content;
+    }
+    if (el.setAttribute) {
+        el.setAttribute('content', content);
+    }
+    // last-resort fallback
+    el.innerText = content;
+} 
 
 // --- GLOBAL STATE ---
 let EXERCISE_METADATA = {};
@@ -94,8 +118,12 @@ function generateOptionHtml(index, text = '', isCorrect = false) {
 }
 
 function renderOptions(options = [{text: '', isCorrect: true}, {text: '', isCorrect: false}]) {
-    optionsContainer.innerHTML = options.map((opt, index) => generateOptionHtml(index, opt.text, opt.isCorrect)).join('');
-}
+    optionsContainer.innerHTML = options.map((opt, index) => {
+        const text = opt.text ?? opt.answer_text ?? '';
+        const isCorrect = opt.isCorrect ?? opt.is_correct ?? false;
+        return generateOptionHtml(index, text, isCorrect);
+    }).join('');
+} 
 
 window.removeOption = function(el, index) {
     if (optionsContainer.children.length > 2) {
@@ -112,28 +140,28 @@ document.getElementById('add-option-btn').addEventListener('click', () => {
 
 function saveCurrentQuestion() {
     const qId = document.getElementById('current-q-id').value;
-    const prompt = document.getElementById('q-prompt-input').value.trim();
-    const explanation = document.getElementById('q-explanation-input').value.trim();
+    const prompt = getEditorContent('q-prompt-input').trim();
+    const explanation = getEditorContent('q-explanation-input').trim();
     const weight = parseInt(document.getElementById('q-weight-input').value);
     
-    if (!prompt || !explanation || isNaN(weight)) {
-        alert('Please fill out the prompt, explanation, and weight.');
+    if (!prompt || !explanation || isNaN(weight) || weight < 1) {
+        alert('Please fill out the prompt, explanation, and weight (>=1).');
         return false;
     }
 
     const options = Array.from(optionsContainer.children).map((div, index) => ({
-        text: div.querySelector(`#option-text-${index}`).value,
-        isCorrect: div.querySelector(`input[name="correct-option"]`).checked, // Assumes radio for simplicity
+        answer_text: (div.querySelector(`#option-text-${index}`) ? getEditorContent(`option-text-${index}`) : '').trim(),
+        is_correct: !!div.querySelector(`input[name="correct-option"]`).checked,
     }));
     
-    if (options.filter(o => o.isCorrect).length === 0) {
+    if (options.filter(o => o.is_correct).length === 0) {
         alert('Please select at least one correct answer.');
         return false;
     }
 
     const newQ = {
         id: qId ? parseInt(qId) : nextQId++,
-        prompt,
+        question_text: prompt,
         explanation,
         weight,
         options,
@@ -158,14 +186,14 @@ function loadQuestion(index) {
     const q = EXERCISE_QUESTIONS[index];
     
     document.getElementById('current-q-id').value = q.id;
-    document.getElementById('q-prompt-input').value = q.prompt;
-    document.getElementById('q-explanation-input').value = q.explanation;
-    document.getElementById('q-weight-input').value = q.weight;
+    setEditorContent('q-prompt-input', q.question_text ?? q.prompt ?? '');
+    setEditorContent('q-explanation-input', q.explanation ?? '');
+    document.getElementById('q-weight-input').value = q.weight ?? 1;
     document.getElementById('current-q-title').textContent = `Question Editor: Q${index + 1}`;
     
-    renderOptions(q.options);
+    renderOptions(q.options ?? []);
     updateBuilderUI();
-}
+} 
 
 window.loadQuestion = loadQuestion;
 
@@ -183,12 +211,16 @@ function addNewQuestion() {
 }
 
 function renderQuestionList() {
-    qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => `
+    qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => {
+        const preview = (q.question_text ?? q.prompt ?? '').replace(/\s+/g, ' ');
+        const short = preview.length > 30 ? preview.substring(0, 30) + '...' : preview;
+        return `
         <div class="question-item ${index === currentQIndex ? 'active' : ''}" onclick="window.loadQuestion(${index})">
-            <span>Q${index + 1}: ${q.prompt.substring(0, 30)}...</span>
+            <span>Q${index + 1}: ${short}</span>
             <button type="button" class="btn-none" onclick="event.stopPropagation(); deleteQuestion(${index})">🗑️</button>
         </div>
-    `).join('');
+    `;
+    }).join('');
     document.getElementById('q-count-status').textContent = `(${EXERCISE_QUESTIONS.length})`;
 }
 
@@ -277,16 +309,42 @@ document.getElementById('cancel-submit-btn').addEventListener('click', () => {
     submitModal.style.display = 'none';
 });
 
-document.getElementById('confirm-submit-btn').addEventListener('click', () => {
-    console.log('API: Submitting FINAL exercise for review...', {metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS});
-    fetch(MOCK_API_SUBMIT_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS}),
-    })
-    alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
-    // In a real app: Redirect to the dashboard or a success page.
-    // window.location.href = '<?= $ROOT ?>/dashboard';
+document.getElementById('confirm-submit-btn').addEventListener('click', async () => {
+    if (!EXERCISE_METADATA.title) {
+        alert('Please provide exercise details before submitting.');
+        return;
+    }
+
+    const payload = {
+        metadata: {
+            title: EXERCISE_METADATA.title,
+            subject: EXERCISE_METADATA.subject,
+            description: EXERCISE_METADATA.description || null,
+            tags: EXERCISE_METADATA.tags || ''
+        },
+        questions: EXERCISE_QUESTIONS
+    };
+
+    try {
+        const res = await fetch(MOCK_API_SUBMIT_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+
+        if (res.status === 201 || (result && result.success)) {
+            alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions.`);
+            // Optionally redirect or clear UI
+            // window.location.href = ROOT + '/dashboard';
+        } else {
+            alert('Error: ' + (result.message || 'Unknown error from server.'));
+        }
+    } catch (err) {
+        console.error('Submission error', err);
+        alert('Submission failed due to a network error.');
+    }
 });
 
 
