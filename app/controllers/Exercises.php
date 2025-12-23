@@ -57,218 +57,193 @@ class Exercises extends Controller
         $this->view('exercises/browser', $data);
     }
 
-//     Array
-// (
-//     [exercise_id] => new
-//     [question_order] => q_umi95lpmgvx1px0,q_ao6tgqfmgvx1v1p
-//     [exercise_title] => Test exercise
-//     [subject_name] => art
-//     [tags] => science,art,maths
-//     [questions_data] => [{"id":"q_umi95lpmgvx1px0","question_text":"q1","answer_type":"multiple_choice","options":["Option A","Option B"]},{"id":"q_ao6tgqfmgvx1v1p","question_text":"q2","answer_type":"multiple_choice","options":["Option A","Option B"]}]
-// )
 
-// public function create()
-//     {
-//         //validate if user is a mentor
-
-
-//         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//             // Process form submission to create a new exercise
-//             $exercise_title = $_POST['exercise_title'] ?? '';
-//             $subject_name = $_POST['subject_name'] ?? '';
-//             $tag_string = $_POST['tags'] ?? '';
-
-
-
-//             $question_order = $_POST['question_order'] ?? '';
-//             // NOTE: We need to decode the JSON as an associative array (true) for better iteration
-//             $questions_data = json_decode($_POST['questions_data'], true) ?? [];
-
-//             // Validate required fields
-//             if (empty($exercise_title)) {
-//                 // Handle validation error (e.g., redirect back with error message)
-//                 header('Location: '.ROOT.'/exercises/create?message=Exercise title is required');
-//                 exit();
-//             }
-
-
-//             //load required models
-//             $exercises = new ExercisesModel;
-//             $tags = new Tags;
-//             $exercise_tag = new ExerciseTag;
-//             $subject = new Subjects;
-//             $exercisequestion = new Exercisequestion;
-//             $exerciseanswer = new Exerciseanswer;
-
-//             //check if subject exists, if not show error message
-//             $subject_data = $subject->first(['name' => $subject_name]);
-//             if (!$subject_data) {
-//                 header('Location: '.ROOT.'/exercises/create?message=Subject does not exist');
-//                 exit();
-//             }
-
-//             $current_user_id = $_SESSION['user_id'] ?? null;
-//             //create new exercise
-//             $new_exercise_id = $exercises->insert([
-//                 'title' => $exercise_title,
-//                 'subject_id' => $subject_data->id,
-//                 'creator_id' => $current_user_id, // Replace with actual logged-in user ID
-//                 'status' => 'pending', // New exercises are pending review
-//                 'created_at' => date('Y-m-d H:i:s')
-//             ]);
-
-//             //for all tags check if exists, if not create new tag and add to questiontag
-//             $tag_list = array_map('trim', explode(',', $tag_string));
-//             $tag_ids = [];
-//             foreach ($tag_list as $tag_name) {
-//                 $tag_data = $tags->first(['name' => $tag_name]);
-//                 if (!$tag_data) {
-//                     // Create new tag
-//                     $new_tag_id = $tags->insert(['name' => $tag_name]);
-//                     $tag_ids[] = $new_tag_id;
-//                 } else {
-//                     $tag_ids[] = $tag_data->id;
-//                 }
-    
-//             }
-
-//             //insert all tagids with exercise id to exercisetag
-//             foreach ($tag_ids as $tag_id) {
-//                 $exercise_tag->insert([
-//                     'exercise_id' => $new_exercise_id,
-//                     'tag_id' => $tag_id
-//                 ]);
-//             }
-
-//             // Insert questions and answers (UPDATED LOGIC)
-//             foreach ($questions_data as $question_data) {
-//                 $new_question_id = $exercisequestion->insert([
-//                     'exercise_id' => $new_exercise_id,
-//                     'question_text' => $question_data['question_text'],
-//                     // Note: You might also want to save question_data['answer_type'] if your schema supports it
-//                 ]);
-
-//                 // Extract the array of correct indices, defaulting to an empty array
-//                 $correct_indices = $question_data['correct_indices'] ?? []; 
-
-//                 // Use the option index as a counter
-//                 foreach ($question_data['options'] as $option_index => $option_text) {
-                    
-//                     // Check if the current option index is in the correct_indices array
-//                     $is_correct = in_array($option_index, $correct_indices) ? 1 : 0;
-
-//                     $exerciseanswer->insert([
-//                         'question_id' => $new_question_id,
-//                         'answer_text' => $option_text,
-//                         'is_correct' => $is_correct // Now correctly marked as 1 or 0
-//                     ]);
-//                 }
-//             }
-
-//             header('Location: '.ROOT.'/exercises/show?id='.$new_exercise_id);
-//             exit();
-
-
-            
-
-
-
-//         } else {
-//             // Show the create exercise form
-//             $this->view('exercises/create');
-//         }
-//     }
 
     public function create(){
-        // 1. If it's a GET request, display the creation form (the HTML/JS view).
-        if ($_SERVER["REQUEST_METHOD"] == "GET") {
-            $this->view('exercises/create'); // Use the new HTML view file
+        // GET: show the editor page
+        if ($this->is_get()) {
+            $this->view('exercises/create');
             return;
         }
 
-        // 2. If it's a POST request (from the AJAX submission in create.view.js)
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $current_user = $_SESSION['user_id'] ?? null;
-            
-            // --- A. Read and Decode the JSON Payload ---
-            $json_data = file_get_contents('php://input');
-            $data = json_decode($json_data, true);
+        // POST to /exercises/create (non-API form submit) - keep behavior minimal for now
+        if ($this->is_post()) {
+            // If called as a normal form post, redirect to the view (not used by SPA)
+            header('Location: '.ROOT.'/exercises/create');
+            exit;
+        }
+    }
 
-            // Basic validation
-            if (empty($data['metadata']) || empty($data['questions']) || empty($current_user)) {
+    /**
+     * API: POST /api/exercises/create
+     * Accepts JSON body and inserts exercise, questions, answers, and tags in a single transaction.
+     */
+    public function api_create()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
+            return;
+        }
+
+        $data = $this->json_request();
+        // $current_user = $_SESSION['user_id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? 2;
+
+        // Require authentication
+        // if (!$current_user) {
+        //     http_response_code(401);
+        //     echo json_encode(['success' => false, 'message' => 'Authentication required to create exercises.']);
+        //     return;
+        // }
+
+        $metadata = $data['metadata'] ?? null;
+        $questions = $data['questions'] ?? null;
+
+        if (empty($metadata) || empty($metadata['title']) || empty($metadata['subject']) || !is_array($questions)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid request: missing required metadata or questions.']);
+            return;
+        }
+
+        if (count($questions) < 3) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'An exercise must have at least 3 questions.']);
+            return;
+        }
+
+        // Validate questions and options
+        foreach ($questions as $qi => $q) {
+            $q_text = trim($q['question_text'] ?? $q['prompt'] ?? '');
+            $q_expl = trim($q['explanation'] ?? '');
+            $weight = isset($q['weight']) ? intval($q['weight']) : 0;
+            $opts = $q['options'] ?? [];
+
+            if ($q_text === '' || $q_expl === '' || $weight < 1) {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Invalid data or user not logged in.']);
+                echo json_encode(['success' => false, 'message' => "Invalid question at index $qi: ensure question_text, explanation and weight >= 1 are provided."]); 
                 return;
             }
 
-            // --- B. Model Initialization (Updated for Exercise structure) ---
-            $exercise = new ExerciseModel;
-            $question_model = new ExerciseQuestionModel; // Represents a question within an exercise
-            $option_model = new QuestionOptionModel;     // Represents an option/answer
-            $tags = new Tags;
-            $exercise_tag = new ExerciseTag; // New model to link exercises and tags
-
-            try {
-                // --- C. Save Exercise Metadata (The container) ---
-                $metadata = $data['metadata'];
-                $exercise_id = $exercise->insert([
-                    'title'       => $metadata['title'],
-                    'subject'     => $metadata['subject'], // New field from UX flow
-                    'description' => $metadata['description'], // New field from UX flow
-                    'creator_id'  => $current_user,
-                    'status'      => 'pending_review', // Default status for new exercises
-                    'created_at'  => date('Y-m-d H:i:s')
-                ]);
-
-                // --- D. Save Tags (Linked to the Exercise) ---
-                $tags_list = explode(',', $metadata['tags']);
-                foreach ($tags_list as $tag_name) {
-                    $tag_name = trim($tag_name);
-                    if ($tag_name) {
-                        $tag = $tags->first(['name' => $tag_name]);
-                        $tag_id = $tag ? $tag->id : $tags->insert(['name' => $tag_name]);
-                        
-                        // Associate tag with the new exercise (not just a single 'question')
-                        $exercise_tag->insert(['exercise_id' => $exercise_id, 'tag_id' => $tag_id]);
-                    }
-                }
-
-                // --- E. Loop and Save All Questions and Options ---
-                foreach ($data['questions'] as $q_data) {
-                    
-                    // 1. Save the Question
-                    $question_id = $question_model->insert([
-                        'exercise_id' => $exercise_id,
-                        'prompt'      => $q_data['prompt'],
-                        'explanation' => $q_data['explanation'],
-                        'weight'      => $q_data['weight'],
-                        'q_type'      => 'multi_choice', // Infer or pass type
-                        'order_index' => $q_data['order_index'] ?? 0 // Maintain order
-                    ]);
-
-                    // 2. Save the Options/Answers for this question
-                    foreach ($q_data['options'] as $option) {
-                        $option_model->insert([
-                            'question_id' => $question_id,
-                            'content'     => $option['text'],
-                            'is_correct'  => $option['isCorrect'] ? 1 : 0
-                        ]);
-                    }
-                }
-
-                // --- F. Return Success Response ---
-                http_response_code(201); // Created
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Exercise submitted for review successfully.',
-                    'id'      => $exercise_id
-                ]);
-
-            } catch (\Exception $e) {
-                // Handle database or application errors
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Server error during submission.']);
+            if (!is_array($opts) || count($opts) < 2) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => "Question at index $qi must have at least two options."]); 
+                return;
             }
+
+            $hasCorrect = false;
+            foreach ($opts as $opt) {
+                if (!isset($opt['answer_text']) && !isset($opt['text'])) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => "Each option must include answer_text/text for question index $qi."]); 
+                    return;
+                }
+                if (!empty($opt['is_correct']) || !empty($opt['isCorrect'])) $hasCorrect = true;
+            }
+
+            if (!$hasCorrect) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => "Please mark at least one correct option for question index $qi."]); 
+                return;
+            }
+        }
+
+        // Good to go --- perform DB operations in a transaction
+        try {
+            // Create PDO and begin transaction
+            $pdo = new PDO("mysql:host=".DBHOST.";dbname=".DBNAME.";charset=utf8mb4", DBUSER, DBPASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo->beginTransaction();
+
+            // Resolve or create subject
+            $subjects = new Subjects();
+            $subject_name = trim($metadata['subject']);
+            // Use helper in Subjects model to add or find
+            $subject_id = $subjects->add_new_subject($subject_name);
+
+            // Insert exercise
+            $stmt = $pdo->prepare("INSERT INTO exercises (subject_id, title, description, creator_id, status, created_at) VALUES (:subject_id, :title, :description, :creator_id, :status, :created_at)");
+            $stmt->execute([
+                ':subject_id' => $subject_id,
+                ':title' => $metadata['title'],
+                ':description' => $metadata['description'] ?? null,
+                ':creator_id' => $current_user,
+                ':status' => 'pending',
+                ':created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $exercise_id = $pdo->lastInsertId();
+
+            // Tags
+            $tags_string = $metadata['tags'] ?? '';
+            $tags_array = array_filter(array_map('trim', explode(',', $tags_string)));
+
+            foreach ($tags_array as $tag_name) {
+                // Find or create tag
+                $tagStmt = $pdo->prepare("SELECT id FROM tags WHERE name = :name LIMIT 1");
+                $tagStmt->execute([':name' => $tag_name]);
+                $tagRow = $tagStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($tagRow) {
+                    $tag_id = $tagRow['id'];
+                } else {
+                    $insTag = $pdo->prepare("INSERT INTO tags (name) VALUES (:name)");
+                    $insTag->execute([':name' => $tag_name]);
+                    $tag_id = $pdo->lastInsertId();
+                }
+
+                // Insert relation (exercisetag)
+                $insRel = $pdo->prepare("INSERT INTO exercisetag (exercise_id, tag_id) VALUES (:exercise_id, :tag_id)");
+                $insRel->execute([':exercise_id' => $exercise_id, ':tag_id' => $tag_id]);
+            }
+
+            // Insert questions and options
+            $qStmt = $pdo->prepare("INSERT INTO exercisequestion (question_text, explanation, weight, exercise_id, display_order) VALUES (:question_text, :explanation, :weight, :exercise_id, :display_order)");
+            $optStmt = $pdo->prepare("INSERT INTO exerciseanswer (answer_text, is_correct, display_order, question_id) VALUES (:answer_text, :is_correct, :display_order, :question_id)");
+
+            foreach ($questions as $qi => $q) {
+                $question_text = trim($q['question_text'] ?? $q['prompt']);
+                $explanation = trim($q['explanation']);
+                $weight = intval($q['weight']);
+
+                $qStmtParams = [
+                    ':question_text' => $question_text,
+                    ':explanation' => $explanation,
+                    ':weight' => $weight,
+                    ':exercise_id' => $exercise_id,
+                    ':display_order' => $qi
+                ];
+
+                $qStmt->execute($qStmtParams);
+                $question_id = $pdo->lastInsertId();
+
+                $opts = $q['options'];
+                foreach ($opts as $oi => $opt) {
+                    $answer_text = trim($opt['answer_text'] ?? $opt['text']);
+                    $is_correct = (!empty($opt['is_correct']) || !empty($opt['isCorrect'])) ? 1 : 0;
+
+                    $optStmt->execute([
+                        ':answer_text' => $answer_text,
+                        ':is_correct' => $is_correct,
+                        ':display_order' => $oi,
+                        ':question_id' => $question_id
+                    ]);
+                }
+            }
+
+            $pdo->commit();
+
+            http_response_code(201);
+            echo json_encode(['success' => true, 'message' => 'Exercise created successfully', 'id' => $exercise_id]);
+            return;
+
+        } catch (Exception $e) {
+            if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+            // Log detailed error for server logs
+            error_log('Exercise creation error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            // Return a useful message in development to aid debugging
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Database error while creating exercise', 'error' => $e->getMessage()]);
+            return;
         }
     }
 
