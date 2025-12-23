@@ -7,7 +7,7 @@
     // Mock PHP placeholders for root paths (assumes standard framework setup)
     $ROOT = ''; 
     $MOCK_API_SAVE_URL = $ROOT . '/exercises/api/save_draft';
-    $MOCK_API_SUBMIT_URL = $ROOT . '/exercises/api/submit';
+    $MOCK_API_SUBMIT_URL = $ROOT . '/api/exercises/create';
 
     include_once "../app/views/partials/header.view.php";
 ?>
