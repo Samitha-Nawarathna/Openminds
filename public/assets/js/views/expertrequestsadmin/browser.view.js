@@ -1,63 +1,92 @@
 import { get_content } from '../../ajax/expertrequestsadmin/browser.ajax.js';
 
-let btns = document.querySelectorAll('.tab-btns .button');
-let cards = document.querySelectorAll('.content-tab');
+// UI Elements
+const searchInput = document.getElementById('exercise-filter-input');
+const tabButtons = document.querySelectorAll('.tab-button');
+const contentContainer = document.getElementById('results-target');
+const filterToggleBtn = document.getElementById('filter-toggle-btn');
+const filterModal = document.getElementById('advanced-filter-modal');
+const applyFiltersBtn = document.getElementById('apply-advanced-filters');
+const loadMoreBtn = document.getElementById('load-more-btn');
 
-let primary = 'btn-primary';
-let none = 'btn-none';
+// State Management
+let tableState = {
+    review: 'pending', // Default tab
+    search: '',
+    subject: '',
+    sort: 'request_id',
+    dir: 'DESC',
+    limit: 10,
+    offset: 0
+};
 
-btns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    btns.forEach(el => {
-      el.classList.remove(primary);
-      el.classList.add(none);
-      });
-    btn.classList.add(primary);
-    btn.classList.remove(none);
-  });
+let debounceTimer;
+
+/**
+ * Refreshes the table. 
+ * If append is true, it adds to the list (pagination), otherwise it replaces.
+ */
+async function refreshTable(append = false) {
+    if (!append) {
+        tableState.offset = 0;
+        contentContainer.innerHTML = '<div class="loader">Refreshing results...</div>';
+    }
+
+    const data = await get_content(tableState);
+    
+    if (append) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = data.html;
+        while (tempDiv.firstChild) contentContainer.appendChild(tempDiv.firstChild);
+    } else {
+        contentContainer.innerHTML = data.html;
+    }
+
+    // Toggle Load More button based on backend metadata
+    loadMoreBtn.parentElement.style.display = data.has_more ? 'block' : 'none';
+}
+
+// 1. Toggle Filter Modal
+filterToggleBtn.addEventListener('click', () => {
+    filterModal.classList.toggle('hidden');
 });
 
-let index2type = {0: "pending", 1: "approved", 2: "rejected"};
-
-let currentIndex = 0;
-let type = index2type[currentIndex];
-
-get_content(type, 0, 10).then(content => {
-    cards[currentIndex].innerHTML = content;
+// 2. Search Input (Debounced)
+searchInput.addEventListener('input', (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        tableState.search = e.target.value;
+        refreshTable();
+    }, 450);
 });
 
-
-btns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const targetIndex = parseInt(btn.dataset.index);
-    if (targetIndex === currentIndex) return;
-
-    const direction = targetIndex > currentIndex ? 1 : -1;
-
-    const currentCard = cards[currentIndex];
-    const nextCard = cards[targetIndex];
-
-    nextCard.classList.add("incoming");
-    type = index2type[targetIndex];
-
-    get_content(type, 0, 10).then(content => {
-        nextCard.innerHTML = content;
+// 3. Tab Switching (Status Filter)
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tableState.review = btn.dataset.status;
+        refreshTable();
     });
+});
 
+// 4. Advanced Filters Application
+applyFiltersBtn.addEventListener('click', () => {
+    tableState.subject = document.getElementById('subject-filter').value;
+    tableState.sort = document.getElementById('sort-by').value;
+    tableState.dir = document.getElementById('sort-dir').value;
+    
+    filterModal.classList.add('hidden'); // Close modal
+    refreshTable();
+});
 
-    currentCard.classList.remove("active");
-    currentCard.classList.add(direction === 1 ? "out-forward" : "out-backward");
+// 5. Load More Pagination
+loadMoreBtn.addEventListener('click', () => {
+    tableState.offset += tableState.limit;
+    refreshTable(true);
+});
 
-    requestAnimationFrame(() => {
-      nextCard.classList.remove("incoming");
-      nextCard.classList.add("active");
-
-
-      setTimeout(() => {
-        currentCard.classList.remove("out-forward", "out-backward");
-      }, 500);
-    });
-
-    currentIndex = targetIndex;
-  });
+// Initial Load
+document.addEventListener('DOMContentLoaded', () => {
+    refreshTable();
 });

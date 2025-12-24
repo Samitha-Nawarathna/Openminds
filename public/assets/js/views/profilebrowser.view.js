@@ -3,157 +3,144 @@ import { get_content } from '../ajax/profilebrowser.ajax.js';
 let btns = document.querySelectorAll('.tab-button');
 let cards = document.querySelectorAll('.content-tab');
 
-// ----------------------------------------------------
-// 1. STATE MANAGEMENT
-// ----------------------------------------------------
-let index2type = {0: "active", 1: "banned"};
 let currentIndex = 0;
-
-// Global state object to manage all dynamic parameters
 let state = {
-  type: index2type[currentIndex], 
+  banned: 0, 
   searchTerm: '', 
   limit: 10,
   offset: 0,
-  searchTimeout: null, // For debouncing the search input
-  
-  // Base filters that are always included in the backend request
+  searchTimeout: null,
+  isLoading: false,
+  roles: [],
+  dateStart: null,
+  dateEnd: null,
+  orderBy: 'created_at',
+  orderDir: 'DESC',
   baseFilters: {
-    'select': ['profile_id', 'username', 'display_name', 'role_name', 'subject_name', 'created_at'],
-    'where_not': { 'display_name': 'Guest User' },
-    'order_by': 'subject_name',
-    'order_dir': 'ASC',
+    'select': ['profile_id', 'username', 'display_name', 'role_name', 'subject_name', 'created_at', 'banned'],
+    'where_not': { 'display_name': 'Guest User' }
   }
 };
 
-// ----------------------------------------------------
-// 2. CORE DATA LOADER FUNCTION
-// ----------------------------------------------------
+function showSkeleton(container, append = false) {
+    const skeletonHTML = `<div class="skeleton-loader"></div>`.repeat(3);
+    if (append) {
+        container.insertAdjacentHTML('beforeend', `<div id="loading-spinner">${skeletonHTML}</div>`);
+    } else {
+        container.innerHTML = skeletonHTML;
+    }
+}
 
-// Core function to construct parameters, fetch content, and render/append it
-function loadProfiles() {
-    // 1. Start with base filters
+function loadProfiles(appendMode = false) {
+    if (state.isLoading) return;
+    state.isLoading = true;
+
+    const container = cards[currentIndex];
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    
+    if (!appendMode) {
+        showSkeleton(container);
+        loadMoreBtn.style.display = 'none';
+    } else {
+        showSkeleton(container, true);
+    }
+
     let backendParams = {
         ...state.baseFilters,
         offset: state.offset,
         limit: state.limit,
-        // Ensure 'where' clause is always initialized for dynamic filtering
-        'where': { ...state.baseFilters.where }, 
+        order_by: state.orderBy,
+        order_dir: state.orderDir,
+        where: { 'banned': state.banned },
+        like: {},
+        range: {}
     };
 
-    // 2. Add dynamic filters based on the current tab (state.type)
-    // NOTE: This assumes your database has a 'status' column (active/banned).
-    if (state.type === 'banned') {
-        // Example: When on the 'banned' tab, filter by status='banned'
-        backendParams['where']['banned'] = 1;
-    } else {
-        // Example: When on the 'active' tab, filter by status='active' AND role='expert'
-        backendParams['where']['banned'] = 0; 
-    }
+    if (state.searchTerm) backendParams.like['display_name'] = state.searchTerm;
+    if (state.roles.length > 0) backendParams.where['role_name'] = state.roles;
+    if (state.dateStart && state.dateEnd) backendParams.range['created_at'] = [state.dateStart, state.dateEnd];
 
-    // 3. Add dynamic search term (Username Search)
-    if (state.searchTerm) {
-        // Uses the 'like' filter in Model.php to search the 'username' column
-        backendParams['like'] = {
-            'username': state.searchTerm
-        };
-    }
-    
-    // Determine if we are loading the first page or appending content (for Load More)
-    const appendMode = state.offset > 0;
-    
-    // Show loading indicator here before the API call if needed
-    
-    // Call the AJAX function to fetch data
-    get_content(backendParams, appendMode) 
-        .then(content => {
-            const currentCard = cards[currentIndex];
+    get_content(backendParams, appendMode)
+        .then((res) => {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.remove();
+
             if (appendMode) {
-                // Append results for "Load More"
-                currentCard.insertAdjacentHTML('beforeend', content);
+                container.insertAdjacentHTML('beforeend', res);
             } else {
-                // Overwrite content for initial load, tab switch, or new search
-                currentCard.innerHTML = content;
+                container.innerHTML = res;
             }
+
+            // Simple logic to hide load more if we likely reached the end
+            const resultsCount = (res.match(/class="profile-item"/g) || []).length;
+            loadMoreBtn.style.display = resultsCount < state.limit ? 'none' : 'block';
+        })
+        .finally(() => {
+            state.isLoading = false;
         });
 }
 
-// ----------------------------------------------------
-// 3. EVENT LISTENERS
-// ----------------------------------------------------
-
-let primary = 'btn-primary';
-let none = 'btn-none';
-
-// A. Tab Navigation Event Handling
-btns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    // Remove active styles from all buttons
-    btns.forEach(el => {
-      el.classList.remove(primary);
-      el.classList.add(none);
-    });
-    // Add active styles to the clicked button
-    btn.classList.add(primary);
-    btn.classList.remove(none);
-    
-    const targetIndex = parseInt(btn.dataset.index);
-    if (targetIndex === currentIndex) return;
-
-    // Transition logic (reusing existing animation class)
-    const direction = targetIndex > currentIndex ? 1 : -1;
-    const currentCard = cards[currentIndex];
-    const nextCard = cards[targetIndex];
-
-    nextCard.classList.add("incoming");
-    
-    // 1. Update the state for the new tab
-    state.type = index2type[targetIndex];
-    state.offset = 0; // RESET PAGINATION
-    state.searchTerm = document.getElementById('exercise-filter-input').value; // Keep current search term
-
-    // 2. Load profiles with the new state
-    loadProfiles(); 
-
-    // Handle card transition animation completion
-    nextCard.classList.add(`move-${direction > 0 ? 'left' : 'right'}`);
-    currentCard.classList.add(`move-${direction > 0 ? 'left' : 'right'}`);
-
-    // Set new current index
-    currentIndex = targetIndex;
-  });
+// Sidebar Toggles
+document.getElementById('filter-toggle-btn')?.addEventListener('click', () => {
+    document.getElementById('filter-drawer').classList.add('active');
 });
 
-// B. Search Input Event Handling
-const searchInput = document.getElementById('exercise-filter-input');
+document.getElementById('close-sidebar')?.addEventListener('click', () => {
+    document.getElementById('filter-drawer').classList.remove('active');
+});
 
-if (searchInput) {
-    searchInput.addEventListener('input', () => {
-        // 1. Update the state with the new search term
-        state.searchTerm = searchInput.value;
-        state.offset = 0; // RESET PAGINATION on new search
+// Search input
+document.getElementById('exercise-filter-input')?.addEventListener('input', (e) => {
+    state.searchTerm = e.target.value;
+    state.offset = 0;
+    clearTimeout(state.searchTimeout);
+    state.searchTimeout = setTimeout(() => loadProfiles(), 400);
+});
+
+// Tabs
+btns.forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+        if (index === currentIndex) return;
+        btns[currentIndex].classList.replace('btn-primary', 'btn-none');
+        btn.classList.replace('btn-none', 'btn-primary');
         
-        // 2. Debounce: Wait 300ms after user stops typing
-        clearTimeout(state.searchTimeout);
-        state.searchTimeout = setTimeout(() => {
-            loadProfiles(); 
-        }, 300);
+        cards[currentIndex].classList.remove('active');
+        cards[index].classList.add('active');
+        
+        currentIndex = index;
+        state.banned = index; // 0 for active, 1 for banned
+        state.offset = 0;
+        loadProfiles();
     });
-}
+});
 
-// C. Load More Button Event Handling
-const loadMoreBtn = document.getElementById('load-more-btn');
-
-if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => {
-        state.offset += state.limit; // Increase the offset by the current limit (10)
-        loadProfiles(); // Fetch the next page and ensure it appends
+// Filters
+document.querySelectorAll('.role-filter').forEach(cb => {
+    cb.addEventListener('change', () => {
+        state.roles = Array.from(document.querySelectorAll('.role-filter:checked')).map(c => c.value);
+        state.offset = 0;
+        loadProfiles();
     });
-}
+});
 
-// ----------------------------------------------------
-// 4. INITIALIZATION
-// ----------------------------------------------------
+document.getElementById('sort-by')?.addEventListener('change', (e) => {
+    const [col, dir] = e.target.value.split('-');
+    state.orderBy = col; state.orderDir = dir;
+    state.offset = 0;
+    loadProfiles();
+});
 
-// Initial load of the "active" profiles
-loadProfiles();
+document.getElementById('load-more-btn')?.addEventListener('click', () => {
+    state.offset += state.limit;
+    loadProfiles(true);
+});
+
+document.getElementById('clear-filters')?.addEventListener('click', () => {
+    document.querySelectorAll('.role-filter').forEach(cb => cb.checked = false);
+    document.getElementById('sort-by').value = 'created_at-DESC';
+    state.roles = [];
+    state.offset = 0;
+    loadProfiles();
+});
+
+window.onload = loadProfiles;

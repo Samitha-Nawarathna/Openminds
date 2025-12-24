@@ -1,55 +1,61 @@
 import { ROOT } from '../../core/config.js';
 
-let max_chars = 40;
-
-export async function get_content(review, limit, offset)
-{
-    let send_data = {};
-    let data = {};
-    let content = ``;
-
-    data["review"] = review;
-
-    send_data["data"] = data;
-    send_data["limit"] = limit;
-    send_data["offset"] = offset;
-
-    // console.log(send_data);
-
-    let res = await fetch(ROOT + '/ajax/retrive_user_expertrequests', {  
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json' 
+/**
+ * Fetches a batch of requests based on state
+ * @param {string} review - status (pending/approved/rejected)
+ * @param {string} subject - text search term
+ * @param {number} limit 
+ * @param {number} offset 
+ */
+export async function get_content(review, subject, limit, offset) {
+    let send_data = {
+        data: {
+            review: review,
+            subject: subject
         },
-        body: JSON.stringify({
-          ...send_data                     
-        })
-      });
+        limit: limit,
+        offset: offset
+    };
 
-    // console.log('response',res);
-    res = await res.json();
-    // console.log('content',res);
-    // return res;
+    try {
+        let res = await fetch(ROOT + '/expertrequest/retrive_user_expertrequests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(send_data)
+        });
 
-
-    for (let i = 0; i < res.length; i++) {
-        const item = res[i];
-      
-        content +=
-        `<a href="${ROOT}/expertrequest/show?id=${item['id']}" class="profile-item no-style-link">
-                    <div class="left-align">
-                        <img src="`+ROOT+item["profile_picture_url"]+`" alt="profile-picture" class="profile-picture-xs">
-                        <div class="desription">`+item["description"].substring(0, max_chars)+`...</div>
-                    </div>
-                    <div class="right-align">
-                        <div class="role-pill">`+item["subject"]+`</div>
-                    </div>
-                </a>`;
-
-
+        if (!res.ok) throw new Error("Network response was not ok");
+        
+        const data = await res.json();
+        return generateHTML(data);
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return "";
     }
-      
-    return content;
-
 }
 
+function generateHTML(items) {
+    if (!items || items.length === 0) return "";
+
+    let content = "";
+    items.forEach(item => {
+        // Clean up description length for the UI
+        let desc = item.description || "";
+        if (desc.length > 50) desc = desc.substring(0, 47) + "...";
+
+        content += `
+        <a href="${ROOT}/expertrequest/show?id=${item.id}" class="profile-item no-style-link">
+            <div class="left-align">
+                <div class="request-info">
+                    <span class="subject-text">${item.subject}</span>
+                    <span class="desc-text">${desc}</span>
+                </div>
+            </div>
+            <div class="right-align">
+                <div class="role-pill status-${item.review}">${item.review}</div>
+                <div class="arrow-icon">→</div>
+            </div>
+        </a>`;
+    });
+    return content;
+}

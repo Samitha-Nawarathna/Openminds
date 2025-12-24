@@ -1,9 +1,4 @@
-<!--create request logic,
-view request logic,
-edit request logic,
-delete request logic,
 
--->
 <?php
 
 class Expertrequest extends Controller
@@ -24,7 +19,7 @@ class Expertrequest extends Controller
         if ($this->is_post()) {
             // echo "create post...";
             // validate input
-            $expert_requests_service = new ExpertRequestsServices();
+            $expert_requests_service = new ExpertRequests();
 
             $sent_data = $_POST;
             $validation_result = $expert_requests_service->validate($sent_data);
@@ -279,6 +274,46 @@ class Expertrequest extends Controller
         // redirect to show updated request
         header("Location: " . ROOT . "expertrequest/show?id=" . $request_id);
         exit;
+    }
+
+    public function retrive_user_expertrequests()
+    {
+        $this->login_guard();
+        
+        // Read JSON input
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        $review_status = $data['data']['review'] ?? 'pending';
+        $subject_search = $data['data']['subject'] ?? '';
+        $limit = (int)($data['limit'] ?? 10);
+        $offset = (int)($data['offset'] ?? 0);
+
+        $expert_requests_service = new ExpertRequests();
+        
+        // Build parameters for the filter_and_search method
+        $params = [
+            'where' => [
+                'user_id' => $_SESSION['user_id'], // Enforce ownership
+                'review'  => $review_status
+            ],
+            'like' => [],
+            'limit' => $limit,
+            'offset' => $offset,
+            'order_by' => 'id',
+            'order_dir' => 'DESC'
+        ];
+
+        // Add search filter if provided
+        if (!empty($subject_search)) {
+            $params['like']['subject'] = $subject_search;
+        }
+
+        // Use the robust method we discussed
+        $results = $expert_requests_service->filter_and_search($params);
+
+        header('Content-Type: application/json');
+        echo json_encode($results);
     }
 
 }

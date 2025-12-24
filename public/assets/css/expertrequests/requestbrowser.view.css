@@ -191,3 +191,120 @@ flex: 0;
     display: flex;
     align-items: center;
 }
+
+/* --- Filter Bar Adjustments --- */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    align-items: center;
+}
+
+.btn-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-filter-toggle:hover {
+    background: #f9f9f9;
+}
+
+/* --- Side Panel System --- */
+.side-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    width: 320px;
+    height: 100%;
+    background: white;
+    z-index: 1001;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: right 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel.active {
+    right: 0;
+}
+
+.side-panel-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.side-panel-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.side-panel-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.panel-input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.btn-apply-filters {
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--color-primary, #1f74ff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-apply-filters:hover {
+    filter: brightness(1.1);
+}
