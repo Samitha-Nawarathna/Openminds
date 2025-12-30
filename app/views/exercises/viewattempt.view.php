@@ -68,14 +68,25 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
         <p><span id="exercise-subject"></span></p>
     </header>
 
-    <div class="main-content">
-        <div id="question-container" role="main" aria-live="polite">
-            <!-- Questions will be dynamically rendered here -->
+    <div class="question-shell">
+        <div class="title-stack">
+            <h1 id="exercise-title-hero" class="page-title">Loading...</h1>
+            <p id="exercise-subject-hero" class="page-subtitle"></p>
+            <div class="progress-track" aria-hidden="true">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="explanation-box" class="explanation-box" role="region" aria-label="Answer explanation">
-        <!-- Explanation will be dynamically rendered here -->
+        <div class="main-content">
+            <div id="question-container" class="question-card" role="main" aria-live="polite">
+                <!-- Questions will be dynamically rendered here -->
+            </div>
+            <p id="question-subtext" class="question-subtext">Review your answers</p>
+        </div>
+
+        <div id="explanation-box" class="explanation-box" role="region" aria-label="Answer explanation">
+            <!-- Explanation will be dynamically rendered here -->
+        </div>
     </div>
 </div>
 

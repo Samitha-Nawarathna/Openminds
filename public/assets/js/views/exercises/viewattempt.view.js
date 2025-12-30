@@ -19,9 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryModal = document.getElementById('summary-modal');
 
     // Main Content
-    const titleEl = document.getElementById('exercise-title');
-    const subjectEl = document.getElementById('exercise-subject');
+    const titleEl = document.getElementById('exercise-title-hero') || document.getElementById('exercise-title');
+    const subjectEl = document.getElementById('exercise-subject-hero') || document.getElementById('exercise-subject');
     const questionContainer = document.getElementById('question-container');
+    const questionSubtextEl = document.getElementById('question-subtext');
+    const progressFill = document.getElementById('progress-fill');
     const explanationBox = document.getElementById('explanation-box');
 
     // Control Bar
@@ -208,59 +210,55 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update Header
         titleEl.textContent = RESULTS_DATA.exercise_title || 'Exercise Results';
         subjectEl.textContent = RESULTS_DATA.subject || 'Review Mode'; 
+        if (questionSubtextEl) {
+            questionSubtextEl.textContent = 'Review your answers';
+        }
+
+        const progressPercent = Math.min(100, Math.round((currentQIndex / totalQCount) * 100));
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
         
         // Clear and rebuild question container
-        questionContainer.innerHTML = '';
-        
-        // Create Question Prompt using Quill Editor
-        const promptEditor = document.createElement('quill-editor');
-        promptEditor.id = 'question-prompt';
-        promptEditor.setAttribute('readonly', '');
-        promptEditor.setAttribute('height', 'fit-content');
-        promptEditor.className = 'question-prompt';
-        promptEditor.setAttribute('content', `${currentQIndex + 1}. ${qData.prompt}`);
-        // NEW: ARIA label for screen readers
-        promptEditor.setAttribute('role', 'heading');
-        promptEditor.setAttribute('aria-level', '2');
-        questionContainer.appendChild(promptEditor);
-        
-        // Create options container
-        const answersDiv = document.createElement('div');
-        answersDiv.id = 'answer-options';
-        answersDiv.className = 'answer-options-list';
-        answersDiv.style.margin = "var(--space-sm)";
-        // NEW: ARIA attributes
-        answersDiv.setAttribute('role', 'group');
-        answersDiv.setAttribute('aria-label', `Review of question ${currentQIndex + 1} answers`);
-        questionContainer.appendChild(answersDiv);
-        
+        questionContainer.innerHTML = `
+            <div class="question-prompt-block">
+                <h2 id="question-prompt" class="question-title" role="heading" aria-level="2">${qData.prompt}</h2>
+            </div>
+            <div id="answer-options" class="answer-options-list" role="group" aria-label="Review of question ${currentQIndex + 1} answers"></div>
+        `;
+
         // Determine input type based on correct answer count
         const correctCount = qData.options.filter(opt => opt.is_correct).length;
         const inputType = correctCount > 1 ? 'checkbox' : 'radio';
+        const answersDiv = questionContainer.querySelector('#answer-options');
         
-        // Build option elements with Quill editors
+        // Build option elements with the new card UI
         qData.options.forEach((option, optIndex) => {
             const label = document.createElement('label');
-            label.className = 'option-label';
-            label.style.display = 'flex';
+            label.className = 'option-card';
+            label.dataset.optionId = option.option_id;
             
             // Apply correctness classes
             if (option.is_correct) {
                 label.classList.add('is-correct');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Correct answer: Option ${String.fromCharCode(65 + optIndex)}`);
             }
             if (option.was_selected && !option.is_correct) {
                 label.classList.add('user-wrong');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Incorrectly selected: Option ${String.fromCharCode(65 + optIndex)}`);
-            } else if (option.was_selected) {
+            }
+            if (option.was_selected) {
                 label.classList.add('was-selected');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Correctly selected: Option ${String.fromCharCode(65 + optIndex)}`);
             }
             
-            // Create input element
+            const left = document.createElement('div');
+            left.className = 'option-left';
+
+            const stateIcon = document.createElement('span');
+            stateIcon.className = 'state-icon';
+            stateIcon.setAttribute('aria-hidden', 'true');
+            if (option.is_correct) {
+                stateIcon.textContent = '✓';
+            }
+
             const input = document.createElement('input');
             input.type = inputType;
             input.name = `q_${qData.question_id}`;
@@ -268,21 +266,21 @@ document.addEventListener('DOMContentLoaded', () => {
             input.dataset.optionId = option.option_id;
             input.disabled = true;
             input.checked = option.was_selected || false;
-            // NEW: ARIA label
-            input.setAttribute('aria-label', `Option ${String.fromCharCode(65 + optIndex)}`);
+            input.setAttribute('aria-label', `Option ${optIndex + 1}`);
             
-            label.appendChild(input);
+            const text = document.createElement('span');
+            text.className = 'option-text';
+            text.textContent = option.text;
             
-            // Create answer text using Quill Editor
-            const answer = document.createElement('quill-editor');
-            answer.id = `answer-prompt-${option.option_id}`;
-            answer.setAttribute('readonly', '');
-            answer.setAttribute('height', 'fit-content');
-            answer.className = 'answer-prompt';
-            answer.setAttribute('content', option.text);
-            answer.style.border = 'none';
+            const badge = document.createElement('span');
+            badge.className = 'option-badge';
+            badge.textContent = `PRESS ${optIndex + 1}`;
             
-            label.appendChild(answer);
+            left.appendChild(stateIcon);
+            left.appendChild(input);
+            left.appendChild(text);
+            label.appendChild(left);
+            label.appendChild(badge);
             answersDiv.appendChild(label);
         });
         
@@ -302,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationEditor.setAttribute('content', qData.explanation || 'No explanation provided.');
         explanationBox.appendChild(explanationEditor);
         
-        explanationBox.style.display = 'block'; // Always show explanation in review mode
+        explanationBox.style.display = 'block';
 
         // Update Control Bar
         progressEl.textContent = currentQIndex + 1;
@@ -314,21 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (qData.user_score >= qData.max_weight) {
             scoreFeedbackEl.classList.add('feedback-correct');
-            // NEW: ARIA announcement
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Correct answer</span>';
         } else if (qData.user_score > 0) {
-            scoreFeedbackEl.style.color = 'var(--color-warning)'; // Partial credit
-            // NEW: ARIA announcement
+            scoreFeedbackEl.style.color = 'var(--color-warning)';
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Partial credit</span>';
         } else {
             scoreFeedbackEl.classList.add('feedback-wrong');
-            // NEW: ARIA announcement
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Incorrect answer</span>';
         }
 
         updateNavigationButtons();
         
-        // NEW: Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 

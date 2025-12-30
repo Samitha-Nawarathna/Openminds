@@ -19,12 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Main Content
     const mainContentEl = document.getElementById('main-exercise-content');
-    const titleEl = document.getElementById('exercise-title');
-    const subjectEl = document.getElementById('exercise-subject');
+    const titleEl = document.getElementById('exercise-title-hero') || document.getElementById('exercise-title');
+    const subjectEl = document.getElementById('exercise-subject-hero') || document.getElementById('exercise-subject');
     const questionContainer = document.getElementById('question-container');
-    const promptEl = document.getElementById('question-prompt');
+    const questionSubtextEl = document.getElementById('question-subtext');
+    const progressFill = document.getElementById('progress-fill');
     const explanationBox = document.getElementById('explanation-box');
-    const explanationTextEl = document.getElementById('explanation-text');
 
     // Control Bar
     const controlBar = document.getElementById('control-bar');
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Populate header and progress bar
             titleEl.textContent = EXERCISE_DATA.title;
-            subjectEl.textContent = `Subject: ${EXERCISE_DATA.subject}`;
+            subjectEl.textContent = EXERCISE_DATA.subject ? `Subject: ${EXERCISE_DATA.subject}` : '';
             totalEl.textContent = EXERCISE_DATA.questions.length;
 
             // Populate the Modal (using mock meta as EXERCISE_DATA is basic mock)
@@ -169,9 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionIsChecked = false;
         explanationBox.classList.add('hidden');
         feedbackEl.innerHTML = '';
-        
-        // Reset control bar background
-        controlBar.style.backgroundColor = '#fff';
+        controlBar.classList.remove('state-correct', 'state-wrong');
         
         // Button State Reset
         checkBtn.classList.remove('hidden');
@@ -179,6 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
         explainBtn.classList.add('hidden');
         nextBtn.classList.add('hidden');
         submitBtn.classList.add('hidden');
+        nextBtn.textContent = 'Continue';
+        submitBtn.textContent = 'Continue';
         
         // NEW: Show/Hide Previous Button
         if (index > 0) {
@@ -190,75 +190,83 @@ document.addEventListener('DOMContentLoaded', () => {
         const question = EXERCISE_DATA.questions[index];
         if (!question) return;
         
+        const totalQuestions = EXERCISE_DATA.questions.length || 1;
+        const progressPercent = Math.min(100, Math.round((index / totalQuestions) * 100));
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
+
         // Determine input type
         const correctCount = question.options.filter(opt => opt.is_correct).length;
         const inputType = correctCount > 1 ? 'checkbox' : 'radio';
 
-        // Clear and build question container structure
-        questionContainer.innerHTML = '';
-        
-        // Create and append question prompt
-        const promptEditor = document.createElement('quill-editor');
-        promptEditor.id = 'question-prompt';
-        promptEditor.setAttribute('readonly', '');
-        promptEditor.setAttribute('height', 'fit-content');
-        promptEditor.className = 'question-prompt';
-        promptEditor.setAttribute('content', `${index + 1}. ${question.prompt}`);
-        // NEW: ARIA label for screen readers
-        promptEditor.setAttribute('role', 'heading');
-        promptEditor.setAttribute('aria-level', '2');
-        questionContainer.appendChild(promptEditor);
-        
-        // Create options container
-        const answersDiv = document.createElement('div');
-        answersDiv.id = 'answer-options';
-        answersDiv.className = 'answer-options-list';
-        // NEW: ARIA attributes for option group
-        answersDiv.setAttribute('role', 'group');
-        answersDiv.setAttribute('aria-label', `Answer options for question ${index + 1}`);
-        questionContainer.appendChild(answersDiv);
-        answersDiv.style.margin = "var(--space-sm)";
-        
-        // Update progress
+        // Build question container structure
+        questionContainer.innerHTML = `
+            <div class="question-prompt-block">
+                <h2 id="question-prompt" class="question-title" role="heading" aria-level="2">${question.prompt}</h2>
+            </div>
+            <div id="answer-options" class="answer-options-list" role="${inputType === 'radio' ? 'radiogroup' : 'group'}" aria-label="Answer options for question ${index + 1}"></div>
+        `;
+
+        if (questionSubtextEl) {
+            questionSubtextEl.textContent = 'Select the correct answer';
+        }
+
+        // Update progress display
         progressEl.textContent = index + 1;
+        totalEl.textContent = totalQuestions;
 
         // Build option elements
+        const answersDiv = questionContainer.querySelector('#answer-options');
         const savedAnswers = userAnswers[question.question_id] || [];
         
         question.options.forEach((option, optIndex) => {
             const label = document.createElement('label');
-            label.className = 'option-label';
-            label.style.display = 'flex';
-            
+            label.className = 'option-card';
+            label.dataset.optionId = option.option_id;
+
+            const left = document.createElement('div');
+            left.className = 'option-left';
+
+            const stateIcon = document.createElement('span');
+            stateIcon.className = 'state-icon';
+            stateIcon.setAttribute('aria-hidden', 'true');
+
             const input = document.createElement('input');
             input.type = inputType;
             input.name = `q_${question.question_id}`;
             input.value = option.option_id;
             input.dataset.optionId = option.option_id;
-            // NEW: ARIA label for option
-            input.setAttribute('aria-label', `Option ${String.fromCharCode(65 + optIndex)}`);
+            input.setAttribute('aria-label', `Option ${optIndex + 1}`);
 
             // Restore user selection if already attempted
             if (savedAnswers.includes(option.option_id)) {
                 input.checked = true;
+                label.classList.add('is-selected');
             }
 
-            // Listener to enable check button
+            // Listener to enable check button and update selected UI
             input.addEventListener('change', () => {
                 if (!questionIsChecked) {
                     checkBtn.disabled = false;
                 }
+                answersDiv.querySelectorAll('.option-card').forEach(card => card.classList.remove('is-selected'));
+                label.classList.add('is-selected');
             });
 
-            label.appendChild(input);
-            const answer = document.createElement('quill-editor');
-            answer.id = 'answer-prompt';
-            answer.setAttribute('readonly', '');
-            answer.setAttribute('height', 'fit-content');
-            answer.className = 'answer-prompt';
-            answer.setAttribute('content', `${option.text}`);
-            answer.style.border = 'none';
-            label.appendChild(answer);
+            const text = document.createElement('span');
+            text.className = 'option-text';
+            text.textContent = option.text;
+
+            const badge = document.createElement('span');
+            badge.className = 'option-badge';
+            badge.textContent = `PRESS ${optIndex + 1}`;
+
+            left.appendChild(stateIcon);
+            left.appendChild(input);
+            left.appendChild(text);
+            label.appendChild(left);
+            label.appendChild(badge);
             answersDiv.appendChild(label);
         });
 
@@ -287,29 +295,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // Determine correctness
         let isCorrect = true;
 
-        optionsEl.querySelectorAll('.option-label').forEach(label => {
+        optionsEl.querySelectorAll('.option-card').forEach(label => {
             const input = label.querySelector('input');
-            const optionId = parseInt(input.dataset.optionId);
+            const optionId = parseInt(label.dataset.optionId);
             const option = question.options.find(o => o.option_id === optionId);
-            
-            // Apply Correctness Styles
-            if (option.is_correct) {
-                label.classList.add('is-correct'); 
-                // NEW: ARIA attribute for screen readers
-                label.setAttribute('aria-label', 'Correct answer');
-            }
-            
-            // Check for missed correct answers or wrong selections
             const isUserSelected = selectedOptionIds.includes(optionId);
+            const stateIcon = label.querySelector('.state-icon');
+
+            label.classList.remove('is-correct', 'user-wrong', 'was-selected');
+            if (stateIcon) stateIcon.textContent = '';
+
+            if (option.is_correct) {
+                label.classList.add('is-correct');
+                if (stateIcon) stateIcon.textContent = '✓';
+            }
+
+            if (isUserSelected) {
+                label.classList.add('was-selected');
+            }
 
             if (option.is_correct && !isUserSelected) {
                 isCorrect = false; // Missed a correct answer
             }
             
             if (isUserSelected && !option.is_correct) {
-                label.classList.add('user-wrong'); // Selected a wrong answer
-                // NEW: ARIA attribute for screen readers
-                label.setAttribute('aria-label', 'Incorrectly selected answer');
+                label.classList.add('user-wrong');
                 isCorrect = false; 
             }
             
@@ -317,18 +327,12 @@ document.addEventListener('DOMContentLoaded', () => {
             input.disabled = true;
         });
 
-        // Set feedback message with enhanced ARIA support
-        const feedbackMessage = isCorrect ? 'Correct!' : 'Incorrect!';
-        const feedbackIcon = isCorrect ? '✅' : '❌';
-        feedbackEl.innerHTML = `<span class="${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">
-            ${feedbackIcon} ${feedbackMessage}
-            <span class="sr-only">Your answer is ${feedbackMessage.toLowerCase()}</span>
-        </span>`;
-        
-        // Visual feedback on control bar
-        controlBar.style.backgroundColor = isCorrect 
-            ? 'var(--color-green-100)' 
-            : 'var(--color-red-100)';
+        // Set feedback message to match reference UI
+        const feedbackMessage = isCorrect ? 'Great work!' : "Oops! That’s not correct.";
+        feedbackEl.textContent = feedbackMessage;
+        feedbackEl.className = `feedback-area ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`;
+        controlBar.classList.remove('state-correct', 'state-wrong');
+        controlBar.classList.add(isCorrect ? 'state-correct' : 'state-wrong');
 
         showExplanation();
 
