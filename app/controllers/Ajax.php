@@ -99,4 +99,108 @@ class Ajax extends Controller
         echo json_encode($results);
 
     }
+
+    public function retrive_user_expertrequests()
+    {
+        $sent_data = json_decode(file_get_contents("php://input"));
+
+        // show($sent_data);
+
+        $data = (array) $sent_data->data;
+        $offset = $sent_data->offset;
+        $limit = $sent_data->limit;
+
+        $user_id = $_SESSION['user_id'];
+
+        $data['user_id'] = $user_id;
+
+        $requests = new ExpertRequests;
+        $user = new User;
+
+        $results = $requests->where($data, $offset, $limit, ["id", "subject", "description", "proof_link"]);
+        
+        foreach ($results as $key => $record) {
+            $id = $record->id;
+            $results[$key]->profile_picture_url = $user->get_profile_picture_url($id);
+        }
+
+
+        echo json_encode($results);   
+    }
+
+    public function retrive_user_expertrequests_admin()
+    {
+
+        $sent_data = json_decode(file_get_contents("php://input"));
+
+        // show($sent_data);
+
+        $data = (array) $sent_data->data;
+        $offset = $sent_data->offset;
+        $limit = $sent_data->limit;
+
+        $requests = new ExpertRequests;
+        $user = new User;
+
+        $results = $requests->where($data, $offset, $limit, ["id", "subject", "description", "proof_link"]);
+        
+        foreach ($results as $key => $record) {
+            $id = $record->id;
+            $results[$key]->profile_picture_url = $user->get_profile_picture_url($id);
+        }
+
+
+        echo json_encode($results); 
+        // if ($_SESSION['role'] === 'student') {    
+            
+        // }
+
+    }
+
+    public function retrive_user_notifications()
+    {
+        $sent_data = json_decode(file_get_contents("php://input"));
+
+        // show($sent_data);
+
+        $data = (array) $sent_data->data;
+        $offset = $sent_data->offset;
+        $limit = $sent_data->limit;
+
+        $user_id = $_SESSION['user_id'] ?? null;
+
+        if (!$user_id) {
+            # code...
+            echo json_encode(['success' => false, 'error' => 'User not logged in']);
+            exit;
+        }
+
+        $data['receiver_id'] = $user_id;
+
+        $notifications = new NotificationServices();
+
+        $retrive_notifcation_results = $notifications->retrive($user_id, 0);
+        if (!$retrive_notifcation_results->is_success()) {
+            echo json_encode(['success' => false, 'error' => 'Could not retrieve notifications']);
+            exit;
+        }
+
+        $results = $retrive_notifcation_results->get_data();
+        
+        echo json_encode($results);   
+    }
+
+    public function vote_question()
+    {
+        $vote_type = $_GET['type'];
+        //update votes in database
+
+    }
+
+    public function vote_answer()
+    {
+        $vote_type = $_GET['type'];
+        //update votes in database
+
+    }
 }

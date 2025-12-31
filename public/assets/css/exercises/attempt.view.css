@@ -1,0 +1,762 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* -----------------------------
+ *    🎨 TOKENS (DESIGN VARIABLES)
+ * ------------------------------ */
+:root {
+    /* Primary Palette */
+    --color-blue-50: #f0f6ff;
+    --color-blue-100: #d6e4ff;
+    --color-blue-200: #adc8ff;
+    --color-blue-400: #5b8def;
+    --color-blue-500: #1f74ff; /* primary */
+    --color-blue-700: #004ecc;
+
+    --color-green-50: #f3faf5;
+    --color-green-100: #d9f2e1;
+    --color-green-300: #86d19e;
+    --color-green-500: #34c759; /* success */
+    --color-green-700: #228b38;
+
+    --color-yellow-50: #fff9e5;
+    --color-yellow-200: #ffe680;
+    --color-yellow-400: #ffcd00;
+    --color-yellow-600: #b38600;
+    
+    /* Secondary / CTA Palette (NEW) */
+    --color-red-500: #ff385c; /* Vibrant CTA color */
+    --color-red-700: #d9042b;
+
+    /* Neutral Palette */
+    --color-gray-50: #fafafa;
+    --color-gray-100: #f5f5f5;
+    --color-gray-200: #e5e5e5;
+    --color-gray-300: #d4d4d4;
+    --color-gray-400: #a3a3a3;
+    --color-gray-600: #525252;
+    --color-gray-800: #262626;
+    --color-gray-900: #171717;
+
+    /* Feedback */
+    --color-success: var(--color-green-500);
+    --color-warning: var(--color-yellow-400);
+    --color-info: var(--color-blue-500);
+    --color-error: var(--color-red-500);
+    --color-error-feedback: var(--color-red-500); /* Consistent naming */
+
+    /* Backgrounds & Text */
+    --color-bg: var(--color-gray-50);
+    --color-bg-card: #ffffff;
+    --color-bg-muted: var(--color-gray-100);
+    --color-text: var(--color-gray-900);
+    --color-text-muted: var(--color-gray-600);
+    --color-border: var(--color-gray-200);
+    --color-border-light: var(--color-gray-100); 
+
+    /* Custom Tokens for Question Page Roles (Kept for consistency) */
+    --role-admin-bg: var(--color-red-500); 
+    --role-admin-text: var(--color-red-500);
+    --role-expert-bg: var(--color-yellow-200);
+    --role-expert-text: var(--color-blue-400);
+    --role-mentor-bg: var(--color-green-300);
+    --role-mentor-text: var(--color-gray-900);
+    --role-student-bg: var(--color-blue-200);
+    --role-student-text: var(--color-gray-900);
+
+    /* Colors (Overriding Duplicates for clarity) */
+    --color-primary: var(--color-blue-500);
+    --color-primary-rgb: 31, 116, 255; 
+    --color-surface: #ffffff;
+    --color-background: var(--color-gray-50);
+    --color-placeholder: var(--color-gray-600); 
+    
+    /* Secondary/Contextual Colors (Simplified for Exercise consistency) */
+    --color-secondary-background: var(--color-gray-100); 
+    --color-secondary-background-rgb: 238, 238, 238;
+
+    /* Font */
+    --font-body: 'Inter', sans-serif;
+
+    /* Font Sizes */
+    --font-size-xs: 0.7rem; /* Used for time/date */
+    --font-size-sm: 0.875rem; /* Used for role/tag/vote buttons */
+    --font-size-base: 1rem;
+    --font-size-lg: 1.5rem;
+    --font-size-xl: 3rem; /* Used for main question/exercise title */
+
+    /* Spacing (Kept consistent with view.view.css fractional values) */
+    --space-xxs: 0.25rem; 
+    --space-xs: 0.5rem;
+    --space-sm: 1.2rem; 
+    --space-md: 1.7rem; 
+    --space-lg: 2.2rem;
+    --space-xl: 3.2rem;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Shadow */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06); 
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* -----------------------------
+ *      ✨ BASE STYLES
+ * ------------------------------ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background-color: var(--color-background);
+}
+
+/* NEW: Screen Reader Only Text (ARIA Enhancement) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* -----------------------------
+ *      BUTTONS (Unified Components)
+ * ------------------------------ */
+.btn-blue, .btn-red, .btn-none {
+    width: fit-content;
+    padding: var(--space-xs) var(--space-md); /* Slightly reduced vertical padding for better density */
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none; /* Important for anchor tags acting as buttons */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-blue {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+.btn-blue:hover {
+    background-color: var(--color-blue-700);
+}
+
+.btn-none {
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.btn-none:hover {
+    background-color: var(--color-secondary-background);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-red {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+}
+
+.btn-red:hover {
+    background-color: var(--color-red-700);
+}
+
+/* --- Small/Icon Buttons (For History/Actions) --- */
+.btn-icon-sm {
+    padding: var(--space-xxs) var(--space-xs);
+    font-size: var(--font-size-sm);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--color-gray-600);
+}
+.btn-icon-sm:hover {
+    background-color: var(--color-gray-100);
+    color: var(--color-primary);
+}
+
+/* NEW: Loading State for Buttons */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: button-spin 0.6s linear infinite;
+    color: var(--color-surface);
+}
+
+@keyframes button-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* -----------------------------
+ *      CARDS & LAYOUTS (Unified)
+ * ------------------------------ */
+
+/* Main application wrapper */
+.app-container {
+    max-width: 1200px;
+    margin: var(--space-lg) auto;
+    padding: 0 var(--space-md);
+}
+
+/* Standard Card (Used for Exercise Items, Question Blocks) */
+.content-card {
+    background-color: var(--color-surface);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-sm);
+    position: relative;
+}
+
+/* -----------------------------
+ *      EXERCISE BROWSER LIST (R6)
+ * ------------------------------ */
+.exercise-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+}
+.exercise-list-item:hover {
+    background-color: var(--color-gray-50);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+.exercise-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+.exercise-meta strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+.exercise-title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--space-xxs);
+}
+
+/* -----------------------------
+ *      EXERCISE ATTEMPT (R7)
+ * ------------------------------ */
+.question-block {
+    margin-bottom: var(--space-lg);
+}
+
+.question-prompt {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+/* Unified Option Styling (Radio/Checkbox Replacement) */
+.option-label {
+    display: flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option-label:hover {
+    background-color: var(--color-blue-50);
+    border-color: var(--color-blue-200);
+}
+
+/* Input/Form Focus State Consistency */
+textarea:focus, input[type="text"]:focus { 
+    outline: none; 
+    border-color: var(--color-primary); 
+    box-shadow: 0 0 0 2px rgba(31, 116, 255, 0.2); 
+}
+
+/* --- Attempt Results Styling --- */
+/* Correct Answer State (Success Pattern) */
+.option-label.is-correct {
+    border-color: var(--color-success);
+    background-color: var(--color-green-50);
+    font-weight: 600;
+}
+
+/* User's Selected Answer (Error/Neutral Pattern) */
+.option-label.was-selected.is-correct {
+    /* Correctly selected option (Success) */
+    background-color: var(--color-green-100);
+    border-width: 2px;
+}
+.option-label.was-selected:not(.is-correct) {
+    /* Incorrectly selected option (Error) */
+    background-color: var(--color-red-50);
+    border-color: var(--color-error);
+    border-width: 2px;
+}
+
+.explanation-panel {
+    margin-top: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-gray-900);
+    font-size: var(--font-size-sm);
+}
+.explanation-panel strong {
+    color: var(--color-primary);
+}
+
+/* -----------------------------
+ *      HISTORY VIEW (R9)
+ * ------------------------------ */
+.history-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.score-badge {
+    padding: 5px 10px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    min-width: 100px;
+    text-align: center;
+}
+
+.score-badge.passed {
+    background-color: var(--color-green-100);
+    color: var(--color-green-700);
+}
+
+.score-badge.failed {
+    background-color: var(--color-red-50);
+    color: var(--color-red-700);
+}
+
+
+body {
+    background-color: #f4f4f9;
+    margin: 0; /* Critical for fixed bar: Remove default body margins */
+    padding-top: 20px;
+    padding-bottom: 90px; /* NEW: Add padding equal to control-bar height + margin */
+    display: flex;
+    justify-content: center;
+    min-height: 100vh; /* Ensure body covers full viewport height */
+}
+
+
+/* --- Modal Styles --- */
+.modal {
+    position: fixed;
+    z-index: 1000; /* Above all other content */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7); /* Dark semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-start-btn {
+    width: 100%;
+    margin-top: 20px;
+    font-weight: 600;
+    border: none;
+}
+
+#modal-title
+{
+    margin-bottom: var(--space-xs) !important;
+}
+
+/* NEW: Confirmation Modal Styles */
+.confirmation-modal {
+    position: fixed;
+    z-index: 1100; /* Above details modal */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirmation-content {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+}
+
+.confirmation-content h3 {
+    margin-bottom: var(--space-md);
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+}
+
+.confirmation-content p {
+    margin-bottom: var(--space-lg);
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+}
+
+.confirmation-actions button {
+    min-width: 120px;
+}
+
+/* NEW: Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--color-gray-200);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: var(--space-xs);
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loading-overlay .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border-width: 4px;
+    margin-right: 0;
+    margin-bottom: var(--space-md);
+}
+
+.loading-overlay p {
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+/* Vote Area */
+.vote-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.vote-btn { font-size: var(--font-size-base); padding: 8px 12px; }
+
+.vote-btn:hover {
+    background: #e0e0e0;
+}
+
+.voted-up { background-color: var(--color-success); color: var(--color-surface); border-color: var(--color-success); }
+.voted-down { background-color: var(--color-error-feedback); color: var(--color-surface); border-color: var(--color-error-feedback); }
+
+
+.voted {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+.voted:hover {
+    background-color: #0056b3;
+}
+
+.vote-count-display { padding: 0 var(--space-xs); font-weight: 600; font-size: var(--font-size-base); }
+
+
+/* --- Control Bar Adjustments --- */
+
+/* Details link styling */
+.details-link {
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+/* Ensure progress and link are spaced */
+.left-controls {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* Increase space between progress, link, and feedback */
+}
+
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px 30px 10px 30px; /* Adjusted bottom padding */
+    margin-bottom: 0;
+}
+
+.exercise-header {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 1.8em;
+    color: #333;
+    margin: 0;
+}
+
+.question-prompt {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+    color: #555;
+    min-height: 80px;
+}
+
+.answer-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.option-label {
+    display: block;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    user-select: none; /* Prevent accidental text selection */
+}
+
+.option-label:hover {
+    background-color: #f0f0ff;
+}
+
+/* Hide native checkbox/radio for custom styling */
+.option-label input[type="checkbox"],
+.option-label input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* --- CONTROL BAR STYLES (Fixed Footer) --- */
+
+.control-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    background-color: #fff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: var(--space-sm);
+    box-sizing: border-box; 
+    height: 70px;
+    transition: background-color 0.3s ease; /* NEW: Smooth background transitions */
+}
+
+/* Grouping Left-aligned elements (Progress and Feedback) */
+.left-controls {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.progress-area {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.feedback-area {
+    font-size: 1.1em;
+    font-weight: bold;
+    min-width: 150px;
+}
+
+/* Right-aligned button group */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+/* Button Styling */
+.btn.primary {
+    background-color: #007bff;
+    color: white;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+}
+.btn.primary:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+.btn.secondary {
+    background-color: white;
+    color: black;
+    border: 1px solid var(--color-gray-300) !important;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);    
+}
+.btn.secondary:hover:not(:disabled) {
+    background-color: var(--color-gray-100);
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Feedback Colors */
+.feedback-correct {
+    color: #28a745; /* Green */
+}
+.feedback-wrong {
+    color: #dc3545; /* Red */
+}
+
+/* Explanation Box */
+.explanation-box {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid var(--color-gray-400);
+    border-radius: 4px;
+}
+
+.explain-icon
+{
+    padding: var(--space-sm);
+    background-color: var(--color-blue-100);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    width: fit-content;
+    font-size: var(--font-size-lg);
+}
+
+/* Post-Check Styling on Options */
+.is-correct {
+    border: 2px solid #28a745;
+    background-color: #e0ffe0;
+}
+.user-wrong {
+    border: 2px solid #dc3545;
+    background-color: #ffe0e0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.meta-data
+{
+    display: flex;
+    justify-content: space-between;
+    height: fit-content;
+}
+
+.meta-data p
+{
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+    padding: 0 !important;
+}
+
+#main-exercise-content
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

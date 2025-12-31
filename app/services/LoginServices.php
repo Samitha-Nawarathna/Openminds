@@ -6,6 +6,7 @@ class LoginServices
     {
         $errors = [];
 
+
         foreach (array_keys($_POST) as $field) {
             if (empty($user_data[$field])) {
                 $errors[] = "fill all the fields!";
@@ -14,6 +15,8 @@ class LoginServices
         }
 
         $_SESSION['user_data']['is_email'] = 1;
+        $this->update_session_user_data();
+
 
         if (!filter_var($user_data['username'], FILTER_VALIDATE_EMAIL)) {
             if ($this->isUsernameUnique($user_data['username'])) {
@@ -93,14 +96,20 @@ class LoginServices
 
     public function set_session($user_data)
     {
+        // show($_SESSION);
+        // exit;
         $user = new User;
 
 
-        $results = $user->first(['username' => $user_data['username']]);
+        $results = $user->first(['username' => $_SESSION['user_data']['username']]);
+
+        if ($results === false) {
+            header("Location: ".ROOT."login?message=invalid credentials");
+        }
 
         $_SESSION['user_id'] = $results->id;
         $_SESSION['password'] = $results->password;
-        $_SESSION['role'] = $results->role;
+        $_SESSION['role'] = $user->get_role($results->role);
 
         return 1;
     }

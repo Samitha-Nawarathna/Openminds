@@ -22,8 +22,8 @@ class Profilesetup extends Controller
     {
         $default_image_url = ROOT."\uploads\\0\profile.avif";
         $user_data = $_SESSION['user_data'];
-        show($_POST);
-        show($user_data);
+        // show($_POST);
+        // show($user_data);
         $username = $_SESSION['user_data']['username'];
         
         $user = new User;
@@ -78,7 +78,7 @@ class Profilesetup extends Controller
         $loginservices->set_session($user_data);
         $loginservices->unset_user_data($user_data);
         
-        header("Location: ".ROOT."dashboard");
+        header("Location: ".ROOT."profile");
     }
 
 }

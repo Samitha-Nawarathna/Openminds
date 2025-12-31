@@ -1,3 +1,17 @@
+<?php
+
+// initialize history array
+if (!isset($_SESSION['history'])) {
+    $_SESSION['history'] = [];
+}
+
+$current_url = $_SERVER['REQUEST_URI'];
+$last_url = end($_SESSION['history']);
+
+if ($current_url !== $last_url) {
+    $_SESSION['history'][] = $current_url;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,5 +25,14 @@
     <link rel="stylesheet" href="<?=ROOT?>assets/css/partials/upload.view.css">
     <link rel="stylesheet" href="<?=ROOT?>assets/css/<?=$filename?>.view.css">
 
+    <script type="module" src="<?=ROOT?>/assets/js/views/<?=$filename?>.view.js"></script>
 </head>
 <body>
+
+<?php include_once "../app/views/partials/text_editor.php"; ?>
+
+<?php 
+    if (!isset($no_navbar) || $no_navbar === false) {
+        include_once('../app/views/partials/navbar.view.php');
+    }
+?>

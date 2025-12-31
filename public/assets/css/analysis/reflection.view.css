@@ -1,0 +1,26 @@
+@import url('common.css');
+
+        
+        /* NEW: Grid for Attention Drift Charts (10 small charts) */
+        .attention-drift-grid {
+            display: grid;
+            /* Creates 2 columns, each chart takes 1fr width */
+            grid-template-columns: 1fr; 
+            gap: var(--space-md);
+        }
+        
+        /* NEW: Wrapper for a single small tag chart */
+        .tag-drift-chart-wrapper {
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            padding: var(--space-sm);
+            background-color: var(--color-bg-card);
+        }
+        
+        .tag-drift-chart-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+            color: var(--color-text-dark);
+            padding-left: 5px;
+        }

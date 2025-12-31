@@ -1,0 +1,233 @@
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.attempt-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px; /* Space between question card and details card */
+    margin-top: var(--space-xl);
+}
+
+/* --- Question Flipper & Cards --- */
+.question-flipper {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+}
+
+.decorative-card {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: #F4E1EF; /* Pink background */
+    border-radius: 16px;
+    transform: rotate(-5deg);
+    z-index: 1;
+}
+
+.question-card {
+    position: relative;
+    z-index: 2;
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f0f0f0;
+}
+
+.question-header {
+    margin-bottom: 15px;
+    color: #888;
+    font-size: 0.9em;
+}
+
+.question-text {
+    font-size: 1.2em;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.options-list label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.05em;
+}
+
+.options-list input[type="radio"] {
+    margin-right: 12px;
+}
+
+.question-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.btn-back, .btn-next {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-back {
+    background-color: #f0f0f0;
+    color: #555;
+    border: 1px solid #ddd;
+}
+
+.btn-next {
+    background-color: #6375F1; /* Purple color */
+    color: white;
+}
+
+.btn-back:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- Exercise Details Card --- */
+.exercise-details-card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 600px;
+}
+
+.exercise-details-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.5em;
+}
+
+.meta-info {
+    color: #777;
+    margin-bottom: 15px;
+}
+
+.meta-info .role {
+    font-style: italic;
+}
+
+.vote-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.tags-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag-pill {
+    padding: 5px 10px;
+    border-radius: 14px;
+    font-size: 0.85em;
+    font-weight: 500;
+    background-color: #f0f0f0;
+    color: #555;
+}
+
+.score-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    text-align: center;
+}
+
+.score-text {
+    font-size: 0.9em;
+    color: #555;
+}
+
+.score-value {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: #4CAF50; /* Green for score */
+    margin: 5px 0;
+}
+
+.analysis-link {
+    color: #6375F1;
+    font-size: 0.8em;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.attempt-main-content
+{
+    display: flex;
+    flex-direction: row-reverse;
+    gap: var(--space-xl);
+}
+
+.management-card {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--space-lg);
+    gap: var(--space-sm);
+}
+
+.management-card .btn-edit,
+.management-card .btn-delete {
+    display: block;
+    text-align: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.management-card .btn-edit {
+    background-color: #6375F1;
+    color: white;
+    border: none;
+}
+
+.management-card .btn-delete {
+    background-color: #F44336;
+    color: white;
+    border: none;
+}
+.management-card .btn-delete {
+    background-color: white;
+    color: #F44336;
+    border: 1px solid #F44336;
+}

@@ -8,12 +8,30 @@ class Profile extends Controller
 
         $user_id = $_SESSION['user_id'];
 
-
         $user = new User;
-        
         $role = $user->get_role($user_id);
-
+        
         $results = $user->first(['id'=>$user_id]);
+
+        $results->subjects = [];
+
+        if ($role === "expert")
+        {
+            // $experts_model = new Experts;
+
+            // $results->subjects = $experts_model->where(['user_id'=>$user_id]);
+            // if ($results->subjects === false) {
+            //     $results->subjects = [];
+            // }
+            // else
+            // {
+            //     $results->subjects = array_column($results->subjects, 'subject');
+            // }
+        }
+
+        
+
+        // $results->subjects = ['science', 'maths', 'english']; // temporary hardcoded subjects
 
         if ($results === false) {
             echo "user not found!";
@@ -34,6 +52,24 @@ class Profile extends Controller
 
         $total_points = $analysis_services->get_total_points($user_id);
 
+        $experts_model = new Experts;
+        $subject_model = new Subjects;
+
+        $subjects = $experts_model->where(['user_id'=>$user_id], ['subject_id']);
+        $subjects_str = [];
+
+        foreach ($subjects as $key => $subject) {
+            $result_name = $subject_model->first(['id'=>$subject->subject_id])->name;
+
+            if ($result_name)
+            {
+                $subjects_str[] = $result_name;
+            }
+            
+        }
+
+        // $subjects_str = ["science", "maths"];
+
 
         $this->view("profile", [
             "profile_picture_path"=>ROOT.$results->profile_picture,
@@ -46,6 +82,7 @@ class Profile extends Controller
             "total_answers"=>$total_answers,
             "total_upvotes"=>$total_upvotes,
             "total_points"=>$total_points,
+            "subjects_str"=>$subjects_str
         ]);
     }
 
@@ -57,4 +94,26 @@ class Profile extends Controller
         header('Location: '.ROOT.'accountverification');
         exit;
     }
+
+    //----------------------------------------------------//
+    //--------------------AJAX METHODS--------------------//
+    //----------------------------------------------------//
+
+    public function api_search_users_by_name()
+    {
+        $data = $this->json_request();
+        $user_model = new User();
+
+        $results = $user_model->filter_by_name($data['query'], 'username');
+
+
+
+        if ($results) {
+            
+
+            $this->json_response(['success' => true, 'results' => $results]);
+        } else {
+            $this->json_response(['success' => false, 'message' => 'No topics found.']);
+        }
+    }        
 }

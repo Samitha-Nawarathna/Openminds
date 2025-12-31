@@ -1,0 +1,225 @@
+/* --- 2. GENERAL BODY STYLES (Leveraging Tokens) --- */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.creator-wrapper {
+    /* Adjusted for consistency with create.view.css, if you want full 95vh height on edit */
+    /* position: absolute; */
+    /* top: 5vh; */
+    width: 100%;
+    max-width: 950px;
+    padding: var(--space-lg);
+    /* height: 95vh; */
+}
+
+.main-card-layout {
+    display: flex;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    /* box-shadow: var(--shadow-md);  */
+    padding: var(--space-xl);
+    /* Ensure no flex wrap for a single column look */
+    flex-direction: column; 
+}
+
+/* --- 3. INPUTS & FORMS --- */
+.input-section {
+    flex: 1; /* Make it take up full width */
+    padding-right: 0; /* Remove padding from where the sidebar used to be */
+}
+
+.input-group {
+    margin-bottom: var(--space-lg);
+
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-weight: 600; 
+    color: var(--color-text); 
+    font-size: var(--font-size-sm);
+}
+
+.input-field {
+    width: 100%;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    box-sizing: border-box;
+    font-family: inherit;
+    color: var(--color-text);
+    outline: none; 
+    transition: border-color 0.2s;
+}
+
+.input-field:focus {
+    border-color: var(--color-primary);
+}
+
+.input-section input[type="text"],
+#create-title-input,
+.note-data {
+    /* Inherits .input-field styles */
+    /* Add styling for title consistency with create.view.css */
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    border: none !important;
+}
+
+.input-section textarea {
+    resize: vertical;
+    min-height: 250px;
+}
+
+/* --- 4. BUTTONS --- */
+.btn-save, .button {
+    width: 100%;
+    padding: var(--space-sm);
+    border: none;
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    font-size: var(--font-size-base); 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-save:hover, .button:hover {
+    background-color: #5562db;
+}
+
+/* --- 5. SIDEBAR & CONTAINERS (REMOVED: .sidebar-section, .title-panel, .top-tags-container) --- */
+/* The styles below are kept as they are needed for the modal's tag area */
+
+.tags-list, .tags-display-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    min-height: 20px;
+    padding-bottom: var(--space-xs); 
+}
+
+.tags-display-area {
+    background-color: var(--color-background); 
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--color-border);
+    margin-bottom: var(--space-sm);
+}
+
+.tag-pill {
+    padding: calc(var(--space-xs) / 1.5) var(--space-xs);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: 500; 
+    display: inline-block;
+}
+
+.tag-clickable {
+    cursor: pointer;
+    transition: opacity 0.1s;
+}
+
+.tag-clickable:hover {
+    opacity: 0.8;
+}
+
+.tag-selected {
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    /* OVERRIDE FOR MODAL CONSISTENCY */
+    background-color: var(--color-blue-700) !important; 
+    color: var(--color-surface) !important;
+}
+
+.tag-removal {
+    cursor: pointer;
+    margin-left: var(--space-xs);
+    color: var(--color-placeholder); 
+}
+.tag-removal:hover {
+    color: var(--color-text); 
+}
+
+/* --- 6. MODAL STYLES (Copied/Ensured from create.view.css) --- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.close-btn {
+    position: absolute;
+    top: var(--space-xs);
+    right: var(--space-md);
+    font-size: var(--font-size-lg);
+    color: var(--color-gray-600);
+    cursor: pointer;
+    font-weight: 300;
+}
+
+.modal-content h2 {
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.top-tags-container h3 {
+    margin-bottom: var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+}
+
+#modal-selected-tags-display {
+    min-height: 20px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-xs);
+}
+
+.tags-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-muted);
+}
+
+.note-data, .note-content
+{
+    border: none !important;
+}

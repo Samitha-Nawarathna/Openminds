@@ -1,0 +1,130 @@
+/* General Body Styles for the modal background */
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-secondary-background); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.share-wrapper {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+.share-card {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+.share-header {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.note-title-span {
+    font-weight: 700;
+}
+
+/* --- Shared Users List & Pills --- */
+.shared-users-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 40px; /* Ensure visibility */
+    margin-bottom: 25px;
+}
+
+.user-pill {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* Pill Color Schemes (Matching image examples) */
+.user-pill-red { background-color: #ff9999; color: #cc0000; }
+.user-pill-blue { background-color: #a0e0ff; color: #0056b3; }
+.user-pill-green { background-color: #99ff99; color: #008000; }
+.user-pill-pink { background-color: #ffccff; color: #cc00cc; }
+.user-pill-purple { background-color: #ccccff; color: #6600cc; }
+.user-pill-orange { background-color: #ffcc99; color: #cc6600; }
+
+
+.remove-user {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.1s;
+}
+
+.remove-user:hover {
+    opacity: 1;
+}
+
+/* --- User Input & Suggestions --- */
+.user-input-container {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+#user-search-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.user-suggestions-list {
+    position: absolute;
+    top: 100%; /* Position right below the input */
+    left: 0;
+    right: 0;
+    z-index: 10;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-suggestions-list li {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.1s;
+    font-size: 1rem;
+}
+
+.user-suggestions-list li:hover {
+    background-color: #f0f0f0;
+}
+
+/* --- Submit Button --- */
+.btn-share-submit {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #7c8dff;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}

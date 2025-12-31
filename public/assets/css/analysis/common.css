@@ -1,0 +1,400 @@
+        /* ========================================
+        💡 1. DESIGN SYSTEM: FOUNDATION & GLOBALS
+        ========================================
+        */
+
+        :root {
+            /* ==========================================================
+               1. BASE PALETTE DEFINITIONS (New System)
+               ========================================================== */
+        
+            /* Primary Palette - Blue */
+            --color-blue-50: #f0f6ff;
+            --color-blue-100: #d6e4ff;
+            --color-blue-200: #adc8ff;
+            --color-blue-400: #5b8def;
+            --color-blue-500: #1f74ff; /* primary */
+            --color-blue-700: #004ecc;
+        
+            /* Green Palette - Success */
+            --color-green-50: #f3faf5;
+            --color-green-100: #d9f2e1;
+            --color-green-300: #86d19e;
+            --color-green-500: #34c759; /* success */
+            --color-green-700: #228b38;
+        
+            /* Yellow Palette - Warning */
+            --color-yellow-50: #fff9e5;
+            --color-yellow-200: #ffe680;
+            --color-yellow-400: #ffcd00; /* warning */
+            --color-yellow-600: #b38600;
+        
+            /* Red Palette - Error / CTA */
+            --color-red-500: #ff385c;
+            --color-red-700: #d9042b;
+            --color-error-feedback: #ff3b30;
+        
+            /* Neutral Palette */
+            --color-gray-50: #fafafa; /* main background */
+            --color-gray-100: #f5f5f5;
+            --color-gray-200: #e5e5e5; /* border */
+            --color-gray-300: #d4d4d4; /* placeholder */
+            --color-gray-600: #525252; /* light text/muted */
+            --color-gray-900: #171717; /* dark text */
+        
+            /* New Spacing Tokens */
+            --space-xxs: 0.25rem;
+            --space-xs-new: 0.5rem; /* Renamed to avoid collision with old --space-xs mapping */
+            --space-sm-new: 1.2rem;
+            --space-md-new: 1.7rem;
+            --space-lg-new: 2.2rem;
+            --space-xl-new: 3.2rem;
+        
+            /* New Radius Tokens */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        
+            /* New Shadow Token */
+            --shadow-sm-new: 0 2px 4px rgba(0, 0, 0, 0.06);
+        
+        
+            /* ==========================================================
+               2. COMPATIBILITY MAPPING (Old Names -> New Values)
+               ========================================================== */
+        
+            /* --- Colors --- */
+            --color-primary-accent: var(--color-blue-500);          /* #1f74ff (Primary Blue) */
+            --color-secondary-accent: var(--color-yellow-400);      /* #ffcd00 (Warning Yellow) */
+            --color-tertiary-accent: var(--color-blue-700);         /* #004ecc (Deep Blue) */
+            --color-primary-accent-light: var(--color-blue-50);     /* #f0f6ff (Light Blue) */
+            --color-primary-accent-mid: var(--color-blue-200);      /* #adc8ff (Mid Blue) */
+            
+            --color-text-dark: var(--color-gray-900);               /* #171717 (Darkest Text) */
+            --color-text-light: var(--color-gray-600);              /* #525252 (Muted Text) */
+            --color-text-white: #FFFFFF;                            /* Pure White */
+            
+            --color-bg-main: var(--color-gray-50);                  /* #fafafa (Main Background) */
+            --color-bg-sidebar: #FFFFFF;                            /* Pure White (Sidebar/Card) */
+            --color-bg-card: #FFFFFF;                               /* Pure White (Sidebar/Card) */
+            --color-border: var(--color-gray-200);                  /* #e5e5e5 (Border) */
+            --color-red: var(--color-red-700);                      /* #d9042b (Used for Admin Banned/Negative) */
+        
+            /* --- Typography --- */
+            --font-family-primary: 'Inter', sans-serif;             /* New Font System */
+            
+            /* --- Spacing (Mapped by Rank) --- */
+            --space-xs: var(--space-xxs);                           /* 0.25rem (4px) */
+            --space-sm: var(--space-xs-new);                        /* 0.5rem (8px) */
+            --space-md: var(--space-sm-new);                        /* 1.2rem (approx 19px, was 1rem) */
+            --space-lg: var(--space-md-new);                        /* 1.7rem (approx 27px, was 1.5rem) */
+            --space-xl: var(--space-lg-new);                        /* 2.2rem (approx 35px, was 2rem) */
+            
+            /* --- Borders --- */
+            --border-radius-sm: var(--radius-sm);                   /* 4px */
+            --border-radius-md: var(--radius-md);                   /* 8px */
+            --border-radius-lg: var(--radius-lg);                   /* 12px */
+            --border-radius-pill: 50px;                             /* Kept constant */
+            
+            /* --- Shadows --- */
+            --shadow-sm: var(--shadow-sm-new);                      /* 0 2px 4px rgba(0, 0, 0, 0.06) */
+        }        /* Global Resets */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family-primary);
+            background-color: var(--color-bg-main);
+            color: var(--color-text-dark);
+            display: flex;
+        }
+
+        /* ========================================
+        📦 2. LAYOUT & SHARED COMPONENTS
+        ========================================
+        */
+
+        /* --- Sidebar (for context) --- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--color-bg-sidebar);
+            padding: var(--space-lg);
+            flex-shrink: 0;
+            border-right: 1px solid var(--color-border);
+            height: 100vh;
+        }
+        .sidebar-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: var(--space-xl);
+            padding-left: var(--space-sm);
+        }
+        .sidebar-menu-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            padding: 0 var(--space-sm);
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* --- Main Content Area --- */
+        .main-content {
+            flex-grow: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+            /* height: 100vh; */
+            /* Stack charts vertically */
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+            max-width: 60vw !important;
+        }
+        
+        .main-header {
+             font-size: 1.75rem;
+             font-weight: 600;
+             color: var(--color-text-dark);
+             margin-bottom: var(--space-sm); /* Reduced margin */
+        }
+
+        /* --- Card Component (Base) --- */
+        .card {
+            background-color: var(--color-bg-card);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--color-border);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            display: block !important;
+
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Add bottom padding/margin if chart has no top-padding */
+            padding-bottom: var(--space-md);
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+        }
+
+        /* --- Toggle Button Component --- */
+        .transaction-toggles {
+            display: flex;
+            gap: var(--space-xs);
+            background-color: var(--color-bg-main);
+            padding: var(--space-xs);
+            border-radius: var(--border-radius-pill);
+        }
+        
+        .toggle-button {
+            border: none;
+            background-color: transparent;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--border-radius-pill);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--color-text-light);
+            transition: all 0.2s ease;
+        }
+        
+        .toggle-button.active {
+            background-color: var(--color-bg-card);
+            color: var(--color-text-dark);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* ApexCharts class overrides to match design system */
+        .apexcharts-tooltip {
+            font-family: var(--font-family-primary);
+            border: 1px solid var(--color-border) !important;
+            box-shadow: var(--shadow-sm) !important;
+            border-radius: var(--border-radius-sm) !important;
+        }
+        
+        .apexcharts-tooltip-title {
+            background: var(--color-bg-main) !important;
+            border-bottom: 1px solid var(--color-border) !important;
+            font-weight: 600 !important;
+        }
+
+        .apexcharts-legend-text {
+            font-family: var(--font-family-primary) !important;
+            font-weight: 500;
+            color: var(--color-text-light) !important;
+        }
+        
+        /* --- New Layouts --- */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 4 columns for 4 KPIs */
+            grid-template-rows: repeat(2, 1fr);
+            gap: var(--space-lg);
+            /* width: 50vw; */
+        }
+
+        .top-analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 columns for subjects and tags */
+            gap: var(--space-lg);
+        }
+        
+        /* --- Overview KPI Card Specific Styling --- */
+        .kpi-card {
+            background-color: var(--color-bg-card);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--color-border);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .kpi-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--color-text-light);
+            margin-bottom: var(--space-sm);
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .kpi-change {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .kpi-change.positive {
+            color: var(--color-primary-accent);
+        }
+
+        .kpi-change.negative {
+            color: #E53E3E; /* Red color for negative change */
+        }
+
+        /* --- Sidebar Navigation --- */
+        ul {
+            list-style: none;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: var(--color-bg-sidebar);
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 1px solid var(--color-border);
+        }
+
+        .sidebar-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: var(--space-xl);
+            padding-left: var(--space-sm);
+        }
+
+        .sidebar-menu {
+            margin-bottom: var(--space-lg);
+        }
+        
+
+        .sidebar-menu-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 var(--space-sm);
+            margin-bottom: var(--space-sm);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem var(--space-sm);
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            color: var(--color-text-light);
+            margin-bottom: var(--space-xs);
+            transition: background-color 0.2s ease, color 0.2s ease;
+            text-decoration: none !important;
+        }
+        
+        .sidebar-link:hover {
+            background-color: var(--color-bg-main);
+            color: var(--color-text-dark);
+        }
+
+        .sidebar-link.active {
+            background-color: var(--color-primary-accent-light);
+            color: var(--color-primary-accent);
+            font-weight: 600;
+        }
+
+        .sidebar-link svg {
+            width: 20px;
+            height: 20px;
+            margin-right: var(--space-md);
+            stroke-width: 2;
+        }
+        
+        .sidebar-link.active svg {
+            stroke: var(--color-primary-accent);
+        }
+
+        .sidebar-link .badge {
+            margin-left: auto;
+            background-color: var(--color-primary-accent);
+            color: var(--color-text-white);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--border-radius-pill);
+        }
+
+        .sidebar-submenu {
+            padding-left: calc(var(--space-md) + 20px); /* Align with text, not icon */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .sidebar-submenu .sidebar-link {
+            font-size: 0.9rem;
+            padding-top: var(--space-sm);
+            padding-bottom: var(--space-sm);
+            text-decoration: none !important;
+        }
+        
+        /* JS-toggled class */
+        .submenu-open .sidebar-submenu {
+            max-height: 200px; /* Adjust as needed */
+        }
+        
+        .submenu-open .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-link .chevron-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+        }

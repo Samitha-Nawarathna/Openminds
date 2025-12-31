@@ -1,27 +1,22 @@
 import { ROOT } from '../../core/config.js';
 
-export async function get_content(type, limit, offset)
+let max_chars = 40;
+
+export async function get_content(review, limit, offset)
 {
     let send_data = {};
     let data = {};
     let content = ``;
 
-    if (type === "pending")
-    {
-        data["type"] = 0;
-    }else if (type === "approved")
-    {
-        data["type"] = 1;
-    }else
-    {
-        data["type"] = 2;
-    }
+    data["review"] = review;
 
     send_data["data"] = data;
     send_data["limit"] = limit;
     send_data["offset"] = offset;
 
-    let res = await fetch(ROOT + 'ajax/retrive_user_expertrequests', {  
+    // console.log(send_data);
+
+    let res = await fetch(ROOT + '/ajax/retrive_user_expertrequests', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json' 
@@ -31,21 +26,26 @@ export async function get_content(type, limit, offset)
         })
       });
 
+    // console.log('response',res);
     res = await res.json();
+    // console.log('content',res);
+    // return res;
 
 
     for (let i = 0; i < res.length; i++) {
         const item = res[i];
+      
         content +=
-        `<div class="card">
+        `<a href="${ROOT}/expertrequest/show?id=${item['id']}" class="profile-item no-style-link">
                     <div class="left-align">
-                        <img src="`+ROOT+item["profile_picture"]+`" alt="profile-picture" class="profile-picture-xs">
-                        <div class="username">`+item["username"]+`</div>
+                        <img src="`+ROOT+item["profile_picture_url"]+`" alt="profile-picture" class="profile-picture-xs">
+                        <div class="desription">`+item["description"].substring(0, max_chars)+`...</div>
                     </div>
                     <div class="right-align">
-                        <div class="tile role">`+item["subject"]+`</div>
+                        <div class="role-pill">`+item["subject"]+`</div>
                     </div>
-                </div>`;
+                </a>`;
+
 
     }
       

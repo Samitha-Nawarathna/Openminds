@@ -1,0 +1,562 @@
+<!-- <div class="nav-trigger">
+        ☰
+</div>
+
+<nav class="nav-hidden">
+    <div class="left-side"><div class="name">Openminds</div></div>
+
+    <div class="middle-side">
+        <div class="nav-links">
+            <ul>
+                <li><a href="<?=ROOT?>/notes" class="no-style-link">Notes</a></li>
+                <li><a href="<?=ROOT?>/question" class="no-style-link">Q & A</a></li>
+                <li class="dropdown">
+                    Exercises
+                    <ul class="dropdown-menu">
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">All</li>
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">By You</li>
+                        <li><a href="<?=ROOT?>/exercises" class="no-style-link">For approval</li>
+                    </ul>
+                </li>
+                <li><a href="<?=ROOT?>/analysis" class="no-style-link">Analysis</li>
+                <li><a href="<?=ROOT?>/expertrequest" class="no-style-link">Expert Requests</a></li>
+               
+               <?php 
+               
+               $nav_role = $_SESSION['role'] ?? null;
+
+               if ($nav_role && $nav_role === "admin"){
+                    echo '<li class="dropdown">
+                    Admin previlages
+                    <ul class="dropdown-menu">
+                        <li><a href="'.ROOT.'/expertrequestadmin" class="no-style-link">Expert Requests</li>
+                        <li><a href="'.ROOT.'/profileadmin" class="no-style-link">User Profiles</li>
+                    </ul>
+                </li>';
+
+                    }?>
+
+            </ul>
+        </div>
+    </div>
+    <div class="right-side">
+    <div class="hamburger">
+        ☰
+        </div>
+        <div class="nav-links">
+            <ul>
+                
+                <li class="dropdown">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                    <ul class="dropdown-menu" style="width:20vw">
+                        <li class="notification-header">Notifications</li>
+                        <div class="notifications-container">
+                        </div>
+                        <li class="notification-footer"><div class="button btn-none">See all notifications</div></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <img class='profile-pic' src="<?=ROOT?>\uploads\0\profile.avif" alt="">
+                    <ul class="dropdown-menu">
+                        <li><a href="<?=ROOT?>/profile" class="no-style-link">Profile</a></li>
+                        <li><a href="<?=ROOT?>/logout" class="no-style-link">Log out</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="nav-placeholder"></div> -->
+
+<script type="module">
+    const ROOT = "<?=ROOT?>";
+
+//     const session_data = <?=json_encode($data['session'])?>;
+//     console.log(session_data, ROOT);
+
+//     let data = {
+//         receiver_id: session_data.user_id,
+//     };
+
+//     let send_data = {
+//         "data": data,
+//         "offset": 0,
+//         "limit": 10
+//     }
+
+//     let res = await fetch(ROOT + 'ajax/retrive_user_notifications', {  
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json' 
+//         },
+//         body: JSON.stringify({
+//           ...send_data                     
+//         })
+//         });
+    
+//     res = await res.json();
+//     console.log(res);
+
+//     let notifications_container = document.querySelector(".notifications-container");
+//     let content = "";
+
+//     if (!notifications_container){
+//         console.error("Notifications container not found");
+        
+//     }
+
+//     if (res.success===false){
+//         content = "<li class='notification-item'>Error loading notifications</li>";
+//     }
+//      else
+//      if (res.length === 0) {
+//         content = "<li class='notification-item'>No new notifications</li>";
+//     } else {
+//         res.forEach(notification => {
+//             content += `<li class='notification-item'>${notification.content}</li>`;
+//         });
+//     }
+//     notifications_container.innerHTML = content;
+
+//     const nav_trigger = document.querySelector(".nav-trigger");
+//     const nav = document.querySelector("nav");
+
+//     let hideTimer = null;
+
+//     nav_trigger.addEventListener("mouseover", () => {
+//         nav.classList.toggle("nav-hidden");
+//         nav_trigger.classList.add("nav-trigger-hidden");
+//         nav_trigger.style.transform = "translateY(-100%)";
+//     });
+
+//     nav.addEventListener("mouseleave", () => {
+//         // start 2s timer to hide nav
+//         hideTimer = setTimeout(() => {
+//             nav.classList.add("nav-hidden");
+//             nav_trigger.classList.remove("nav-trigger-hidden");
+//             nav_trigger.style.transform = "translateY(-10%)";
+//             hideTimer = null; // clear reference
+//         }, 2000);
+//     });
+
+// nav.addEventListener("mouseenter", () => {
+//     // cancel hiding if user comes back quickly
+//     if (hideTimer) {
+//         clearTimeout(hideTimer);
+//         hideTimer = null;
+//     }
+// });
+
+    // const hamburger = document.querySelector(".hamburger");
+    // const navLinks = document.querySelector(".nav-links");
+
+    // hamburger.addEventListener("click", () => {
+    //     navLinks.classList.toggle("active");
+    // });
+
+    //     const nav_trigger = document.querySelector(".nav-trigger");
+    //     const nav = document.querySelector("nav");
+
+    //     nav_trigger.addEventListener("mouseover", () => {
+    //         document.querySelector("nav").classList.toggle("nav-hidden");
+    //         nav_trigger.classList.add("nav-trigger-hidden");
+    //         nav_trigger.style.transform = "translateY(-100%)";
+    //     });
+
+    //     nav.addEventListener("mouseleave", () => {
+    //         setTimeout(() => {
+    //             document.querySelector("nav").classList.add("nav-hidden");
+    //             nav_trigger.classList.remove("nav-trigger-hidden");
+    //             nav_trigger.style.transform = "translateY(-10%)";
+    //         }, 2000);
+
+    //     });
+</script>
+
+<style>
+            /* Smooth Scrollbar */
+            ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-gray-200); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-gray-300); }
+
+        :root {
+            --color-primary-accent: #2563eb;
+            --color-text-dark: #1f2937;
+            --color-text-light: #6b7280;
+            --color-gray-100: #f3f4f6;
+            --color-gray-600: #4b5563;
+            --color-blue-50: #eff6ff;
+            --color-border: #e5e7eb;
+            --radius-md: 0.5rem;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+        }
+
+        .sidebar-container {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid var(--color-border);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .sidebar-container.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+            height: 65px;
+        }
+
+        .collapsed .sidebar-header {
+            justify-content: center;
+            padding: 1.25rem 0.5rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-primary-accent);
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+
+        .collapsed .sidebar-logo {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            min-width: 32px;
+        }
+
+        .toggle-btn:hover {
+            background: var(--color-gray-100);
+        }
+
+        .toggle-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--color-text-dark);
+            fill: none;
+            stroke-width: 2;
+            transition: transform 0.3s;
+        }
+
+        .collapsed .toggle-btn svg {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-content {
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            height: calc(100vh - 65px);
+        }
+
+        .nav-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .nav-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            letter-spacing: 0.12em;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            padding-left: 0.75rem;
+            opacity: 0.8;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+
+        .collapsed .nav-header {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 1rem;
+            color: var(--color-text-dark);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background-color: var(--color-gray-100);
+            color: var(--color-primary-accent);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-blue-50);
+            color: var(--color-primary-accent);
+            font-weight: 600;
+        }
+
+        .nav-link svg {
+            min-width: 20px;
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .nav-link-text {
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+
+        .collapsed .nav-link {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .collapsed .nav-link-text {
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .nav-link.sub-link {
+            padding-left: 2.25rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--color-gray-600);
+        }
+
+        .collapsed .nav-link.sub-link {
+            padding-left: 0.75rem;
+        }
+
+        .nav-link.sub-link:hover {
+            color: var(--color-text-dark);
+        }
+
+        .admin-divider {
+            border-top: 1px solid var(--color-border);
+            margin: 1.5rem 0.5rem;
+            padding-top: 1rem;
+            transition: margin 0.3s;
+        }
+
+        .collapsed .admin-divider {
+            margin: 0.5rem 0.25rem;
+            padding-top: 0.5rem;
+        }
+
+        /* Tooltip for collapsed state */
+        .collapsed .nav-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--color-text-dark);
+            color: white;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1001;
+        }
+
+        .collapsed .nav-link:hover::after {
+            opacity: 1;
+        }
+
+        /* Main content area - no adjustment needed since sidebar is fixed */
+        .main-content {
+            padding: 2rem;
+            /* No margin-left needed - content stays in place */
+        }
+
+        /* Scrollbar styling */
+        .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 3px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: var(--color-gray-600);
+        }
+
+        .page-wrapper
+        {
+            padding-left: var(--space-xl);
+        }
+
+</style>
+
+
+<aside class="sidebar-container" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Openminds</div>
+            <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="nav-section">
+                <div class="nav-header">Main Menu</div>
+                <a href="<?=ROOT?>/dashboard" class="nav-link active" data-tooltip="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <span class="nav-link-text">Dashboard</span>
+                </a>
+                <a href="<?=ROOT?>/notes" class="nav-link" data-tooltip="Notes">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span class="nav-link-text">Notes</span>
+                </a>
+                <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <path d="M12 17h.01"/>
+                    </svg>
+                    <span class="nav-link-text">Q & A</span>
+                </a>
+                <a href="<?=ROOT?>/analysis" class="nav-link" data-tooltip="Analytics">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <span class="nav-link-text">Analytics</span>
+                </a>
+                <a href="<?=ROOT?>/exercises" class="nav-link" data-tooltip="Exercise">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/>
+                        <path d="m2.5 21.5 1.4-1.4"/>
+                        <path d="m20.1 3.9 1.4-1.4"/>
+                        <path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/>
+                        <path d="m9.6 14.4 4.8-4.8"/>
+                    </svg>
+                    <span class="nav-link-text">Exercise</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">User Management</div>
+                <a href="<?=ROOT?>/expertrequest" class="nav-link" data-tooltip="Expert Requests (My)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <circle cx="10" cy="8" r="5"/>
+                        <path d="M2 21a8 8 0 0 1 14 0"/>
+                        <path d="m18.5 17.5 4.5 4.5"/>
+                    </svg>
+                    <span class="nav-link-text">Expert Requests (My)</span>
+                </a>
+
+                <div class="admin-divider">
+                    <div class="nav-header">Admin Privileges</div>
+                    <a href="<?=ROOT?>/expertrequestadmin" class="nav-link nav-link" data-tooltip="Expert Requests (Admin)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                            <path d="M12 11h4"/>
+                            <path d="M12 16h4"/>
+                            <path d="M8 11h.01"/>
+                            <path d="M8 16h.01"/>
+                        </svg>
+                        <span class="nav-link-text">Expert Requests (Admin)</span>
+                    </a>
+                    <a href="<?=ROOT?>/profileadmin" class="nav-link nav-link" data-tooltip="User Profiles">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span class="nav-link-text">User Profiles</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+
+    <script>
+    const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            
+            // Save state to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+
+        // Restore saved state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedState = localStorage.getItem('sidebarCollapsed');
+            if (savedState === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+        });
+
+    </script>
+

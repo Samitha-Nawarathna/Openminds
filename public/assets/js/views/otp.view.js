@@ -1,15 +1,15 @@
 function is_empty_fields()
 {
     let fields = document.querySelectorAll('.input-group input');
-    is_empty = false;
-    fields.forEach(element => {
-        console.log(element.value);
-        if(!element.value)
-        {
-            is_empty = true;
+    let is_empty = false;
+    // fields.forEach(element => {
+    //     console.log(element.value);
+    //     if(element.value === "")
+    //     {
+    //         is_empty = true;
             
-        }
-    })
+    //     }
+    // })
     return is_empty;
 }
 

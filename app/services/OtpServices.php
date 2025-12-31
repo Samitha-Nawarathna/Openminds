@@ -78,15 +78,22 @@ class OtpServices
     public function process_forward($user_data) // rename as redirect_forward
     {
         $type = $user_data['type'];
+        // show($user_data);
 
         switch ($type) {
             case 'login':
                 #login
                 $login_services = new LoginServices;
                 $login_services->set_session($user_data);
+
+                $notification_services = new NotificationServices;
+                $notification_services->send_notification(0, 'You have successfully logged in.', $_SESSION['user_id']);
+
                 $login_services->unset_user_data();
+
     
-                return 'login';//redirect to dashboard page
+                header("Location: ".ROOT."profile");
+                exit;
 
             case 'accountverification':
                 #accountverification
@@ -98,8 +105,24 @@ class OtpServices
                 $login_services->unset_user_data();
                 exit;
 
-            case 'resetpassword':
-                # code...
+            case 'change_password':
+                $profile_service = new ProfileServices;
+
+                $result = $profile_service->change_password($user_data);
+
+                if ($result->has_errors()) {
+                    $errors = $result->get_errors();
+                    $message = implode(", ", $errors);
+                    header("Location: ".ROOT."profileupdate/change_password?message=".$message);
+                    exit;   
+                }
+
+                $notification_services = new NotificationServices;
+                $notification_services->send_notification(0, 'You have successfully changed your password!', $user_data['user_id']);
+
+
+    
+                header("Location: ".ROOT."profileupdate?message=You have successfully changed your password!");               
                 break;            
             default:
                 # registration

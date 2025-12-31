@@ -1,0 +1,476 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* -----------------------------
+ *    ✨ BASE STYLES
+ * ------------------------------ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background-color: var(--color-background);
+    margin: 0;
+    padding-top: 20px;
+    padding-bottom: 90px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* NEW: Screen Reader Only Text (ARIA Enhancement) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* -----------------------------
+ *      BUTTONS (Unified Components)
+ * ------------------------------ */
+.btn-blue, .btn-red, .btn-none {
+    width: fit-content;
+    padding: var(--space-xs) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-blue {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+.btn-blue:hover {
+    background-color: var(--color-blue-700);
+}
+
+.btn-none {
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.btn-none:hover {
+    background-color: var(--color-secondary-background);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-red {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+}
+
+.btn-red:hover {
+    background-color: var(--color-red-700);
+}
+
+/* Button Styling - Unified with attempt.view */
+.btn.primary {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn.primary:hover:not(:disabled) {
+    background-color: var(--color-blue-700);
+}
+
+.btn.secondary {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-gray-300);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn.secondary:hover:not(:disabled) {
+    background-color: var(--color-gray-100);
+}
+
+.btn:disabled {
+    background-color: var(--color-gray-300);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* NEW: Loading State for Buttons */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: button-spin 0.6s linear infinite;
+    color: var(--color-surface);
+}
+
+@keyframes button-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* -----------------------------
+ *      CARDS & LAYOUTS
+ * ------------------------------ */
+.container {
+    width: 100%;
+    max-width: 800px;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 30px 30px 10px 30px;
+    margin-bottom: 0;
+}
+
+.exercise-header {
+    border-bottom: 2px solid var(--color-border-light);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* -----------------------------
+ *      QUESTION STYLING
+ * ------------------------------ */
+.question-block {
+    margin-bottom: var(--space-lg);
+}
+
+.question-prompt {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-border-light);
+    min-height: 80px;
+}
+
+.answer-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+/* Unified Option Styling */
+.option-label {
+    display: flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    margin-bottom: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: default;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.option-label input[type="checkbox"],
+.option-label input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* Results Styling - Correct Answer State */
+.option-label.is-correct {
+    border-color: var(--color-success);
+    background-color: var(--color-green-50);
+    font-weight: 600;
+}
+
+/* User's Selected Answer States */
+.option-label.was-selected.is-correct {
+    background-color: var(--color-green-100);
+    border-width: 2px;
+}
+
+.option-label.was-selected:not(.is-correct) {
+    background-color: var(--color-red-50);
+    border-color: var(--color-error);
+    border-width: 2px;
+}
+
+.option-label.user-wrong {
+    background-color: var(--color-red-50);
+    border-color: var(--color-error);
+    border-width: 2px;
+}
+
+/* Explanation Box */
+.explanation-box {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid var(--color-gray-400);
+    border-radius: var(--radius-md);
+}
+
+.explain-icon {
+    padding: var(--space-sm);
+    background-color: var(--color-blue-100);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-sm);
+    width: fit-content;
+    font-size: var(--font-size-lg);
+}
+
+/* -----------------------------
+ *      MODAL STYLES
+ * ------------------------------ */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--color-border);
+    width: 90%;
+    max-width: 500px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.modal-start-btn {
+    width: 100%;
+    margin-top: 20px;
+    font-weight: 600;
+    border: none;
+}
+
+#modal-title {
+    margin-bottom: var(--space-xs) !important;
+}
+
+.meta-data {
+    display: flex;
+    justify-content: space-between;
+    height: fit-content;
+}
+
+.meta-data p {
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+    padding: 0 !important;
+}
+
+/* -----------------------------
+ *      VOTE AREA
+ * ------------------------------ */
+.vote-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.vote-btn {
+    font-size: var(--font-size-base);
+    padding: 8px 12px;
+}
+
+.vote-btn:hover:not(.voted) {
+    background: var(--color-gray-200);
+}
+
+.vote-btn.voted {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border-color: var(--color-primary);
+}
+
+.vote-btn.voted:hover {
+    background-color: var(--color-blue-700);
+}
+
+.vote-count-display {
+    padding: 0 var(--space-xs);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+}
+
+/* -----------------------------
+ *      LOADING OVERLAY
+ * ------------------------------ */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--color-gray-200);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: var(--space-xs);
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loading-overlay .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border-width: 4px;
+    margin-right: 0;
+    margin-bottom: var(--space-md);
+}
+
+.loading-overlay p {
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+/* -----------------------------
+ *      CONTROL BAR (Fixed Footer)
+ * ------------------------------ */
+.control-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-surface);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: var(--space-sm);
+    box-sizing: border-box;
+    height: 70px;
+}
+
+.left-controls {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.progress-area {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--color-text);
+}
+
+.feedback-area {
+    font-size: 1.1em;
+    font-weight: bold;
+    min-width: 150px;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Feedback Colors */
+.feedback-correct {
+    color: var(--color-success);
+}
+
+.feedback-wrong {
+    color: var(--color-error);
+}
+
+/* -----------------------------
+ *      SCORE BADGE
+ * ------------------------------ */
+.score-badge {
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    min-width: 100px;
+    text-align: center;
+}
+
+.score-badge.passed {
+    background-color: var(--color-green-100);
+    color: var(--color-green-700);
+}
+
+.score-badge.failed {
+    background-color: var(--color-red-50);
+    color: var(--color-red-700);
+}
+
+/* -----------------------------
+ *      UTILITY CLASSES
+ * ------------------------------ */
+.hidden {
+    display: none !important;
+}
+
+#main-exercise-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

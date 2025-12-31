@@ -3,13 +3,15 @@
     //guard from unnessesary accesses
     if (isset($_SESSION['user_id']))
     {
-        header('Location: '.ROOT.'dashboard');
+        header('Location: '.ROOT.'profile');
         exit;
     }
 
     //setting page variables
     $title = 'Register: Openminds';
     $filename = 'register';
+    $no_navbar = true;
+    $add_back = true;
 
     //put header
     include_once('../app/views/partials/header.view.php');

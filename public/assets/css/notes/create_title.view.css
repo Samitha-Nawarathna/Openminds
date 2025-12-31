@@ -1,0 +1,462 @@
+/* Import the core design system and tokens */
+/* @import url('core.css');  */
+
+/* -------------------------------------------
+   GLOBAL & LAYOUT
+------------------------------------------- */
+
+/* Body/Container adjustments based on user request */
+body {
+    /* Use design system background */
+    background-color: var(--color-blue-100); 
+    padding: var(--space-md); /* Use MD spacing for outer padding */
+    display: flex;
+    justify-content: center; 
+    margin: 0;
+}
+
+/* Redefine the main content container to use design system styles */
+.main-content-container {
+    width: 95%; 
+    max-width: 1200px; 
+    margin-top: 50px; /* Push content down past where a fixed navbar might be */
+    justify-self: center;
+    align-self: center;
+}
+
+h2 {
+    color: var(--color-text);
+    /* border-bottom: 2px solid var(--color-border); */
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.title
+{
+    margin-top: 0;
+    text-align: center;
+    width: 100%;
+}
+
+/* Use the design system .container class for general sections */
+section {
+    padding: 0; /* Let the content inside define its padding */
+    margin-bottom: var(--space-lg);
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* --- Section 1: Create Topic Styles --- */
+#create-topic-section {
+    width: 380px; /* Slightly wider than 350px for better alignment with tokens */
+    margin: 0 auto var(--space-lg) auto; 
+    
+    /* Apply design system container style to the content inside the section */
+    /* .container class from core.css provides background, shadow, and padding */
+    padding: var(--space-lg);
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+label {
+    color: var(--color-placeholder);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+
+/* Use the input-group styling for the topic name input */
+#topic-name-input {
+    width: 100%;
+    /* The input itself is styled by the core input styles (borderless) */
+    /* We'll wrap it in a div if needed, but for simplicity, we style the input directly 
+       to mimic the .input-group look, or just use the input directly if the design allows. 
+       Let's use the core style for a contained input look.
+    */
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s;
+}
+
+#topic-name-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2); 
+    outline: none;
+}
+
+/* Use the general .button style from core.css */
+/* We rely on the core.css .button and .button-secondary styles now for #create-topic-btn */
+/* Custom style for the primary button when active/not disabled */
+.button-primary {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+.button-primary:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-primary) 90%, black);
+}
+
+
+#create-topic-btn {
+    /* Ensures margin top for the button is applied */
+    margin-top: var(--space-sm);
+}
+
+#create-topic-btn:disabled {
+    background-color: var(--color-gray-400); /* Use a gray token for disabled state */
+    cursor: not-allowed;
+    /* Ensure disabled state for the primary button is clear */
+    color: var(--color-gray-100); 
+}
+
+/* NEW: Style for the "Undo Creation" button state */
+.button-secondary {
+    /* This style comes from core.css but we ensure it works here */
+    background-color: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+.button-secondary:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+.validation-message {
+    margin-top: var(--space-xs);
+    font-size: var(--font-size-sm);
+    height: 1.2em; 
+    text-align: left;
+    /* display: none; */
+}
+
+/* Use feedback color tokens */
+.valid {
+    color: var(--color-success);
+}
+
+.invalid {
+    color: var(--color-error);
+}
+
+/* --- Section 2: Notes Management Styles --- */
+#notes-modal
+{
+    justify-self: center;
+    align-self: center;
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.modal-content
+{
+    margin: 0;
+}
+.panels-container {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.panel {
+    /* Base panel style uses surface and shadow */
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+    flex: 1; /* Reset flex-grow initially */
+}
+
+.left-panel {
+    flex: 2; 
+}
+
+.left-panel h3
+{
+    padding-bottom: var(--space-sm);
+}
+
+.right-panel {
+    flex: 3; 
+}
+
+.notes-list {
+    list-style: none;
+    padding: 0;
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: var(--space-sm);
+}
+
+.note-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--color-border-light); /* Use light border token */
+}
+.note-item:last-child {
+    border-bottom: none;
+}
+
+.note-item span {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.add-btn, .remove-btn {
+    background: none;
+    border: none;
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s, transform 0.1s;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-btn { 
+    color: var(--color-primary); /* Using primary color for positive action */
+}
+.remove-btn { 
+    color: var(--color-error); /* Using error color for removal action */
+}
+.add-btn:hover { 
+    background-color: var(--color-blue-50);
+}
+.remove-btn:hover {
+    background-color: var(--color-red-50); /* Assuming a red-50 exists for hover */
+}
+
+/* --- Move Notes Button --- */
+#move-notes-btn-container {
+    text-align: center;
+    padding: var(--space-sm) 0;
+}
+
+#move-notes-btn {
+    /* Custom button style for Move */
+    padding: var(--space-sm) var(--space-lg);
+    background-color: var(--color-success); /* Green for 'move' action */
+    color: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+#move-notes-btn:hover:not(:disabled) {
+    background-color: var(--color-green-700);
+}
+
+#move-notes-btn:disabled {
+    background-color: var(--color-gray-400);
+    cursor: not-allowed;
+}
+
+/* --- Tag Input Styling --- */
+.search-bar-container {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+}
+
+.btn-filter {
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-filter {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.btn-filter:hover {
+    background-color: var(--color-gray-100);
+}
+
+#tag-input {
+    width: 100%;
+    padding: var(--space-xs);
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+}
+
+#tag-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2); 
+    outline: none;
+}
+
+#current-tags {
+    margin-bottom: var(--space-sm);
+    min-height: 20px;
+    padding: var(--space-xxs) 0;
+}
+
+.tag {
+    /* Using the .tag-pill aesthetic from core.css */
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-blue-100); /* Use a lighter blue background */
+    color: var(--color-blue-700); /* Use a darker blue for text */
+    padding: 3px 6px 3px 8px;
+    margin-right: var(--space-xs);
+    margin-bottom: var(--space-xxs);
+    border-radius: 12px; /* Use core radius or the pill style */
+    font-size: var(--font-size-sm);
+}
+
+/* NEW: Style for the tag removal button */
+.tag-remove {
+    background: none;
+    border: none;
+    color: var(--color-blue-700);
+    font-weight: 600;
+    margin-left: 5px;
+    padding: 0 2px;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 1em;
+    opacity: 0.8;
+    transition: opacity 0.2s, color 0.2s;
+}
+.tag-remove:hover {
+    opacity: 1;
+    color: var(--color-error); /* Use error color for removing a tag */
+}
+
+/* ... (Existing styles up to .tag-remove:hover) ... */
+
+/* NEW: Load More Container */
+#load-more-container {
+    text-align: center;
+}
+
+/* MODAL STYLES */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000; /* Ensure it's on top of everything */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Dark background overlay */
+    padding-top: 50px;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    margin: 10% auto; /* Center it vertically and horizontally */
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90%;
+    max-width: 1000px;
+    position: relative;
+    animation: slideIn 0.4s;
+}
+
+.close-btn {
+    color: var(--color-gray-600);
+    float: right;
+    font-size: 30px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--color-text);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Animations for better visual experience */
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes slideIn {
+    from {transform: translateY(-50px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
+}
+
+/* Adjust the main section inside the modal for better context */
+#move-notes-section {
+    padding-top: var(--space-sm);
+    margin-bottom: 0;
+}
+
+/* Ensure the Move Notes Button uses the full width of its container */
+#move-notes-btn {
+    width: 100%;
+}
+
+/* Media Query adjustment for smaller screens */
+@media (max-width: 768px) {
+    .panels-container {
+        flex-direction: column;
+    }
+    .left-panel, .right-panel {
+        flex: 1;
+    }
+    .modal-content {
+        margin: 5% auto;
+    }
+}
+
+/* NEW: Load More Container */
+#load-more-container {
+    text-align: center;
+}
+
+/* Re-use .button-secondary for the load more button (defined in core.css) */
+/* The display property is controlled by JS */
+
+/* .move-notes-section
+{
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.move-notes-section.visible
+{
+    opacity: 1;
+}
+ */

@@ -1,0 +1,299 @@
+/* General Body Styles - Replaced hardcoded values with tokens */
+body {
+    font-family: var(--font-body);
+    /* background-color: var(--color-blue-100); Use the system background color */
+    display: block;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: var(--space-md);
+    padding-bottom: 100px;
+    color: var(--color-text);
+}
+
+.note-viewer-wrapper {
+    width: 100%;
+    max-width: 100vw;
+    padding: var(--space-md);
+    margin: 0 auto;
+}
+
+.note-card {
+    display: block;
+    /* FIX 1: UNCOMMENTED STYLES FOR CARD BACKGROUND AND BORDER */
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    
+    overflow: hidden;
+    padding: var(--space-lg);
+    position: relative;
+    max-width: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: transform 0.3s ease-out, visibility 0.3s ease-out;
+
+    /* NEW FEATURE: SCROLLING SETUP (Card Container) */
+    max-height: 150vh; /* Limits the card height to 80% of the viewport */
+    display: flex; /* Enables Flexbox */
+    flex-direction: column; /* Stacks children vertically */
+}
+
+/* Apply flex properties to the inner content area */
+.main-content-area {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Make it take all available vertical space */
+    min-height: 0; /* Crucial for flex containers with max-height */
+    overflow: hidden;
+    
+}
+
+/* Fixed elements are prevented from growing or shrinking */
+.note-card .note-title-input,
+.note-card .tags-collapsible-container,
+.note-card .action-buttons-bottom {
+    flex-shrink: 0;
+}
+
+
+/* --- Collapsible Tags Section --- */
+.tags-collapsible-container {
+    margin-bottom: var(--space-md);
+    border-radius: var(--radius-sm);
+    overflow: hidden; 
+    flex-shrink: 0; /* Ensure this fixed area doesn't shrink */
+}
+
+.tags-toggle-btn {
+    /* ... existing styles ... */
+    /* FIX 2: Make background transparent to match card */
+    background: transparent;
+    /* ... existing styles ... */
+}
+
+
+.note-title-input,
+.note-content-textarea {
+    /* FIX 3: Remove default styles and use card's background */
+    border: none; 
+    background-color: transparent;
+    padding: 0; /* Remove internal padding if desired, otherwise adjust */
+    
+    width: 100%;
+    font-size: var(--font-size-base);
+    /* margin-bottom: var(--space-md); */
+    resize: none;
+    font-family: inherit;
+    color: var(--color-text);
+}
+
+.note-title-input {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    height: auto;
+}
+
+/* --- SCROLLABLE CONTENT AREA --- */
+.note-content-textarea {
+    /* NEW FEATURE: Enable scrolling */
+    flex-grow: 1; /* Takes up the remaining vertical space */
+    overflow-y: auto; /* Enables scrolling for the content */
+    
+    height: auto; /* Overrides the fixed height for flex control */
+    line-height: 1.6;
+    margin-bottom: 0; /* Remove margin from the bottom of the scroll area */
+    margin-bottom: var(--space-xl);
+}
+
+/* Action Buttons */
+.action-buttons-bottom {
+    display: flex;
+    gap: var(--space-sm); 
+    justify-content: flex-end;
+    flex-shrink: 0; /* Ensure this fixed area doesn't shrink */
+}
+
+.btn-share, .btn-delete, .action-buttons-bottom .btn-edit {
+    width: fit-content;
+    padding: var(--space-sm) var(--space-md); 
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s; 
+}
+
+.btn-share {
+    background-color: var(--color-primary); 
+    color: var(--color-surface);
+}
+
+.btn-share:hover {
+    background-color: #0056b3; 
+}
+
+.action-buttons-bottom .btn-share {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.action-buttons-bottom .btn-edit {
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.action-buttons-bottom .btn-edit:hover {
+    background-color: #ced4da; 
+    color: var(--color-primary);
+}
+
+.action-buttons-bottom .btn-delete {
+    color: var(--color-surface);
+    background-color: var(--color-error);
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.action-buttons-bottom .btn-delete:hover {
+    background-color: #c82333; 
+}
+
+
+/* --- Fixed Timer Container and States (UPDATED) --- */
+#fixed-timer-container {
+    position: fixed;
+    bottom: var(--space-lg); 
+    left: var(--space-lg);   
+    z-index: 1000; 
+}
+
+/* Style for the button that opens the modal (Focus Button) */
+#focus-button-trigger {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-lg);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    box-shadow: var(--shadow-xl);
+    
+}
+
+/* Style for the running timer display */
+.timer-display-running {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-primary); /* Use a strong background to stand out */
+    color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+    box-shadow: var(--shadow-xl);
+}
+
+/* Style for the fixed cancel button (the 'x') */
+.btn-cancel-fixed {
+    background: none;
+    border: none;
+    color: var(--color-surface);
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1; 
+    margin-left: var(--space-sm);
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.btn-cancel-fixed:hover {
+    opacity: 1;
+}
+
+
+/* --- Modal Styles (Unchanged) --- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 2000; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6); /* Backdrop */
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    margin: 10% auto; 
+    padding: var(--space-lg);
+    border: 1px solid var(--color-border);
+    max-width: 350px; 
+    width: 90%;
+    border-radius: var(--radius-lg);
+    position: relative;
+    box-shadow: var(--shadow-lg);
+}
+
+.close-btn {
+    color: var(--color-text);
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--color-error);
+    text-decoration: none;
+}
+
+/* Timer controls inside modal (simplified as countdown is external) */
+.focus-timer-container {
+    padding-top: var(--space-md);
+}
+
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+#timer-minutes-input {
+    width: 60px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    font-size: var(--font-size-base);
+}
+
+.unit-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+}
+
+#timer-start-modal-btn { /* Renamed from #timer-btn */
+    padding: var(--space-xs) var(--space-sm);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+#timer-start-modal-btn:hover {
+    background-color: #0056b3;
+}

@@ -1,0 +1,134 @@
+        /* Base styles relied upon by the new design system (view.view.css) */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+            background-color: var(--color-background);
+        }
+
+        /* Re-applying button styles with the correct padding from view.view.css */
+        .btn-blue, .btn-red, .btn-none {
+            padding: var(--space-sm) var(--space-md); /* Consistent padding */
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none
+        }
+
+        .btn-blue {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-none
+        {
+            border: 1px solid var(--color-placeholder)
+        }
+        
+        /* Modal consistency from view.view.css */
+        .modal { 
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; 
+            background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background-color: var(--color-surface); margin: auto; 
+            padding: var(--space-lg); /* Larger padding from view.view.css modal */
+            border-radius: var(--radius-lg); /* Larger radius from view.view.css modal */
+            min-width: 30vw; /* Aligned with view.view.css modal max-width */
+            box-shadow: var(--shadow-md); 
+        }
+
+        /* Form Input Consistency from view.view.css */
+        input[type="text"], textarea, input[type="number"] { 
+            width: 100%; 
+            padding: var(--space-xs); /* Use token for padding */
+            margin-top: var(--space-xxs); /* Use token for tight spacing */
+            border: 1px solid var(--color-border); 
+            border-radius: var(--radius-md); 
+            box-sizing: border-box;
+            font-size: var(--font-size-base);
+            font-family: var(--font-body);
+        }
+        input[type="text"]:focus, textarea:focus, input[type="number"]:focus { 
+            outline: none; 
+            border-color: var(--color-primary); 
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2); 
+        }
+        .modal-content form label {
+            display: block; 
+            margin-top: var(--space-sm); 
+            font-weight: 600; 
+            font-size: var(--font-size-sm); 
+            color: var(--color-text-muted);
+        }
+
+        /* BUILDER SPECIFIC LAYOUT */
+        .builder-layout {
+            display: flex;
+            max-width: 1200px;
+            margin: var(--space-md) auto;
+            padding: 0 var(--space-md);
+            gap: var(--space-md);
+            padding-bottom: 90px; /* Offset for control bar */
+        }
+        .question-list-panel {
+            width: 300px;
+            flex-shrink: 0;
+            padding: var(--space-md);
+        }
+        .editor-panel {
+            flex-grow: 1;
+        }
+        .content-card { 
+            background-color: var(--color-bg-card); /* Use token */
+            padding: var(--space-md); 
+            border: 1px solid var(--color-border); 
+            border-radius: var(--radius-md); 
+            box-shadow: var(--shadow-sm); 
+            margin-bottom: var(--space-sm); 
+        }
+        .question-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-xs);
+            margin-bottom: var(--space-xs);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .question-item.active {
+            border-left: 5px solid var(--color-primary);
+            background-color: var(--color-blue-50);
+        }
+        .option-group {
+            border: 1px dashed var(--color-border);
+            padding: var(--space-sm);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-sm);
+        }
+        .control-bar { 
+            position: fixed; bottom: 0; left: 0; width: 100%; display: flex; 
+            justify-content: space-between; align-items: center; 
+            background-color: var(--color-surface); 
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); 
+            padding: var(--space-xs) var(--space-md); 
+            box-sizing: border-box; height: 70px; 
+        }
+        .action-buttons { display: flex; align-items: center; gap: var(--space-xs); }
+
+        .left-controls
+        {
+            display:flex;
+            flex-direction:row-reverse;
+            align-items:center;
+            gap: var(--space-sm)
+        }

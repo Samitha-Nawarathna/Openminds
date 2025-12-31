@@ -1,7 +1,9 @@
-import { get_content } from '../ajax/requestbrowser.ajax.js';
+import { get_content } from '../../ajax/expertrequests/requestbrowser.ajax.js';
 
-let btns = document.querySelectorAll('.tab-btns .button');
+let btns = document.querySelectorAll('.tab-button');
 let cards = document.querySelectorAll('.content-tab');
+
+console.log(btns, cards);
 
 let primary = 'btn-primary';
 let none = 'btn-none';
@@ -17,12 +19,13 @@ btns.forEach(btn => {
   });
 });
 
-let index2type = {0: "active", 1: "banned"};
+let index2type = {0: "pending", 1: "approved", 2: "rejected"};
 
 let currentIndex = 0;
 let type = index2type[currentIndex];
 
-get_content(type, 0, 10).then(content => {
+get_content(type, 10, 0).then(content => {
+    console.log(content);
     cards[currentIndex].innerHTML = content;
 });
 
@@ -40,7 +43,7 @@ btns.forEach(btn => {
     nextCard.classList.add("incoming");
     type = index2type[targetIndex];
 
-    get_content(type, 0, 10).then(content => {
+    get_content(type, 10, 0).then(content => {
         nextCard.innerHTML = content;
     });
 

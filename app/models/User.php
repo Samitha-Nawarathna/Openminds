@@ -20,4 +20,42 @@ class User
 
     }
 
+    public function get_profile_picture_url($user_id)
+    {
+        $results = $this->first(['id'=>$user_id]);
+
+        if ($results === false) {
+            return $results;
+        }
+
+        return $results->profile_picture;
+    }
+
+    public function update_to_expert($user_id, $subject)
+    {
+        $result = $this->update($user_id, ['role' => 3]);
+
+        
+
+        if ($result === false) {
+            return false;
+        }
+
+
+
+        $experts = new Experts;
+        $subjects = new Subjects;
+
+        $subject_id = $subjects->add_new_subject($subject);
+        // show($subject_id);
+        
+        
+        if ($subject_id === false) {
+            return false;
+        }
+
+        return $experts->insert(['user_id' => $user_id, 'subject_id' => $subject_id]);
+    
+    }
+
 }

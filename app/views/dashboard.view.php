@@ -1,5 +1,8 @@
 <?php
 
+header('Location: '.ROOT.'profile');
+exit;
+
 if (!isset($_SESSION['user_id']))
 {
     header('Location: '.ROOT.'login');

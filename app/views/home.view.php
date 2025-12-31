@@ -1,12 +1,14 @@
- <?php  
+<?php  
     $title = "Openminds";
     $filename = "home";
+    $no_navbar = true;
 
     include_once "../app/views/partials/header.view.php";
- ?>
+?>
+
 <div class="home-background background-gradient">
     
-    <nav class="">
+    <nav class="nav-bar">
         <div class="name">Openminds</div>
         <div class="btns">
             <a href="<?=ROOT?>/login">log in</a>
@@ -14,27 +16,97 @@
         </div>
     </nav>
 
-
     <div class="hero-section">
-        <div class="logo">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 73.07 112.89"><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path d="M36.47,42.81h0l.1,14.52h.07A20.51,20.51,0,1,1,16.11,77.85H1.59a35,35,0,1,0,34.88-35Z"/><path d="M36.53,25.93H17.47A17.47,17.47,0,0,1,0,8.46V0H18.06A18.47,18.47,0,0,1,36.53,18.47Z"/><path d="M36.53,25.93H55.6A17.47,17.47,0,0,0,73.07,8.46V0H55A18.48,18.48,0,0,0,36.53,18.47Z"/></g></g></svg>
+        
+        <div class="hero-content gradient-lavender">
+            <div class="hero-badge tag-pill green">
+                🎉 100% Free & Open Source
+            </div>
+
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 73.07 112.89"><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path d="M36.47,42.81h0l.1,14.52h.07A20.51,20.51,0,1,1,16.11,77.85H1.59a35,35,0,1,0,34.88-35Z"/><path d="M36.53,25.93H17.47A17.47,17.47,0,0,1,0,8.46V0H18.06A18.47,18.47,0,0,1,36.53,18.47Z"/><path d="M36.53,25.93H55.6A17.47,17.47,0,0,0,73.07,8.46V0H55A18.48,18.48,0,0,0,36.53,18.47Z"/></g></g></svg>
+            </div>
+
+            <h1 class="text-main">
+                Stop juggling
+                in multiple platforms.<br/>
+                Learn in <span class="highlight">one place.</span>
+            </h1>
+            
+            <div class="text-sub">
+                Your entire learning journey—notes, questions, exercises, and progress—finally connected. No more scattered tabs. No more lost progress.
+            </div>
+
+            <div class="features-mini">
+                <div class="feature-item">Organized Notes</div>
+                <div class="feature-item">Ask Questions</div>
+                <div class="feature-item">Practice Exercises</div>
+                <div class="feature-item">Track Progress</div>
+            </div>
+
+            <div class="cta-group">
+                <a href="<?=ROOT?>/register" class="button no-style-link">Start Learning Free</a>
+                <a href="#how-it-works" class="button button-secondary no-style-link">See How It Works</a>
+            </div>
+
+            <p class="open-source-note">
+                <strong>Open source forever.</strong> Built by learners, for learners.
+            </p>
         </div>
-        <div class="text-main">
-        Openminds Where your learning</br> fuels a community.
-        </div>
-        <div class="text-sub">
-        A shared space where self-learners support each other — </br>all in one focused, community-driven platform.
-        </div>
-        <a href="<?=ROOT?>/register" class="button">Start Your Journey</a>
     </div>
 
-<!--     
-<div class="gradient-background gradient-lavender"></div>
-<div class="gradient-background gradient-blue"></div> -->
+    <div class="unified-learning-section">
+        
+        <div class="unified-message">
+            <h2 class="unified-message-title">
+                All four phases of learning.<br/>
+                <span class="emphasis">Finally unified</span> in one platform.
+            </h2>
+            <p class="unified-message-subtitle">
+                No more context switching. No more lost progress. Just continuous, connected learning from first note to mastery.
+            </p>
+        </div>
 
-
-
-    <div class="philosophy-section">
+        <div class="learning-grid">
+            <div class="learning-card notes">
+                <div class="card-content">
+                    <div class="card-icon">📝</div>
+                    <h3 class="card-title">Notes</h3>
+                    <p class="card-description">
+                        Organize your thoughts and learning materials in one place. Structure your knowledge base.
+                    </p>
+                </div>
+            </div>
+            <div class="learning-card questions">
+                <div class="card-content">
+                    <div class="card-icon">💬</div>
+                    <h3 class="card-title">Questions</h3>
+                    <p class="card-description">
+                        Get unstuck fast. Ask the community and receive answers from fellow learners.
+                    </p>
+                </div>
+            </div>
+            <div class="learning-card exercises">
+                <div class="card-content">
+                    <div class="card-icon">✏️</div>
+                    <h3 class="card-title">Exercises</h3>
+                    <p class="card-description">
+                        Practice what you learn. Test your understanding with community-created exercises.
+                    </p>
+                </div>
+            </div>
+            <div class="learning-card analysis">
+                <div class="card-content">
+                    <div class="card-icon">📊</div>
+                    <h3 class="card-title">Analysis</h3>
+                    <p class="card-description">
+                        Track your complete learning journey. Identify patterns and celebrate growth.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="philosophy-section" id="how-it-works">
         <div class="text">
             <div class="title">Our philosophy</div>
             <div class="prompt">
@@ -57,112 +129,73 @@
                     <?php include  "./assets/images/leaves.svg"; ?>
                 </div>
             </div>           
-            <div class="main-image">
-
-            </div>
+            <div class="main-image"></div>
         </div>
     </div>
 
-
-
-    <div class="values-section">
+    <!-- <div class="values-section">
         <div class="text">
-            What we <span>stands</span> for
+            What we <span>stand</span> for
         </div>
 
         <div class="statements">
             <div class="statement-card container">
                 <div class="icon"><?php include  "./assets/images/hand-heart.svg"; ?></div>
-                <div class="title">
-                    Grow by Giving
-                </div>
-                <div class="text">
-                    Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.
-                </div>
+                <div class="title">Grow by Giving</div>
+                <div class="text">Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.</div>
             </div>
-
 
             <div class="statement-card container">
                 <div class="icon"><?php include  "./assets/images/boxes.svg"; ?></div>
-                <div class="title">
-                    Everything, Together
-                </div>
-                <div class="text">
-                Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.                </div>
+                <div class="title">Everything, Together</div>
+                <div class="text">Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.</div>
             </div>
-
 
             <div class="statement-card container">
                 <div class="icon"><?php include  "./assets/images/hand-coins.svg"; ?></div>
-                <div class="title">
-                    Free, Always
-                </div>
-                <div class="text">
-                Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.                </div>
+                <div class="title">Free, Always</div>
+                <div class="text">Learning thrives when shared. We focus on contribution—helping others as a way to deepen your own understanding.</div>
             </div>
         </div>
+    </div> -->
+
+    <div class="feature-section">
+    <div class="text-section">
+        
+        <div class="note-feature feature">
+            <div class="feature-name tag-pill green">Note Feature</div>
+            <div class="text-main">All your notes in<br>One place.</div>
+            <div class="text-sub">Keep all your notes neatly organized in one place.</div>
+        </div>
+
+        <div class="q&a-feature feature">
+            <div class="feature-name tag-pill green">Q & A Feature</div>
+            <div class="text-main">Ask any question from community.</div>
+            <div class="text-sub">Ask questions and get help from a supportive learning community.</div>
+        </div>
+
+        <div class="exercise-feature feature">
+            <div class="feature-name tag-pill green">Exercise Feature</div>
+            <div class="text-main">improve with thousands of exercises.</div>
+            <div class="text-sub">Test your knowledge with exercises created by the community.</div>
+        </div>
+
+        <div class="analysis-feature feature">
+            <div class="feature-name tag-pill green">Analysis Feature</div>
+            <div class="text-main">Track your progress with analysis.</div>
+            <div class="text-sub">Track your progress and see how your contributions impact the community.</div>
+        </div>
+
     </div>
 
 
 
-    <div class="feature-section">
-        <div class="text-section">
-            <div class="note-feature feature">
-                <div class="feature-name tile">Note Feature</div>
-                <div class="main-text">
-                    All your note in<br>One place.
-                </div>
-                <div class="sub-text">
-                with our note feature, keep you all notes in a singleplace.
-                </div>
-            </div>
-
-
-            <div class="q&a-feature feature">
-                <div class="feature-name tile">Q & A Feature</div>
-                <div class="main-text">
-                    Ask any question
-                    from community.
-                </div>
-                <div class="sub-text">
-                    with our q&a feature you can ask any question and there is a entire community to help you
-                </div>
-            </div>
-
-
-            <div class="exercise-feature feature">
-                <div class="feature-name tile">Exercise Feature</div>
-                <div class="main-text">
-                improve with
-                thousands of exercises.
-                </div>
-                <div class="sub-text">
-                    test your knowledge with community created exercises.
-                </div>
-            </div>
-
-            <div class="analysis-feature feature">
-                <div class="feature-name tile">Analysis Feature</div>
-                <div class="main-text">
-                Track your progress
-                with analysis.
-                </div>
-                <div class="sub-text">
-                    with our analysis feature you can keep track your growth and also your impact to community.
-                </div>
-            </div>
-        </div>
-
         <div class="image-section">
             <div class="content-wrapper">
                 <div class="square-wrapper">
-                    <div class="square">
-
-                    </div>
+                    <div class="square"></div>
                 </div>
-                <div class="image">
-
-                </div>
+                <div class="image"></div>
                 <div class="icon">
                     <?php include  "./assets/images/leaves.svg"; ?>
                     <?php include  "./assets/images/leaves.svg"; ?>
@@ -175,56 +208,38 @@
         </div>
     </div>
 
-
     <div class="fqa-section">
         <div class="title">Frequently Asked Questions</div>
         <div class="question-section">
-
             <div class="question question1">
                 <div class="card">
-                    <div class="left">
-                        What is your objective for this project?
-                    </div>
-                    <div class="right">
-                        +
-                    </div>
+                    <div class="left">What is your objective for this project?</div>
+                    <div class="right">+</div>
                 </div>
                 <div class="answer container inactive">
-                Our main objective is to create a platform that makes learning and knowledge sharing more personalized, transparent, and collaborative. Instead of being a one-way content delivery system, we want to empower students, mentors, and experts to connect, track progress, and grow together with tools designed for real learning outcomes.
+                Our main objective is to create a platform that makes learning and knowledge sharing more personalized, transparent, and collaborative.
                 </div>
             </div>
-
             <div class="question question2">
                 <div class="card">
-                    <div class="left">
-                        how are we different from other platforms?
-                    </div>
-                    <div class="right">
-                        +
-                    </div>
+                    <div class="left">how are we different from other platforms?</div>
+                    <div class="right">+</div>
                 </div>
                 <div class="answer container inactive">
-                Unlike most platforms that only provide static content or one-sided lectures, our system focuses on interactive engagement and personalized tracking. Students can create notes, track their knowledge growth, and share with peers. Mentors can directly guide learners with assignments and live sessions. Experts validate content quality, and admins keep everything safe and organized. This multi-role ecosystem ensures quality, trust, and collaboration in a way that typical platforms don’t.
+                Unlike most platforms that only provide static content or one-sided lectures, our system focuses on interactive engagement and personalized tracking.
                 </div>
             </div>
-
             <div class="question question3">
                 <div class="card">
-                    <div class="left">
-                        is all features completetly free?
-                    </div>
-                    <div class="right">
-                        +
-                    </div>                                        
+                    <div class="left">is all features completely free?</div>
+                    <div class="right">+</div>                                        
                 </div>
                 <div class="answer container inactive">
-                Yes, all core features are completely free to use. Our mission is to make accessible learning available to everyone without hidden paywalls. While we may introduce optional premium services in the future (like advanced analytics or dedicated mentorship), the foundation of learning, sharing, and connecting will always remain free.
+                Yes, all core features are completely free to use. Our mission is to make accessible learning available to everyone without hidden paywalls.
                 </div>
             </div>
-
         </div>
     </div>
-
 
     <div class="cta-section">
         <a href="<?=ROOT?>/register" class="button btn-none">Start Your Journey</a>
@@ -235,10 +250,6 @@
 
 </div>
 
-
-
- <?php
-
+<?php
     include_once "../app/views/partials/footer.view.php";
-
- ?>
+?>
