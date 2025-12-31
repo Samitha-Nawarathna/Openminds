@@ -18,22 +18,41 @@
 <body>
 
 <div id="setup-modal" class="modal">
-    <div class="modal-content">
-        <h2>Exercise Details</h2>
-        <form id="setup-form">
-            <label for="exercise-title-input">Exercise Title (e.g., Intro to Big O Notation)</label>
-            <input type="text" id="exercise-title-input" placeholder="Required" required>
+    <div class="modal-content setup-modal-content">
+        <!-- Header Section -->
+        <div class="setup-header">
+            <div class="setup-icon">🎓</div>
+            <h1 class="setup-title">Let's Create an Exercise</h1>
+            <p class="setup-subtitle">Enter the basic details to get started.</p>
+        </div>
 
-            <label for="exercise-subject-input">Subject / Topic</label>
-            <input type="text" id="exercise-subject-input" placeholder="e.g., Data Structures, PHP" required>
+        <form id="setup-form" class="setup-form">
+            <!-- Row 1: Two-column layout for Title and Subject -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="exercise-title-input">Exercise Title</label>
+                    <input type="text" id="exercise-title-input" placeholder="Required" required>
+                </div>
+                <div class="form-group">
+                    <label for="exercise-subject-input">Subject / Topic</label>
+                    <input type="text" id="exercise-subject-input" placeholder="e.g., Data Structures, PHP" required>
+                </div>
+            </div>
 
-            <label for="exercise-description-input">Description (Optional Overview)</label>
-            <textarea id="exercise-description-input" rows="3" placeholder="Learning objectives..."></textarea>
+            <!-- Description Section -->
+            <div class="form-group">
+                <label for="exercise-description-input">Description (Optional Overview)</label>
+                <textarea id="exercise-description-input" rows="4" placeholder="Learning objectives..."></textarea>
+            </div>
             
-            <label for="exercise-tags-input">Tags (Comma separated)</label>
-            <input type="text" id="exercise-tags-input" placeholder="e.g., beginner, sorting, trees">
+            <!-- Tags Section -->
+            <div class="form-group">
+                <label for="exercise-tags-input">Tags (Comma separated)</label>
+                <input type="text" id="exercise-tags-input" placeholder="e.g., beginner, sorting, trees">
+            </div>
 
-            <button type="submit" class="btn-blue" style="width: 100%; margin-top: var(--space-md);">Start Building</button>
+            <!-- Primary Action Button -->
+            <button type="submit" class="btn-blue btn-start-building">Start Building</button>
         </form>
     </div>
 </div>
