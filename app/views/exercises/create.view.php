@@ -81,25 +81,25 @@
                 name="content"
                 placeholder="Enter the question"
                 storage-key="demo-editor-2"
-                height="250px">
+                height="150px">
             </quill-editor>
 
-            <label for="q-explanation-input" style="margin-top:var(--space-md);">Explanation (Required for Review)</label>
+            <label for="q-explanation-input">Explanation (Required for Review)</label>
             <quill-editor 
                 id="q-explanation-input"
                 name="content"
-                placeholder="Enter the question"
+                placeholder="Enter the explanation"
                 storage-key="demo-editor-2"
-                height="250px">
+                height="150px">
             </quill-editor>            
 
-            <label for="q-weight-input" style="margin-top:var(--space-md);">Question Weight/Points</label>
-            <input type="number" id="q-weight-input" min="1" value="1" required style="width: 100px;">
+            <label for="q-weight-input">Question Weight/Points</label>
+            <input type="number" id="q-weight-input" min="1" value="1" required>
 
-            <h3 style="margin-top:var(--space-md); border-bottom: 1px solid var(--color-border);">Answer Options</h3>
+            <h3>Answer Options</h3>
             <div id="options-container" class="option-group">
                 </div>
-            <button type="button" id="add-option-btn" class="btn-none" style="margin-top: var(--space-xs); padding: var(--space-xs) var(--space-md); border-style: dashed;">+ Add Option</button>
+            <button type="button" id="add-option-btn" class="btn-none">+ Add Option</button>
         </form>
     </div>
 </div>

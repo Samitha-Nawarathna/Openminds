@@ -7,7 +7,7 @@
 
         body {
             font-family: var(--font-body);
-            font-size: uvar(--font-size-base);
+            font-size: var(--font-size-base);
             color: var(--color-text);
             background-color: var(--color-background);
         }
@@ -84,9 +84,9 @@
         }
 
         /* Form Group - Single field wrapper */
-        /* .form-group {
+        .form-group {
             margin-bottom: var(--space-md);
-        } */
+        }
 
         .form-group:last-of-type {
             margin-bottom: var(--space-lg);
@@ -235,6 +235,132 @@
             margin-top: 0 !important;
         }
 
+        /* ----------------------------------------
+           QUESTION EDITOR STYLING
+           ---------------------------------------- */
+
+        /* Quill editor shells: add boundaries and scrolling */
+        quill-editor {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background-color: var(--color-surface);
+            overflow: hidden;
+            display: block;
+        }
+
+        quill-editor:focus-within {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.12);
+        }
+
+        /* Toolbar + container visual separation */
+        .ql-toolbar {
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-bg-card);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+
+        .ql-container {
+            border: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            font-size: var(--font-size-base);
+            background: var(--color-surface);
+            max-height: 220px;
+            min-height: 120px;
+            overflow-y: auto;
+            padding: 0 var(--space-sm);
+        }
+
+        /* Compact heights for prompt/explanation editors */
+        #q-prompt-input,
+        #q-explanation-input {
+            min-height: 150px !important;
+            max-height: 220px !important;
+        }
+
+        /* Keep option editors short */
+        .option-group quill-editor {
+            min-height: 80px !important;
+            max-height: 120px !important;
+        }
+
+        /* Answer options container: show multiple options without scrolling page */
+        .option-group {
+            border: 1px dashed var(--color-border);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        /* Option row layout: label | editor | delete */
+        .option-item {
+            display: grid;
+            grid-template-columns: 32px 1fr 40px;
+            gap: var(--space-sm);
+            align-items: center;
+            padding: var(--space-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-surface);
+        }
+
+        .option-item .option-label {
+            font-weight: 700;
+            color: var(--color-text);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xxs);
+            align-items: center;
+        }
+
+        .option-item input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin: 0 auto;
+        }
+
+        .option-item .btn-red {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        /* Editor labels spacing */
+        #question-editor-form > label {
+            display: block;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            margin-top: var(--space-md);
+            margin-bottom: var(--space-xs);
+        }
+
+        #question-editor-form > label:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Question weight sizing */
+        #q-weight-input {
+            width: 110px;
+        }
+
+        /* Answer section heading */
+        #question-editor-form > h3 {
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* Add option button fills width for easier tapping */
+        #add-option-btn {
+            width: 100%;
+            border-style: dashed;
+        }
+
         /* BUILDER SPECIFIC LAYOUT */
         .builder-layout {
             display: flex;
@@ -273,12 +399,6 @@
         .question-item.active {
             border-left: 5px solid var(--color-primary);
             background-color: var(--color-blue-50);
-        }
-        .option-group {
-            border: 1px dashed var(--color-border);
-            padding: var(--space-sm);
-            border-radius: var(--radius-md);
-            margin-top: var(--space-sm);
         }
         .control-bar { 
             position: fixed; bottom: 0; left: 0; width: 100%; display: flex; 
