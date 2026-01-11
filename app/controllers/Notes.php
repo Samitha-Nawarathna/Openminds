@@ -4,115 +4,51 @@ class Notes extends Controller
 {
     public function index()
     {
-        $data = [
-            'create_url' => 'topics/create/' // URL for the Create button
+        $topics = new Topics();
+        $params = [
+            'order_by' => 'id',
+            'order_dir' => 'DESC',
+            'limit' => 10
         ];
         
-        // Helper function to generate mock topic data
-        function generate_mock_topics($offset, $limit, $filter_term) {
-            $all_topics = [
-                ['id' => 't1', 'name' => 'Science', 'creator_id' => 'user_1'],
-                ['id' => 't2', 'name' => 'Maths', 'creator_id' => 'user_2'],
-                ['id' => 't3', 'name' => 'Linear algebra', 'creator_id' => 'user_1'],
-                ['id' => 't4', 'name' => 'Calculus', 'creator_id' => 'user_3'],
-                ['id' => 't5', 'name' => 'Integration', 'creator_id' => 'user_4'],
-                ['id' => 't6', 'name' => 'Psychology', 'creator_id' => 'user_5'],
-                ['id' => 't7', 'name' => 'Biology', 'creator_id' => 'user_1'],
-                ['id' => 't8', 'name' => 'Fluid Dynamics', 'creator_id' => 'user_6'],
-                ['id' => 't9', 'name' => 'Computer Science', 'creator_id' => 'user_7'],
-                ['id' => 't10', 'name' => 'Thermodynamics', 'creator_id' => 'user_8'],
-                // ['id' => 't11', 'name' => 'Cosmology', 'creator_id' => 'user_1'], 
-                // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
-                // ['id' => 't12', 'name' => 'Topology', 'creator_id' => 'user_9'],
-                ['id' => 't13', 'name' => 'Number Theory', 'creator_id' => 'user_10'],
-                ['id' => 't14', 'name' => 'Philosophy', 'creator_id' => 'user_11'],
-                ['id' => 't15', 'name' => 'Ethics', 'creator_id' => 'user_12'],
-            ];
+        $data = [
+            'create_url' => 'topics/create/',
+            'initial_load' => [
+                'topics' => json_decode(json_encode($topics->filter_and_search($params)), true) ?: [],
+                'has_more' => true // logic to check count? For now assume true or check count
+            ],
+            'recent_topics' => ["science", "art", "maths"], // Placeholder or fetch real
+            'recent_topic_ids' => [1, 2, 3]
+        ];
         
-            // Simple text filter simulation
-            if ($filter_term) {
-                $filter_term = strtolower($filter_term);
-                $all_topics = array_filter($all_topics, function($t) use ($filter_term) {
-                    return str_contains(strtolower($t['name']), $filter_term);
-                });
-            }
-        
-            // Apply offset and limit for pagination
-            $topics_to_return = array_slice($all_topics, $offset, $limit);
-            $has_more = count($all_topics) > ($offset + $limit);
-        
-            return [
-                'topics' => array_values($topics_to_return),
-                'has_more' => $has_more,
-            ];
-        }
-        
-        // Initial data load for the PHP rendering (first 10 items)
-        $data["initial_load"] = generate_mock_topics(0, 10, '');
-        $data['recent_topics'] = ["science", "art", "maths", "physics", "chemistry", "history"];
-        $data['recent_topic_ids'] = [1, 3, 2, 4, 8, 7];
         $this->view('notes/title', $data);
     }
 
     public function view_notes($topic_id)
     {
-        // $topic_id = $_GET['topic_id'] ?? null;
-
-        // --- MOCK DATA SETUP ---
-
-        $data = [
-            'current_user_id' => 'user_1',
-            // The context of the note currently being browsed (used for the header pill)
-            'browsing_topic_title' => 'Science', 
-            'initial_tab' => 'created', 
-            'create_url' => '/notes/create'
+        $note_model = new NoteModel();
+        
+        $params = [
+            'where' => ['topic_id' => $topic_id],
+            'limit' => 10,
+            'offset' => 0
         ];
 
-        $data['pinned_notes'] = ["science", "art", "maths", "physics", "chemistry", "history"];
-        $data['pinned_note_ids'] = [1, 3, 2, 4, 8, 7];
-
-        // Helper function to generate mock notes data based on type
-        function generate_mock_notes($type, $offset, $limit) {
-            // Mock data for the 'Created' (by user_1) and 'Shared' tabs
-            $created_notes = [
-                ['id' => 1, 'title' => 'Calculus Basics', 'tag' => 'Maths', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'Quantum Fields', 'tag' => 'Physics', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'Set Theory Axioms', 'tag' => 'Maths', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'A Note on Ethics', 'tag' => 'Philosophy', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'Kinematics in 3D', 'tag' => 'Physics', 'relation' => 'Created'],
-            ];
-
-            $shared_notes = [
-                ['id' => 1, 'title' => 'Shared: General Relativity', 'tag' => 'Physics', 'relation' => 'Shared'],
-                ['id' => 1, 'title' => 'Shared: Python Tips', 'tag' => 'CS', 'relation' => 'Shared'],
-                ['id' => 1, 'title' => 'Shared: Thermodynamics', 'tag' => 'Physics', 'relation' => 'Shared'],
-                ['id' => 1, 'title' => 'Shared: Abstract Algebra', 'tag' => 'Maths', 'relation' => 'Shared'],
-                ['id' => 1, 'title' => 'Shared: Psychology Stats', 'tag' => 'Psychology', 'relation' => 'Shared'],
-            ];
-
-            $data_source = ($type === 'created') ? $created_notes : $shared_notes;
-            
-            // Add extra items for 'Load More' to work
-            if ($type === 'created') {
-                array_push($data_source, ['id' => 1, 'title' => '6th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 1, 'title' => '7th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 1, 'title' => '8th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 1, 'title' => '9th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 1, 'title' => '10th Created Note', 'tag' => 'Test', 'relation' => 'Created']);
-                array_push($data_source, ['id' => 1, 'title' => '11th Created Note (Load More)', 'tag' => 'Test', 'relation' => 'Created']);
-            }
-
-            // Apply offset and limit for pagination
-            $notes_to_return = array_slice($data_source, $offset, $limit);
-            $has_more = count($data_source) > ($offset + $limit);
-
-            return [
-                'notes' => array_values($notes_to_return),
-                'has_more' => $has_more
-            ];
-        }
-
-        $data["initial_load"] = generate_mock_notes($data['initial_tab'], 0, 10);
+        // Fetch notes
+        $notes = json_decode(json_encode($note_model->filter_and_search($params)), true) ?: [];
+        
+        $data = [
+            'current_user_id' => $_SESSION['user_id'] ?? 0,
+            'browsing_topic_title' => (new Topics())->first(['id' => $topic_id])->name ?? 'Unknown Topic',
+            'initial_tab' => 'created', 
+            'create_url' => '/notes/create',
+            'initial_load' => [
+                'notes' => $notes,
+                'has_more' => count($notes) >= 10
+            ],
+            'pinned_notes' => [], // Implement pinned logic query if needed
+            'pinned_note_ids' => []
+        ];
 
         $this->view('notes/note', $data);
     }
@@ -259,7 +195,7 @@ class Notes extends Controller
             // Update note details
 
             // Redirect to the note view page after updating
-            header("Location: ".ROOT."/notes/show?id=" . $note_id);
+            header("Location: ".ROOT."/notes/view/" . $note_id);
 
             exit();
         }
@@ -499,59 +435,50 @@ class Notes extends Controller
     }
 
     public function api_pin_note($id) {
-        // Assume logic to pin note $id
-        $this->json_respond([
-            "success" => true,
-            "message" => "Note 'Deriving Lagrange Mechanics' successfully pinned.",
-            "data" => [
-                "note_id" => (int)$id,
-                "is_pinned" => true,
-                "updated_at" => "2025-11-26 18:30:00"
-            ]
-        ]);
+        $note_model = new NoteModel();
+        if ($note_model->pin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Note successfully pinned.",
+                "data" => ["note_id" => (int)$id, "is_pinned" => true]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to pin note."]);
+        }
     }
 
     public function api_unpin_note($id) {
-        // Assume logic to unpin note $id
-        $this->json_respond([
-            "success" => true,
-            "message" => "Note 'Deriving Lagrange Mechanics' successfully unpinned.",
-            "data" => [
-                "note_id" => (int)$id,
-                "is_pinned" => false,
-                "updated_at" => "2025-11-26 18:30:00"
-            ]
-        ]);
+        $note_model = new NoteModel();
+        if ($note_model->unpin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Note successfully unpinned.",
+                "data" => ["note_id" => (int)$id, "is_pinned" => false]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to unpin note."]);
+        }
     }
 
     public function api_filter() {
-        // Assume logic to filter notes based on GET params (e.g., topic, tag)
+        $data = $this->json_request();
+        // Map frontend filter params to backend model params
+        $params = [
+            'where' => [],
+            'like' => []
+        ];
+
+        if (!empty($data['topic_id'])) {
+            $params['where']['topic_id'] = $data['topic_id'];
+        }
+         // Add other filters as needed
+
+        $note_model = new NoteModel();
+        $results = $note_model->filter_and_search($params);
+        
         $this->json_respond([
             "success" => true,
-            "total_results" => 25,
-            "page" => 1,
-            "per_page" => 20,
-            "available_more" => true,
-            "data" => [
-                [
-                    "id" => 205,
-                    "title" => "Deriving Lagrange Mechanics (Part 1)",
-                    "excerpt" => "Introduction to the Lagrangian and the Principle of Least Action.",
-                    "topic_id" => 3,
-                    "topic_name" => "Theoretical Physics",
-                    "tags" => ["mechanics", "calculus", "advanced"],
-                    "created_at" => "2025-11-25 10:00:00"
-                ],
-                [
-                    "id" => 206,
-                    "title" => "Properties of the Fourier Transform",
-                    "excerpt" => "Review of linearity, time-shifting, and frequency-shifting properties.",
-                    "topic_id" => 4,
-                    "topic_name" => "Signal Processing",
-                    "tags" => ["math", "analysis", "transform"],
-                    "created_at" => "2025-11-25 14:30:00"
-                ]
-            ]
+            "data" => $results
         ]);
     }
 
@@ -570,19 +497,30 @@ class Notes extends Controller
     }
 
     public function api_load_more() {
-        // Assume logic to load more notes based on GET params (e.g., offset)
+        $data = $this->json_request();
+        $offset = $data['offset'] ?? 0;
+        $limit = $data['limit'] ?? 5;
+        $topic_id = $data['topic_id'] ?? null;
+
+        $params = [
+            'limit' => $limit,
+            'offset' => $offset,
+            'where' => []
+        ];
+
+        if ($topic_id) {
+             $params['where']['topic_id'] = $topic_id;
+        }
+
+        $note_model = new NoteModel();
+        $notes = $note_model->filter_and_search($params) ?: [];
+        
         $this->json_respond([
             "success" => true,
-            "results_returned" => 5,
-            "next_offset" => 25,
-            "available_more" => false,
-            "data" => [
-                ["id" => 21, "title" => "Understanding Recursive Functions", "created_at" => "2025-11-20 09:00:00"],
-                ["id" => 22, "title" => "Introduction to Quantum Computing", "created_at" => "2025-11-20 11:00:00"],
-                ["id" => 23, "title" => "Data Structures: Hash Tables vs. Trees", "created_at" => "2025-11-20 13:00:00"],
-                ["id" => 24, "title" => "Proof of the Pythagorean Theorem", "created_at" => "2025-11-20 15:00:00"],
-                ["id" => 25, "title" => "Theorems of Thermodynamics", "created_at" => "2025-11-20 17:00:00"]
-            ]
+            "results_returned" => count($notes),
+            "next_offset" => $offset + count($notes),
+            "available_more" => count($notes) >= $limit,
+            "data" => $notes
         ]);
     }
 

@@ -1,4 +1,4 @@
-import {ROOT} from '../../core/config.js';
+import { ROOT } from '../../core/config.js';
 
 const MOCK_API_SAVE_URL = ROOT + 'exercises/save';
 const MOCK_API_SUBMIT_URL = ROOT + 'exercises/create';
@@ -33,7 +33,7 @@ function updateMetadata() {
     };
     setupModal.style.display = 'none';
 
-    
+
     // Ensure the control bar Save Draft button is re-enabled if needed
     document.getElementById('save-draft-btn').disabled = false;
 }
@@ -44,7 +44,7 @@ function prepopulateMetadataForm() {
     document.getElementById('exercise-subject-input').value = EXERCISE_METADATA.subject || '';
     document.getElementById('exercise-description-input').value = EXERCISE_METADATA.description || '';
     document.getElementById('exercise-tags-input').value = EXERCISE_METADATA.tags || '';
-    
+
     // Change button text for clarity if exercise already exists
     const submitBtn = setupForm.querySelector('button[type="submit"]');
     submitBtn.textContent = EXERCISE_METADATA.title ? 'Update Details' : 'Start Building';
@@ -53,16 +53,16 @@ function prepopulateMetadataForm() {
 
 setupForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    
+
     const isInitialSetup = Object.keys(EXERCISE_METADATA).length === 0;
-    
+
     updateMetadata(); // Save the data
 
     if (isInitialSetup) {
         // Initial setup flow: reveal UI and start first question
         mainBuilderContent.style.display = 'flex';
         controlBar.style.display = 'flex';
-        addNewQuestion(); 
+        addNewQuestion();
     }
 });
 
@@ -93,11 +93,11 @@ function generateOptionHtml(index, text = '', isCorrect = false) {
     `;
 }
 
-function renderOptions(options = [{text: '', isCorrect: true}, {text: '', isCorrect: false}]) {
+function renderOptions(options = [{ text: '', isCorrect: true }, { text: '', isCorrect: false }]) {
     optionsContainer.innerHTML = options.map((opt, index) => generateOptionHtml(index, opt.text, opt.isCorrect)).join('');
 }
 
-window.removeOption = function(el, index) {
+window.removeOption = function (el, index) {
     if (optionsContainer.children.length > 2) {
         el.parentElement.remove();
     } else {
@@ -115,7 +115,7 @@ function saveCurrentQuestion() {
     const prompt = document.getElementById('q-prompt-input').value.trim();
     const explanation = document.getElementById('q-explanation-input').value.trim();
     const weight = parseInt(document.getElementById('q-weight-input').value);
-    
+
     if (!prompt || !explanation || isNaN(weight)) {
         alert('Please fill out the prompt, explanation, and weight.');
         return false;
@@ -125,7 +125,7 @@ function saveCurrentQuestion() {
         text: div.querySelector(`#option-text-${index}`).value,
         isCorrect: div.querySelector(`input[name="correct-option"]`).checked, // Assumes radio for simplicity
     }));
-    
+
     if (options.filter(o => o.isCorrect).length === 0) {
         alert('Please select at least one correct answer.');
         return false;
@@ -146,8 +146,9 @@ function saveCurrentQuestion() {
         // Add new question
         EXERCISE_QUESTIONS.push(newQ);
         currentQIndex = EXERCISE_QUESTIONS.length - 1;
+        document.getElementById('current-q-id').value = newQ.id;
     }
-    
+
     renderQuestionList();
     updateBuilderUI(true);
     return true;
@@ -156,13 +157,13 @@ function saveCurrentQuestion() {
 function loadQuestion(index) {
     currentQIndex = index;
     const q = EXERCISE_QUESTIONS[index];
-    
+
     document.getElementById('current-q-id').value = q.id;
     document.getElementById('q-prompt-input').value = q.prompt;
     document.getElementById('q-explanation-input').value = q.explanation;
     document.getElementById('q-weight-input').value = q.weight;
     document.getElementById('current-q-title').textContent = `Question Editor: Q${index + 1}`;
-    
+
     renderOptions(q.options);
     updateBuilderUI();
 }
@@ -170,10 +171,10 @@ function loadQuestion(index) {
 window.loadQuestion = loadQuestion;
 
 function addNewQuestion() {
-    if (currentQIndex !== -1 && !saveCurrentQuestion()) {
-         return; // Don't proceed if save fails
+    if (!saveCurrentQuestion()) {
+        return; // Don't proceed if save fails
     }
-    
+
     currentQIndex = -1; // Mark as new question mode
     document.getElementById('current-q-id').value = '';
     document.getElementById('current-q-title').textContent = `Question Editor: New`;
@@ -196,7 +197,7 @@ function updateBuilderUI(isSaved = false) {
     // Control Bar Logic
     document.getElementById('prev-q-btn').disabled = currentQIndex <= 0;
     document.getElementById('save-next-btn').textContent = currentQIndex === EXERCISE_QUESTIONS.length - 1 ? 'Save & Add New →' : 'Save & Next Question →';
-    
+
     // Draft Status
     if (isSaved) {
         document.getElementById('draft-status').textContent = 'Saved Locally';
@@ -206,8 +207,6 @@ function updateBuilderUI(isSaved = false) {
 
 // --- EVENT HANDLERS ---
 
-// NOTE: document.getElementById('add-new-q-btn').addEventListener('click', addNewQuestion) is still in the code 
-// but the button's style is set to display:none, effectively disabling it via CSS/HTML attribute.
 
 document.getElementById('save-next-btn').addEventListener('click', () => {
     if (saveCurrentQuestion()) {
@@ -222,7 +221,7 @@ document.getElementById('save-next-btn').addEventListener('click', () => {
 document.getElementById('prev-q-btn').addEventListener('click', () => {
     // Ensure the current question is saved when navigating backward
     if (saveCurrentQuestion() && currentQIndex > 0) {
-         loadQuestion(currentQIndex - 1);
+        loadQuestion(currentQIndex - 1);
     }
 });
 
@@ -235,24 +234,26 @@ document.getElementById('save-draft-btn').addEventListener('click', () => {
     }
 });
 
-window.deleteQuestion = function(index) {
+window.deleteQuestion = function (index) {
     if (confirm(`Are you sure you want to delete Question ${index + 1}?`)) {
         EXERCISE_QUESTIONS.splice(index, 1);
-        
+
         let nextIndexToLoad = EXERCISE_QUESTIONS.length > 0 ? Math.min(index, EXERCISE_QUESTIONS.length - 1) : -1;
-        
+
         if (index === currentQIndex || EXERCISE_QUESTIONS.length === 0) {
-             if (nextIndexToLoad > -1) {
+            if (nextIndexToLoad > -1) {
                 loadQuestion(nextIndexToLoad);
-             } else {
-                 addNewQuestion();
-             }
+            } else {
+                addNewQuestion();
+            }
         }
-        
+
         renderQuestionList();
         updateBuilderUI();
     }
 }
+
+document.getElementById('add-new-q-btn').addEventListener('click', addNewQuestion);
 
 
 // --- STEP 4: FINAL SUBMISSION LOGIC ---
@@ -261,7 +262,7 @@ document.getElementById('finalize-btn').addEventListener('click', () => {
 
     const count = EXERCISE_QUESTIONS.length;
     document.getElementById('submission-q-count').textContent = count;
-    
+
     if (count < 3) {
         document.getElementById('submission-warning').textContent = 'Warning: We recommend at least 3 questions.';
         document.getElementById('confirm-submit-btn').disabled = false; // Still allow submission
@@ -278,11 +279,11 @@ document.getElementById('cancel-submit-btn').addEventListener('click', () => {
 });
 
 document.getElementById('confirm-submit-btn').addEventListener('click', () => {
-    console.log('API: Submitting FINAL exercise for review...', {metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS});
+    console.log('API: Submitting FINAL exercise for review...', { metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS });
     fetch(MOCK_API_SUBMIT_URL, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS }),
     })
     alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
     // In a real app: Redirect to the dashboard or a success page.

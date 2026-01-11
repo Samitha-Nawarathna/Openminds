@@ -65,7 +65,7 @@ include_once '../app/views/partials/header.view.php';
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {
                 // Added data-id for JS event listener
-                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '<span class="pin-icon">pin</span></a></div>';
+                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '<span class="pin-icon">pin</span></a></div>';
             }
             ?>
         </div>

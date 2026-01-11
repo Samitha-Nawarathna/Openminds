@@ -75,7 +75,7 @@
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['notes'] as $note) {
                 // Added data-id for JS event listener
-                echo '<div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">' . htmlspecialchars($note['title']) . '<span class="pin-icon">pin</span></div>';
+                echo '<a class="no-style-link" href="'.ROOT.'/notes/view/'.$note['id'].'"><div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">' . htmlspecialchars($note['title']) . '<span class="pin-icon">pin</span></div></a>';
             }
             ?>
         </div>
