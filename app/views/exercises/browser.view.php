@@ -53,6 +53,8 @@
             <button class="tab-button <?= $data['initial_tab'] == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">created by you</button>
             <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">attempt by you</button>
             <?php
+
+            //for testing
             if (isset($_SESSION['role']) && ($_SESSION['role'] === 'expert' || $_SESSION['role'] === 'admin')) {
                 echo '<button class="tab-button ' . ($data['initial_tab'] == 'pending' ? 'active' : '') . '" data-tab="pending" id="pending-tab">Pending</button>';
             }

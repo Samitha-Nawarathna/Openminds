@@ -40,8 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal
     const modalTitleEl = document.getElementById('modal-title');
     const finalScoreEl = document.getElementById('final-score');
-    const modalDateEl = document.getElementById('modal-date');
     const startReviewBtn = document.getElementById('start-review-btn');
+    const tryAgainBtn = document.getElementById('try-again-btn');
+    const finishedBtn = document.getElementById('finished-btn');
     
     // Vote Area
     const upvoteBtn = document.getElementById('upvote-btn');
@@ -344,19 +345,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Shows the initial score summary modal. */
     function showResultsSummaryModal() {
-        modalTitleEl.textContent = RESULTS_DATA.exercise_title || 'Review Results';
+        modalTitleEl.textContent = 'Quiz Complete!';
+        
+        // Update the score text in paragraph
+        const scoreTextEl = document.getElementById('score-text');
+        if (scoreTextEl) {
+            scoreTextEl.textContent = `${RESULTS_DATA.total_score || 0} out of ${RESULTS_DATA.total_max_score || 0}`;
+        }
         
         // Update score badge color based on overall result (e.g., > 50% score)
         const scorePercentage = (RESULTS_DATA.total_score / RESULTS_DATA.total_max_score);
         const scoreClass = scorePercentage >= 0.5 ? 'passed' : 'failed';
-        finalScoreEl.innerHTML = `${RESULTS_DATA.total_score || 0} / ${RESULTS_DATA.total_max_score || 0}`;
-        finalScoreEl.classList.add('score-badge', scoreClass);
+        finalScoreEl.textContent = `${RESULTS_DATA.total_score || 0} / ${RESULTS_DATA.total_max_score || 0}`;
         
-        // Attempt Date - use from data if available, otherwise use today
-        const attemptDate = RESULTS_DATA.attempted_at 
-            ? new Date(RESULTS_DATA.attempted_at).toLocaleDateString() 
-            : new Date().toLocaleDateString();
-        modalDateEl.textContent = attemptDate;
+        // Clear existing classes and add new ones
+        finalScoreEl.className = 'score-badge';
+        finalScoreEl.classList.add(scoreClass);
 
         summaryModal.classList.remove('hidden');
         summaryModal.style.display = 'flex';
@@ -413,6 +417,19 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryModal.classList.add('hidden');
         // NEW: Focus management
         questionContainer.focus();
+    });
+    
+    // NEW: Try Again button - redirects to attempt page for same exercise
+    tryAgainBtn.addEventListener('click', () => {
+        const exerciseId = RESULTS_DATA.exercise_id;
+        if (exerciseId) {
+            window.location.href = ROOT + 'exercises/attempt?id=' + exerciseId;
+        }
+    });
+    
+    // NEW: Finished button - redirects to exercises list
+    finishedBtn.addEventListener('click', () => {
+        window.location.href = ROOT + 'exercises';
     });
 
     // Vote Actions

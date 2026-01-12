@@ -684,7 +684,7 @@ class Exercises extends Controller
                 $this->json_error('Exercise is not approved for attempts', 403);
             }
 
-            $response = [
+            $this->json_respond([
                 'success' => true,
                 'id' => (int)$bundle['exercise']['id'],
                 'title' => $bundle['exercise']['title'],
@@ -692,11 +692,7 @@ class Exercises extends Controller
                 'created_at' => $bundle['exercise']['created_at'],
                 'creator_id' => (int)$bundle['exercise']['creator_id'],
                 'questions' => $bundle['questions'],
-            ];
-
-            header('Content-Type: application/json');
-            echo json_encode($response);
-            exit();
+            ]);
         } catch (Exception $e) {
             error_log('api_load_attempt_data error: '.$e->getMessage());
             $this->json_error('Unable to load exercise data', 500);
@@ -709,15 +705,27 @@ class Exercises extends Controller
      */
     public function api_get_published()
     {
-        $offset = $_GET['offset'] ?? 0;
-        $limit = $_GET['limit'] ?? 10;
+        $offset = (int)($_GET['offset'] ?? 0);
+        $limit = (int)($_GET['limit'] ?? 10);
         
-        // --- MOCK DATA for published exercises list ---
-        $mock_published_data = $this->generate_mock_exercises('all', $offset, $limit);
-        
-        header('Content-Type: application/json');
-        echo json_encode($mock_published_data['exercises']);
-        exit();
+        try {
+            $exerciseModel = new ExercisesModel();
+            $exercises = $exerciseModel->filter_and_search([
+                'where' => ['status' => 'approved'],
+                'order_by' => 'created_at',
+                'order_dir' => 'DESC',
+                'limit' => $limit,
+                'offset' => $offset
+            ]);
+
+            $this->json_respond([
+                'success' => true,
+                'exercises' => $exercises
+            ]);
+        } catch (Exception $e) {
+            error_log('api_get_published error: '.$e->getMessage());
+            $this->json_error('Failed to load exercises', 500);
+        }
     }
 
     /**
@@ -726,28 +734,22 @@ class Exercises extends Controller
      */
     public function api_get_pending_review()
     {
-        // Assume current user is Expert in 'Physics' and 'Maths'
-        // --- MOCK DATA for pending review list ---
-        $mock_pending_list = [
-            [
-                "id" => 150,
-                "title" => "Newtonian Gravity Concepts",
-                "subject" => "Physics",
-                "creator_name" => "Mentor Alex",
-                "created_at" => "2025-11-01 10:00:00"
-            ],
-            [
-                "id" => 151,
-                "title" => "Advanced Vector Spaces",
-                "subject" => "Maths",
-                "creator_name" => "Admin Bob",
-                "created_at" => "2025-11-02 15:30:00"
-            ]
-        ];
+        try {
+            $exerciseModel = new ExercisesModel();
+            $exercises = $exerciseModel->filter_and_search([
+                'where' => ['status' => 'pending'],
+                'order_by' => 'created_at',
+                'order_dir' => 'DESC'
+            ]);
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_pending_list);
-        exit();
+            $this->json_respond([
+                'success' => true,
+                'exercises' => $exercises
+            ]);
+        } catch (Exception $e) {
+            error_log('api_get_pending_review error: '.$e->getMessage());
+            $this->json_error('Failed to load pending exercises', 500);
+        }
     }
     
     /**
@@ -771,7 +773,10 @@ class Exercises extends Controller
             $this->json_error('No answers submitted.', 400);
         }
 
-        $current_user = $_SESSION['user_id'] ?? null;
+        // Get current user from session (fallback to test user 2 if not set)
+        //$current_user = $_SESSION['user_id'] ?? null;
+        
+        $current_user = $_SESSION['user_id'] ?? 2;
         if (!$current_user) {
             $this->json_error('Authentication required.', 401);
         }
@@ -847,6 +852,37 @@ class Exercises extends Controller
             // Persist attempt and answers in one transaction
             $pdo->beginTransaction();
 
+            // Create question table entries for FK constraint (maps exercisequestion IDs to question table IDs)
+            $questionIdMap = [];  // exercisequestion.id => question.id
+            
+            foreach ($bundle['questions'] as $q) {
+                try {
+                    $exerciseQId = (int)$q['question_id'];  // question_id from bundle (which is exercisequestion.id)
+                    $qTitle = 'Exercise ' . $exercise_id . ' - Q' . $exerciseQId;  // Unique identifier
+                    
+                    // Check if this question mapping already exists
+                    $stmtCheck = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
+                    $stmtCheck->execute([':title' => $qTitle]);
+                    $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($existing) {
+                        $questionIdMap[$exerciseQId] = (int)$existing['id'];
+                    } else {
+                        // Create new question entry
+                        $stmtInsert = $pdo->prepare("INSERT INTO question (title, content, creator_id) VALUES (:title, :content, :creator_id)");
+                        $stmtInsert->execute([
+                            ':title' => $qTitle,
+                            ':content' => $q['prompt'],
+                            ':creator_id' => $current_user,
+                        ]);
+                        $questionIdMap[$exerciseQId] = (int)$pdo->lastInsertId();
+                    }
+                } catch (Exception $qError) {
+                    error_log('Error creating question mapping: ' . $qError->getMessage() . "\nQuestion data: " . json_encode($q));
+                    throw $qError;
+                }
+            }
+
             // Mark previous attempts as not latest
             $markOld = $pdo->prepare("UPDATE exercise_attempt SET latest = 0 WHERE exe_id = :exe_id AND u_id = :user_id AND latest = 1");
             $markOld->execute([':exe_id' => $exercise_id, ':user_id' => $current_user]);
@@ -863,36 +899,47 @@ class Exercises extends Controller
             $answerStmt = $pdo->prepare("INSERT INTO attempt_answer (attempt_id, question_id, user_response, is_correct, score_earned) VALUES (:attempt_id, :question_id, :user_response, :is_correct, :score_earned)");
 
             foreach ($details as $detail) {
-                $answerStmt->execute([
-                    ':attempt_id' => $attemptId,
-                    ':question_id' => $detail['question_id'],
-                    ':user_response' => json_encode(array_values($userSelections[$detail['question_id']] ?? [])),
-                    ':is_correct' => $detail['user_score'] >= $detail['max_weight'] ? 1 : 0,
-                    ':score_earned' => $detail['user_score'],
-                ]);
+                try {
+                    $exerciseQId = (int)$detail['question_id'];  // exercisequestion.id
+                    $actualQuestionId = $questionIdMap[$exerciseQId] ?? null;  // Get mapped question.id
+                    
+                    if (!$actualQuestionId) {
+                        throw new Exception('No question mapping found for exercisequestion ID ' . $exerciseQId);
+                    }
+                    
+                    $userResp = $userSelections[$exerciseQId] ?? [];
+                    $answerStmt->execute([
+                        ':attempt_id' => $attemptId,
+                        ':question_id' => $actualQuestionId,  // Use mapped question.id
+                        ':user_response' => json_encode($userResp),
+                        ':is_correct' => $detail['user_score'] >= $detail['max_weight'] ? 1 : 0,
+                        ':score_earned' => (float)$detail['user_score'],
+                    ]);
+                } catch (Exception $answerError) {
+                    error_log('Answer insert error for exerciseQ' . $exerciseQId . ': ' . $answerError->getMessage());
+                    throw $answerError;
+                }
             }
 
             $pdo->commit();
 
-            $result = [
+            $this->json_respond([
                 'success' => true,
                 'attempt_id' => $attemptId,
                 'exercise_id' => $exercise_id,
                 'total_score' => $totalScore,
                 'total_max_score' => $maxScore,
                 'details' => $details,
-            ];
-
-            header('Content-Type: application/json');
-            echo json_encode($result);
-            exit();
+            ]);
 
         } catch (Exception $e) {
             if (isset($pdo) && $pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            error_log('api_submit_attempt error: '.$e->getMessage());
-            $this->json_error('Unable to submit attempt right now', 500);
+            $errorMsg = $e->getMessage();
+            error_log('api_submit_attempt error: ' . $errorMsg . "\n" . $e->getTraceAsString());
+            // Always return detailed error for now (remove in production)
+            $this->json_error('Database Error: ' . $errorMsg, 500);
         }
     }
     
@@ -902,29 +949,29 @@ class Exercises extends Controller
      */
     public function api_get_attempt_history()
     {
-        // --- MOCK DATA for attempt history list ---
-        $mock_history = [
-            [
-                "attempt_id" => 2001,
-                "exercise_title" => "Introduction to OOP Fundamentals",
-                "subject" => "Computer Science",
-                "score" => 12.5,
-                "max_score" => 15,
-                "attempted_at" => "2025-11-04 10:05:00"
-            ],
-            [
-                "attempt_id" => 2002,
-                "exercise_title" => "Advanced Algebra Practice",
-                "subject" => "Maths",
-                "score" => 7,
-                "max_score" => 10,
-                "attempted_at" => "2025-11-03 09:15:00"
-            ]
-        ];
+        // Get current user from session (fallback to test user 2 if not set)
+        $current_user = $_SESSION['user_id'] ?? 2;
+        
+        if (!$current_user) {
+            $this->json_error('Authentication required', 401);
+        }
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_history);
-        exit();
+        try {
+            $attemptModel = new ExerciseAttempt();
+            $attempts = $attemptModel->filter_and_search([
+                'where' => ['u_id' => $current_user],
+                'order_by' => 'date',
+                'order_dir' => 'DESC'
+            ]);
+
+            $this->json_respond([
+                'success' => true,
+                'attempts' => $attempts
+            ]);
+        } catch (Exception $e) {
+            error_log('api_get_attempt_history error: '.$e->getMessage());
+            $this->json_error('Failed to load attempt history', 500);
+        }
     }
 
     /**
@@ -996,7 +1043,7 @@ class Exercises extends Controller
                 ];
             }
 
-            $response = [
+            $this->json_respond([
                 'success' => true,
                 'attempt_id' => $attempt_id,
                 'exercise_id' => (int)$attempt['exe_id'],
@@ -1006,11 +1053,7 @@ class Exercises extends Controller
                 'total_max_score' => $maxScore,
                 'attempted_at' => $attempt['date'],
                 'details' => $details,
-            ];
-
-            header('Content-Type: application/json');
-            echo json_encode($response);
-            exit();
+            ]);
 
         } catch (Exception $e) {
             error_log('api_get_attempt_details error: '.$e->getMessage());
@@ -1025,21 +1068,54 @@ class Exercises extends Controller
     public function api_submit_vote($exercise_id = null)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($exercise_id)) {
-            $this->json_error("Invalid request or missing exercise ID.", 400);
+            $this->json_error('Invalid request or missing exercise ID.', 400);
         }
-        // $input = json_decode(file_get_contents('php://input'), true); // Get input
-        // $vote_type = $input['vote_type'] ?? 'Upvote'; // Use this for actual logic
 
-        // --- MOCK DATA for vote submission (Simulating Upvote) ---
-        $mock_response = [
-            "success" => true,
-            "message" => "Vote successfully registered.",
-            "current_vote_status" => 'Upvoted'
-        ];
+        $exercise_id = (int)$exercise_id;
+        // Get current user from session (fallback to test user 2 if not set)
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_response);
-        exit();
+        //$current_user = $_SESSION['user_id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? 2;
+        
+        if (!$current_user) {
+            $this->json_error('Authentication required', 401);
+        }
+
+        $input = $this->json_request();
+        $vote_type = $input['vote_type'] ?? null;
+        
+        if (!in_array($vote_type, ['Upvoted', 'Downvoted'])) {
+            $this->json_error('Invalid vote type', 400);
+        }
+
+        try {
+            $voteModel = new UserVoteExercise();
+            $existingVote = $voteModel->first([
+                'user_id' => $current_user,
+                'exercise_id' => $exercise_id
+            ]);
+
+            if ($existingVote) {
+                $voteModel->update($existingVote->id, [
+                    'votetype' => strtolower(str_replace('d', '', $vote_type))
+                ]);
+            } else {
+                $voteModel->insert([
+                    'user_id' => $current_user,
+                    'exercise_id' => $exercise_id,
+                    'votetype' => strtolower(str_replace('d', '', $vote_type))
+                ]);
+            }
+
+            $this->json_respond([
+                'success' => true,
+                'message' => 'Vote successfully registered.',
+                'current_vote_status' => $vote_type
+            ]);
+        } catch (Exception $e) {
+            error_log('api_submit_vote error: '.$e->getMessage());
+            $this->json_error('Failed to submit vote', 500);
+        }
     }
 
     /**
@@ -1049,17 +1125,42 @@ class Exercises extends Controller
     public function api_get_vote_status($exercise_id = null)
     {
         if (empty($exercise_id)) {
-            $this->json_error("Missing exercise ID.", 400);
+            $this->json_error('Missing exercise ID.', 400);
         }
-        
-        // --- MOCK DATA for vote status ---
-        $mock_response = [
-            "current_vote_status" => 'None' 
-        ];
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_response);
-        exit();
+        $exercise_id = (int)$exercise_id;
+        // Get current user from session (fallback to test user 2 if not set)
+        
+        //$current_user = $_SESSION['user_id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? 2;
+        
+        if (!$current_user) {
+            $this->json_respond([
+                'success' => true,
+                'current_vote_status' => 'None'
+            ]);
+        }
+
+        try {
+            $voteModel = new UserVoteExercise();
+            $vote = $voteModel->first([
+                'user_id' => $current_user,
+                'exercise_id' => $exercise_id
+            ]);
+
+            $status = 'None';
+            if ($vote) {
+                $status = ucfirst($vote->votetype) . 'd';
+            }
+
+            $this->json_respond([
+                'success' => true,
+                'current_vote_status' => $status
+            ]);
+        } catch (Exception $e) {
+            error_log('api_get_vote_status error: '.$e->getMessage());
+            $this->json_error('Failed to get vote status', 500);
+        }
     }
 
     /**
@@ -1085,7 +1186,7 @@ class Exercises extends Controller
     {
         $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.id = :id LIMIT 1");
         $exerciseStmt->execute([':id' => $exercise_id]);
-        $exercise = $exerciseStmt->fetch();
+        $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$exercise) {
             return null;
@@ -1093,7 +1194,7 @@ class Exercises extends Controller
 
         $questionStmt = $pdo->prepare("SELECT id, question_text, explanation, weight FROM exercisequestion WHERE exercise_id = :exercise_id ORDER BY display_order ASC, id ASC");
         $questionStmt->execute([':exercise_id' => $exercise_id]);
-        $questions = $questionStmt->fetchAll();
+        $questions = $questionStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $answerStmt = $pdo->prepare("SELECT id, answer_text, is_correct FROM exerciseanswer WHERE question_id = :question_id ORDER BY display_order ASC, id ASC");
 
@@ -1101,7 +1202,7 @@ class Exercises extends Controller
         foreach ($questions as $q) {
             $answerStmt->execute([':question_id' => $q['id']]);
             $options = [];
-            foreach ($answerStmt->fetchAll() as $opt) {
+            foreach ($answerStmt->fetchAll(PDO::FETCH_ASSOC) as $opt) {
                 $options[] = [
                     'option_id' => (int)$opt['id'],
                     'text' => $opt['answer_text'],

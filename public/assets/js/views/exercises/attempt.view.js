@@ -454,6 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }))
         };
         
+        // Log the payload for debugging
+        console.log('Submission Payload:', submissionPayload);
+        
         try {
             const response = await fetch(SUBMIT_URL, {
                 method: 'POST',
@@ -462,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const result = await response.json();
+            console.log('Submission Response:', result);
             
             if (response.ok) {
                 // Success feedback
@@ -473,13 +477,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 1000);
             } else {
                 // Error handling
+                console.error('Submission Error Response:', result);
                 feedbackEl.innerHTML = `<span style="color: var(--color-error);">Submission failed: ${result.message}</span>`;
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('btn-loading');
             }
 
         } catch (error) {
-            console.error('Submission Error:', error);
+            console.error('Submission Network Error:', error);
             feedbackEl.innerHTML = '<span style="color: var(--color-error);">An unexpected error occurred. Please try again.</span>';
             submitBtn.disabled = false;
             submitBtn.classList.remove('btn-loading');

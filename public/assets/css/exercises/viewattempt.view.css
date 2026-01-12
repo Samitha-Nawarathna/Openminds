@@ -362,17 +362,43 @@ h1 {
 .modal-content {
     background-color: var(--color-surface);
     margin: auto;
-    padding: 30px;
+    padding: 40px 30px;
     border: 1px solid var(--color-border);
     width: 90%;
     max-width: 500px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+.modal-content h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 10px;
+}
+
+.modal-content > p {
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+    font-weight: 600;
 }
 
 .modal-start-btn {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: 600;
     border: none;
 }
@@ -385,6 +411,7 @@ h1 {
     display: flex;
     justify-content: space-between;
     height: fit-content;
+    margin-bottom: 15px;
 }
 
 .meta-data p {
@@ -530,22 +557,27 @@ h1 {
  *      SCORE BADGE
  * ------------------------------ */
 .score-badge {
-    padding: var(--space-sm);
+    padding: 15px 30px;
     border-radius: var(--radius-md);
     font-weight: 700;
-    font-size: var(--font-size-base);
+    font-size: 2rem;
     min-width: 100px;
     text-align: center;
+    background-color: var(--color-gray-100);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
 }
 
 .score-badge.passed {
-    background-color: var(--color-green-100);
+    background-color: var(--color-green-50);
     color: var(--color-green-700);
+    border-color: var(--color-success);
 }
 
 .score-badge.failed {
-    background-color: var(--color-red-50);
-    color: var(--color-red-700);
+    background-color: var(--color-red-500);
+    color: var(--color-surface);
+    border-color: var(--color-error);
 }
 
 /* -----------------------------
