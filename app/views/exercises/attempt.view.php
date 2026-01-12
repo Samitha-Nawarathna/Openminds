@@ -35,6 +35,7 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 <!-- NEW: Removed Vote UI from Details Modal (will be moved to results page) -->
 <div id="details-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-content">
+        
         <div class="meta-data">
             <p><span id="modal-creator-name"></span> (<span id="modal-creator-role"></span>)</p>
             <p><span id="modal-date"></span></p>
@@ -130,16 +131,10 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 </div>
 
 <script>
-    const API_URL = '<?= $attempt_api_url ?>';
-    const SUBMIT_URL = '<?= ROOT . "/exercises/api/attempt/" . $exercise_id ?>';
-    const VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
-    const VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
-    
-    // Global variable to hold all exercise data and state
-    let EXERCISE_DATA = {};
-    let currentQIndex = 0;
-    let userAnswers = {}; 
-    let currentVoteStatus = 'None'; // Store user's current vote
+    window.EXERCISE_API_URL = '<?= $attempt_api_url ?>';
+    window.EXERCISE_SUBMIT_URL = '<?= ROOT . "/exercises/api/attempt/" . $exercise_id ?>';
+    window.VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
+    window.VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
 </script>
 
 <?php

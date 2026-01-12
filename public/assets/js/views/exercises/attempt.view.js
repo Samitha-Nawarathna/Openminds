@@ -5,12 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // API_URL (Full exercise data), SUBMIT_URL (Final score submission)
     // VOTE_STATUS_URL, VOTE_SUBMIT_URL (NOW REMOVED FROM THIS PAGE - will be on results)
     
+    const API_URL = window.EXERCISE_API_URL || '';
+    let SUBMIT_URL = window.EXERCISE_SUBMIT_URL || '';
     let EXERCISE_DATA = {}; // Holds the full exercise structure (questions, options, answers, explanations)
     let currentQIndex = 0;
     let userAnswers = {}; // {q_id: [option_id_1, option_id_2], ...}
     let currentVoteStatus = 'None'; // User's current vote status
     let questionIsChecked = false; // State to track if the current question has been checked
-    let SUBMIT_URL = ROOT + 'api/exercises/attempt';
 
     // --- DOM Elements ---
     
@@ -84,11 +85,19 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Fetches the full exercise data and initializes the page */
     async function loadExerciseData() {
         try {
+            if (!API_URL) {
+                throw new Error('Exercise data endpoint is missing.');
+            }
             showLoading('Loading exercise data...');
             
             const response = await fetch(API_URL);
             if (!response.ok) throw new Error('Failed to fetch exercise data');
             EXERCISE_DATA = await response.json();
+
+            if (EXERCISE_DATA.success === false || !EXERCISE_DATA.questions) {
+                const msg = EXERCISE_DATA.message || 'Exercise is unavailable.';
+                throw new Error(msg);
+            }
             
             // Populate header and progress bar
             titleEl.textContent = EXERCISE_DATA.title;
@@ -424,6 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('btn-loading');
         showInlineLoading('Submitting your assessment...');
 
+        if (!SUBMIT_URL) {
+            feedbackEl.innerHTML = '<span style="color: var(--color-error);">Submission endpoint missing.</span>';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading');
+            return;
+        }
+
         // Ensure the last question is saved before submitting
         if (!questionIsChecked) {
             // Check the last question (client-side) before packing data
@@ -453,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Redirect to results page (where voting will now happen)
                 setTimeout(() => {
-                    window.location.href = ROOT + 'exercises/viewattempt/'+ result.attempt_id + '/' + EXERCISE_DATA.id;
+                    window.location.href = ROOT + 'exercises/viewattempt/' + EXERCISE_DATA.id + '/' + result.attempt_id;
                 }, 1000);
             } else {
                 // Error handling

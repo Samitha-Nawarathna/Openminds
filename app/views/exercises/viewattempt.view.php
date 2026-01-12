@@ -114,9 +114,9 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 
 <script>
     // Constants for JS
-    const ATTEMPT_DETAILS_URL = '<?= $attempt_details_api_url ?>';
-    const VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
-    const VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
+    window.ATTEMPT_DETAILS_URL = '<?= $attempt_details_api_url ?>';
+    window.VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
+    window.VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
 </script>
 
 <?php include_once "../app/views/partials/footer.view.php"; ?>

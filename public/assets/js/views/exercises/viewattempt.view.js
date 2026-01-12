@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Global Variables (Loaded from PHP view) ---
     // ATTEMPT_DETAILS_URL, VOTE_STATUS_URL, VOTE_SUBMIT_URL are defined in the PHP view
-    
+    const ATTEMPT_DETAILS_URL = window.ATTEMPT_DETAILS_URL || '';
+    const VOTE_STATUS_URL = window.VOTE_STATUS_URL || '';
+    const VOTE_SUBMIT_URL = window.VOTE_SUBMIT_URL || '';
+
     let RESULTS_DATA = {}; // Holds the full results structure (details array)
     let currentQIndex = 0;
     let currentVoteStatus = 'None'; // Store user's current vote
@@ -69,6 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Fetches and stores the full attempt details from the API. */
     async function loadAttemptDetails() {
         try {
+            if (!ATTEMPT_DETAILS_URL) {
+                throw new Error('Attempt details endpoint is missing.');
+            }
             showLoading('Loading your results...');
             
             const response = await fetch(ATTEMPT_DETAILS_URL);
@@ -76,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Failed to fetch attempt details.');
             }
             RESULTS_DATA = await response.json();
+
+            if (RESULTS_DATA.success === false || !RESULTS_DATA.details) {
+                const msg = RESULTS_DATA.message || 'Results unavailable.';
+                throw new Error(msg);
+            }
             
             hideLoading();
             
@@ -103,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Loads and updates the user's vote status for the exercise. */
     async function loadVoteStatus() {
         try {
+            if (!VOTE_STATUS_URL) return;
             const response = await fetch(VOTE_STATUS_URL);
             const data = await response.json();
             currentVoteStatus = data.current_vote_status || 'None';
@@ -122,6 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
     /** NEW: Submits a vote to the API */
     async function submitVote(voteType) {
         try {
+            if (!VOTE_SUBMIT_URL) {
+                voteMessageEl.textContent = 'Voting is not available for this exercise.';
+                return;
+            }
             // Prevent duplicate votes
             if (currentVoteStatus === voteType) {
                 voteMessageEl.textContent = `You have already ${voteType.toLowerCase()} this exercise.`;

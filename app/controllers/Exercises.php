@@ -250,118 +250,27 @@ class Exercises extends Controller
 
     public function attempt()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $_POST['exercise_id'] ?? 1;
-            // Process submitted answers here
+        $exercise_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
-            header('Location: '.ROOT.'/exercises/viewattempt/'.$id.'/12345');
-            exit();
-        }
-        //check if same user is attempting again, creator attempting again etc..
-
-        $exercise_id = $_GET['id'] ?? 1;
         if (!$exercise_id) {
-            // Handle missing exercise ID (e.g., redirect or show error)
             header('Location: '.ROOT.'/exercises?message=Exercise ID is required to attempt an exercise');
+            return;
         }
 
         $exercises = new ExercisesModel;
-        $exercise_data = $exercises->first(['id' => $exercise_id]);
+        $exercise = $exercises->first(['id' => $exercise_id]);
 
-        if(!$exercise_data->status === 'approved'){
+        if (!$exercise || $exercise->status !== 'approved') {
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
+            return;
         }
 
-        $user = new User;
-        $subject = new Subjects;
-        $exercise_tag = new ExerciseTag;
-        $user_vote_exercise = new UserVoteExercise;
-        $tags = new Tags;
-        $exercisequestion = new Exercisequestion;
-        $exerciseanswer = new Exerciseanswer;
-
-
-        $creator = $user->first(['id' => $exercise_data->creator_id])->username ?? 'Unknown';
-        $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
-
-        $tag_in_exercise = $exercise_tag->where(['exercise_id' => $exercise_id]);
-        $tags_list = [];
-
-        foreach ($tag_in_exercise as $key => $tag) {
-            // $tag_info = $subject->first(['id' => $tag->tag_id]);
-            $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
-        }
-
-        $votes = $user_vote_exercise->where(['exercise_id' => $exercise_id]);
-    
-        $upvotes = 0;
-        $downvotes = 0;
-        $user_vote_status = 'none';
-
-        foreach ($votes as $vote) {
-            if ($vote->votetype === 'upvote') {
-                $upvotes++;
-            } elseif ($vote->votetype === 'downvote') {
-                $downvotes++;
-            }
-
-            // if ($vote->user_id === $current_user->id) {
-            //     $user_vote_status = $vote->vote_type;
-            // }
-        }
-
-
-
-        if (!$exercise_data) {
-            // Handle case where exercise is not found
-            header('Location: '.ROOT.'/exercises?message=Exercise not found');
-        }
-
-        $questions = $exercisequestion->where(['exercise_id' => $exercise_id]);
-        
-        if (empty($questions)) {
-            // Handle case where no questions are found for the exercise
-            header('Location: '.ROOT.'/exercises/attempt?id='.$exercise_id.'&message=No questions found for this exercise');
-        }
-
-        $question_list = [];
-
-
-        foreach ($questions as $question) {
-            $answers = $exerciseanswer->where(['question_id' => $question->id]);
-            $answer_options = [];
-
-            foreach ($answers as $ans) {
-                $answer_options[] = $ans->answer_text;
-            }
-
-            $question_list[] = [
-                'id' => $question->id,
-                'question_text' => $question->question_text,
-                'options' => $answer_options
-            ];
-            
-        }
-
-
-        // --- MOCK DATA SETUP ---
         $data = [
-            'exercise_details' => [
-                'id' => $exercise_data->id,
-                'title' => $exercise_data->title,
-                'creator' => $creator,
-                'role' => 'under '.$subject_name,
-                'created_at' => $exercise_data->created_at,
-                'tags' => $tag_list,
-                'upvotes' => $upvotes,
-                'downvotes' => $downvotes,
-                'user_vote_status' => 'upvote' // possible values: 'upvoted', 'downvoted', 'none'
-            ],
-            'questions' => $question_list
+            'exercise_id' => (int)$exercise_id,
+            'exercise_title' => $exercise->title,
         ];
 
         $this->view('exercises/attempt', $data);
-
     }
 
 
@@ -686,52 +595,26 @@ class Exercises extends Controller
 
     public function viewattempt($exercise_id, $attempt_id)
     {
-        // $id = $_GET['id'] ?? null;
+        $exercise_id = (int)$exercise_id;
+        $attempt_id = (int)$attempt_id;
 
-        $data = [
-            'exercise_details' => [
-                'id' => 'ex_123',
-                'title' => 'Advanced Color Theory in UI Design',
-                'creator' => 'Alice',
-                'role' => 'under graphic design',
-                'created_at' => '26-02-2027',
-                'tags' => ['art', 'color', 'design principles'],
-                'upvotes' => 10000,
-                'downvotes' => 2000
-            ],
-            // NEW: Mock review data
-            'review_data' => [
-                'average_score' => 0.8,
-                'analysis_link' => '/exercises/ex_123/analysis',
-            ],
-            'questions' => [
-                [
-                    'id' => 'q1',
-                    'question_text' => 'Which of the following is considered a "cool" color?',
-                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
-                    'correct_index' => 2,// Mock correct answer for display logic
-                    'selected_index' => 1 // Mock user selected answer for display logic
-                ],
-                [
-                    'id' => 'q2',
-                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
-                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
-                    'correct_index' => 2,
-                    'selected_index' => 2
-                ],
-                [
-                    'id' => 'q3',
-                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
-                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
-                    'correct_index' => 1,
-                    'selected_index' => 0
-                ],
-            ]
-        ];
+        if ($exercise_id <= 0 || $attempt_id <= 0) {
+            header('Location: '.ROOT.'/exercises?message=Invalid attempt reference');
+            return;
+        }
+
+        $exercises = new ExercisesModel;
+        $exercise = $exercises->first(['id' => $exercise_id]);
+
+        if (!$exercise || $exercise->status !== 'approved') {
+            header('Location: '.ROOT.'/exercises?message=Exercise not available');
+            return;
+        }
 
         $data = [
             'exercise_id' => $exercise_id,
-            'attempt_id' => $attempt_id
+            'attempt_id' => $attempt_id,
+            'exercise_title' => $exercise->title,
         ];
 
         $this->view('exercises/viewattempt', $data);
@@ -762,45 +645,62 @@ class Exercises extends Controller
      */
     public function api_load_attempt_data($exercise_id = null)
     {
-        if (empty($exercise_id)) {
-            $this->json_error("Missing exercise ID.", 400);
-        }
-        
-        // --- MOCK DATA: Full structure with correct flags and explanations ---
-        $mock_full_data = [
-          "id" => (int)$exercise_id,
-          "title" => "Basic Financial Accounting (Self-Assessment)",
-          "subject" => "Finance",
-          "questions" => [
-            [
-              "question_id" => 601,
-              "prompt" => "Which of these is a current asset?",
-              "weight" => 3,
-              "explanation" => "Accounts Receivable is a current asset, representing money owed by customers expected to be collected within one year. Land and Equipment are long-term assets.",
-              "options" => [
-                ["option_id" => 701, "text" => "Land", "is_correct" => false],
-                ["option_id" => 702, "text" => "Accounts Receivable", "is_correct" => true],
-                ["option_id" => 703, "text" => "Equipment", "is_correct" => false]
-              ]
-            ],
-            [
-              "question_id" => 602,
-              "prompt" => "Identify the elements of the accounting equation. (Select two)",
-              "weight" => 5,
-              "explanation" => "The fundamental accounting equation is Assets = Liabilities + Equity. Both Assets and Liabilities are core elements.",
-              "options" => [
-                ["option_id" => 704, "text" => "Assets", "is_correct" => true],
-                ["option_id" => 705, "text" => "Profit", "is_correct" => false],
-                ["option_id" => 706, "text" => "Liabilities", "is_correct" => true],
-                ["option_id" => 707, "text" => "Market Share", "is_correct" => false]
-              ]
-            ]
-          ]
-        ];
+        // Allow requesting all approved exercises using a sentinel value
+        if ($exercise_id === 'all' || $exercise_id === 'list') {
+            try {
+                $pdo = $this->db();
+                $rows = $pdo->query("SELECT e.id, e.title, s.name AS subject, e.created_at FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.status = 'approved' ORDER BY e.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_full_data);
-        exit();
+                $this->json_respond([
+                    'success' => true,
+                    'exercises' => array_map(function ($row) {
+                        return [
+                            'id' => (int)$row['id'],
+                            'title' => $row['title'],
+                            'subject' => $row['subject'],
+                            'created_at' => $row['created_at'],
+                        ];
+                    }, $rows)
+                ]);
+            } catch (Exception $e) {
+                $this->json_error('Failed to load exercises list', 500);
+            }
+        }
+
+        $exercise_id = (int)$exercise_id;
+        if ($exercise_id <= 0) {
+            $this->json_error('Missing exercise ID.', 400);
+        }
+
+        try {
+            $pdo = $this->db();
+            $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+
+            if (!$bundle) {
+                $this->json_error('Exercise not found', 404);
+            }
+
+            if ($bundle['exercise']['status'] !== 'approved') {
+                $this->json_error('Exercise is not approved for attempts', 403);
+            }
+
+            $response = [
+                'success' => true,
+                'id' => (int)$bundle['exercise']['id'],
+                'title' => $bundle['exercise']['title'],
+                'subject' => $bundle['exercise']['subject_name'],
+                'created_at' => $bundle['exercise']['created_at'],
+                'creator_id' => (int)$bundle['exercise']['creator_id'],
+                'questions' => $bundle['questions'],
+            ];
+
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            exit();
+        } catch (Exception $e) {
+            error_log('api_load_attempt_data error: '.$e->getMessage());
+            $this->json_error('Unable to load exercise data', 500);
+        }
     }
 
 /**
@@ -857,33 +757,143 @@ class Exercises extends Controller
     public function api_submit_attempt($exercise_id = null)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($exercise_id)) {
-             $this->json_error("Invalid request or missing exercise ID.", 400);
+             $this->json_error('Invalid request or missing exercise ID.', 400);
         }
-        // $input = json_decode(file_get_contents('php://input'), true); // Use this to get the input
 
-        // --- MOCK DATA for attempt results (simulating scoring) ---
-        $mock_result = [
-            "attempt_id" => 2001,
-            "total_score" => 12.5, 
-            "total_max_score" => 15,
-            "details" => [
-                [
-                    "question_id" => 301,
-                    "prompt" => "What is the primary purpose of Encapsulation?",
-                    "user_score" => 5,
-                    "max_weight" => 5,
-                    "explanation" => "Encapsulation hides implementation details, improving code maintainability and security.",
-                    "options" => [
-                        ["option_id" => 401, "text" => "To hide implementation details", "is_correct" => true, "was_selected" => true],
-                        ["option_id" => 402, "text" => "To allow classes to inherit properties", "is_correct" => false, "was_selected" => false],
-                    ]
-                ]
-            ]
-        ];
+        $exercise_id = (int)$exercise_id;
+        if ($exercise_id <= 0) {
+            $this->json_error('Invalid exercise ID.', 400);
+        }
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_result);
-        exit();
+        $payload = $this->json_request();
+        $answers = $payload['answers'] ?? [];
+        if (!is_array($answers) || empty($answers)) {
+            $this->json_error('No answers submitted.', 400);
+        }
+
+        $current_user = $_SESSION['user_id'] ?? null;
+        if (!$current_user) {
+            $this->json_error('Authentication required.', 401);
+        }
+
+        try {
+            $pdo = $this->db();
+            $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+
+            if (!$bundle) {
+                $this->json_error('Exercise not found', 404);
+            }
+
+            if ($bundle['exercise']['status'] !== 'approved') {
+                $this->json_error('Exercise is not approved for attempts', 403);
+            }
+
+            // Map questions for quick access
+            $questionMap = [];
+            $maxScore = 0;
+            foreach ($bundle['questions'] as $q) {
+                $questionMap[$q['question_id']] = $q;
+                $maxScore += (float)$q['weight'];
+            }
+
+            // Normalize user answers into map
+            $userSelections = [];
+            foreach ($answers as $item) {
+                $qid = isset($item['question_id']) ? (int)$item['question_id'] : 0;
+                $selected = isset($item['selected_option_ids']) && is_array($item['selected_option_ids'])
+                    ? array_map('intval', $item['selected_option_ids'])
+                    : [];
+                if ($qid > 0) {
+                    $userSelections[$qid] = $selected;
+                }
+            }
+
+            $details = [];
+            $totalScore = 0.0;
+
+            foreach ($questionMap as $qid => $qData) {
+                $selected = $userSelections[$qid] ?? [];
+                sort($selected);
+
+                $correct = array_map('intval', array_column(array_filter($qData['options'], function ($opt) {
+                    return $opt['is_correct'] === true;
+                }), 'option_id'));
+                sort($correct);
+
+                $isCorrect = !empty($selected) && $selected === $correct;
+                $scoreEarned = $isCorrect ? (float)$qData['weight'] : 0.0;
+                $totalScore += $scoreEarned;
+
+                $options = [];
+                foreach ($qData['options'] as $opt) {
+                    $options[] = [
+                        'option_id' => (int)$opt['option_id'],
+                        'text' => $opt['text'],
+                        'is_correct' => (bool)$opt['is_correct'],
+                        'was_selected' => in_array((int)$opt['option_id'], $selected, true),
+                    ];
+                }
+
+                $details[] = [
+                    'question_id' => (int)$qid,
+                    'prompt' => $qData['prompt'],
+                    'user_score' => $scoreEarned,
+                    'max_weight' => (float)$qData['weight'],
+                    'explanation' => $qData['explanation'],
+                    'options' => $options,
+                ];
+            }
+
+            // Persist attempt and answers in one transaction
+            $pdo->beginTransaction();
+
+            // Mark previous attempts as not latest
+            $markOld = $pdo->prepare("UPDATE exercise_attempt SET latest = 0 WHERE exe_id = :exe_id AND u_id = :user_id AND latest = 1");
+            $markOld->execute([':exe_id' => $exercise_id, ':user_id' => $current_user]);
+
+            $attemptStmt = $pdo->prepare("INSERT INTO exercise_attempt (exe_id, u_id, score, latest) VALUES (:exe_id, :user_id, :score, 1)");
+            $attemptStmt->execute([
+                ':exe_id' => $exercise_id,
+                ':user_id' => $current_user,
+                ':score' => $totalScore,
+            ]);
+
+            $attemptId = (int)$pdo->lastInsertId();
+
+            $answerStmt = $pdo->prepare("INSERT INTO attempt_answer (attempt_id, question_id, user_response, is_correct, score_earned) VALUES (:attempt_id, :question_id, :user_response, :is_correct, :score_earned)");
+
+            foreach ($details as $detail) {
+                $answerStmt->execute([
+                    ':attempt_id' => $attemptId,
+                    ':question_id' => $detail['question_id'],
+                    ':user_response' => json_encode(array_values($userSelections[$detail['question_id']] ?? [])),
+                    ':is_correct' => $detail['user_score'] >= $detail['max_weight'] ? 1 : 0,
+                    ':score_earned' => $detail['user_score'],
+                ]);
+            }
+
+            $pdo->commit();
+
+            $result = [
+                'success' => true,
+                'attempt_id' => $attemptId,
+                'exercise_id' => $exercise_id,
+                'total_score' => $totalScore,
+                'total_max_score' => $maxScore,
+                'details' => $details,
+            ];
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit();
+
+        } catch (Exception $e) {
+            if (isset($pdo) && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('api_submit_attempt error: '.$e->getMessage());
+            $this->json_error('Unable to submit attempt right now', 500);
+        }
     }
     
     /**
@@ -923,34 +933,89 @@ class Exercises extends Controller
      */
     public function api_get_attempt_details($attempt_id = null)
     {
-        if (empty($attempt_id)) {
-            $this->json_error("Missing attempt ID.", 400);
+        $attempt_id = (int)$attempt_id;
+        if ($attempt_id <= 0) {
+            $this->json_error('Missing attempt ID.', 400);
         }
-        
-        // --- MOCK DATA for attempt details ---
-        $mock_details = [
-            "attempt_id" => $attempt_id,
-            "exercise_title" => "Introduction to OOP Fundamentals",
-            "total_score" => 12.5, 
-            "total_max_score" => 15,
-            "details" => [
-                [
-                    "question_id" => 301,
-                    "prompt" => "What is the primary purpose of Encapsulation?",
-                    "user_score" => 5,
-                    "max_weight" => 5,
-                    "explanation" => "Encapsulation hides implementation details, improving code maintainability and security.",
-                    "options" => [
-                        ["option_id" => 401, "text" => "To hide implementation details", "is_correct" => true, "was_selected" => true],
-                        ["option_id" => 402, "text" => "To allow classes to inherit properties", "is_correct" => false, "was_selected" => false],
-                    ]
-                ]
-            ]
-        ];
 
-        header('Content-Type: application/json');
-        echo json_encode($mock_details);
-        exit();
+        try {
+            $pdo = $this->db();
+
+            $attemptStmt = $pdo->prepare("SELECT ea.id, ea.exe_id, ea.u_id, ea.score, ea.date, ex.title, ex.status, s.name AS subject_name FROM exercise_attempt ea JOIN exercises ex ON ex.id = ea.exe_id LEFT JOIN subjects s ON s.id = ex.subject_id WHERE ea.id = :attempt_id LIMIT 1");
+            $attemptStmt->execute([':attempt_id' => $attempt_id]);
+            $attempt = $attemptStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$attempt) {
+                $this->json_error('Attempt not found', 404);
+            }
+
+            if ($attempt['status'] !== 'approved') {
+                $this->json_error('Exercise is not approved', 403);
+            }
+
+            $questionStmt = $pdo->prepare("SELECT q.id, q.question_text, q.explanation, q.weight FROM exercisequestion q WHERE q.exercise_id = :exercise_id ORDER BY q.display_order ASC, q.id ASC");
+            $questionStmt->execute([':exercise_id' => $attempt['exe_id']]);
+            $questions = $questionStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $answerStmt = $pdo->prepare("SELECT id, answer_text, is_correct, question_id FROM exerciseanswer WHERE question_id = :question_id ORDER BY display_order ASC, id ASC");
+            $attemptAnswerStmt = $pdo->prepare("SELECT user_response, is_correct, score_earned FROM attempt_answer WHERE attempt_id = :attempt_id AND question_id = :question_id LIMIT 1");
+
+            $details = [];
+            $maxScore = 0;
+
+            foreach ($questions as $q) {
+                $maxScore += (float)$q['weight'];
+                $answerStmt->execute([':question_id' => $q['id']]);
+                $optionsRaw = $answerStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $attemptAnswerStmt->execute([':attempt_id' => $attempt_id, ':question_id' => $q['id']]);
+                $attemptAnswer = $attemptAnswerStmt->fetch(PDO::FETCH_ASSOC);
+
+                $selectedIds = [];
+                if ($attemptAnswer && !empty($attemptAnswer['user_response'])) {
+                    $selectedIds = json_decode($attemptAnswer['user_response'], true) ?: [];
+                }
+
+                $options = [];
+                foreach ($optionsRaw as $opt) {
+                    $options[] = [
+                        'option_id' => (int)$opt['id'],
+                        'text' => $opt['answer_text'],
+                        'is_correct' => (bool)$opt['is_correct'],
+                        'was_selected' => in_array((int)$opt['id'], $selectedIds, true),
+                    ];
+                }
+
+                $details[] = [
+                    'question_id' => (int)$q['id'],
+                    'prompt' => $q['question_text'],
+                    'user_score' => (float)($attemptAnswer['score_earned'] ?? 0),
+                    'max_weight' => (float)$q['weight'],
+                    'explanation' => $q['explanation'],
+                    'options' => $options,
+                ];
+            }
+
+            $response = [
+                'success' => true,
+                'attempt_id' => $attempt_id,
+                'exercise_id' => (int)$attempt['exe_id'],
+                'exercise_title' => $attempt['title'],
+                'subject' => $attempt['subject_name'],
+                'total_score' => (float)$attempt['score'],
+                'total_max_score' => $maxScore,
+                'attempted_at' => $attempt['date'],
+                'details' => $details,
+            ];
+
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            exit();
+
+        } catch (Exception $e) {
+            error_log('api_get_attempt_details error: '.$e->getMessage());
+            $this->json_error('Unable to load attempt details', 500);
+        }
     }
 
     /**
@@ -995,6 +1060,68 @@ class Exercises extends Controller
         header('Content-Type: application/json');
         echo json_encode($mock_response);
         exit();
+    }
+
+    /**
+     * Creates a PDO connection with consistent options.
+     */
+    private function db()
+    {
+        return new PDO(
+            "mysql:host=".DBHOST.";dbname=".DBNAME.";charset=utf8mb4",
+            DBUSER,
+            DBPASS,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+    }
+
+    /**
+     * Fetches an exercise with its questions and options.
+     */
+    private function fetchExerciseBundle(PDO $pdo, int $exercise_id)
+    {
+        $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.id = :id LIMIT 1");
+        $exerciseStmt->execute([':id' => $exercise_id]);
+        $exercise = $exerciseStmt->fetch();
+
+        if (!$exercise) {
+            return null;
+        }
+
+        $questionStmt = $pdo->prepare("SELECT id, question_text, explanation, weight FROM exercisequestion WHERE exercise_id = :exercise_id ORDER BY display_order ASC, id ASC");
+        $questionStmt->execute([':exercise_id' => $exercise_id]);
+        $questions = $questionStmt->fetchAll();
+
+        $answerStmt = $pdo->prepare("SELECT id, answer_text, is_correct FROM exerciseanswer WHERE question_id = :question_id ORDER BY display_order ASC, id ASC");
+
+        $questionPayload = [];
+        foreach ($questions as $q) {
+            $answerStmt->execute([':question_id' => $q['id']]);
+            $options = [];
+            foreach ($answerStmt->fetchAll() as $opt) {
+                $options[] = [
+                    'option_id' => (int)$opt['id'],
+                    'text' => $opt['answer_text'],
+                    'is_correct' => (bool)$opt['is_correct'],
+                ];
+            }
+
+            $questionPayload[] = [
+                'question_id' => (int)$q['id'],
+                'prompt' => $q['question_text'],
+                'weight' => (float)$q['weight'],
+                'explanation' => $q['explanation'],
+                'options' => $options,
+            ];
+        }
+
+        return [
+            'exercise' => $exercise,
+            'questions' => $questionPayload,
+        ];
     }
     
     // Helper to send JSON error responses
