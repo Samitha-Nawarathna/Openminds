@@ -58,7 +58,11 @@
             <div class="action-buttons-bottom">
                 <button class="btn-share button btn-primary"><a href="<?=ROOT?>/notes/share?id=<?=$data['note']['id']?>" class="no-style-link">Share</a></button>
                 <button class="btn-edit button btn-none"><a href="<?=ROOT?>/notes/edit/<?=$data['note']['id']?>" class="no-style-link">Edit</a></button>
-                <button class="btn-delete button btn-error"><a href="<?=ROOT?>/notes/delete/<?=$data['note']['id']?>" class="no-style-link">Delete</a></button>
+                
+                <form id="delete-note-form" action="<?=ROOT?>/notes/delete" method="POST" style="display: none;">
+                    <input type="hidden" name="note_id" value="<?=$data['note']['id']?>">
+                </form>
+                <button class="btn-delete button btn-error"><a href="#" class="no-style-link">Delete</a></button>
             </div>
         </div>
         

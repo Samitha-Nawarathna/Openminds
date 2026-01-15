@@ -79,10 +79,10 @@ class TopicController extends Controller
     public function api_search_notes()
     {
         $data = $this->json_request();
-        $tags = $data->tags ?? [];
-        $query = trim($data->query ?? '');
-        $limit = $data->limit ?? 10;
-        $offset = $data->offset ?? 0;
+        $tags = $data['tags'] ?? [];
+        $query = trim($data['query'] ?? '');
+        $limit = $data['limit'] ?? 10;
+        $offset = $data['offset'] ?? 0;
         
         $note_model = new NoteModel();
         
@@ -123,13 +123,15 @@ class TopicController extends Controller
      */
     public function api_move_notes_to_topic()
     {
+        //read the json payload
         $data = $this->json_request();
-        $new_topic_id = $data->new_topic_id ?? null;
-        $note_ids = $data->note_ids ?? [];
+        $new_topic_id = $data['new_topic_id'] ?? null;
+        $note_ids = $data['note_ids'] ?? [];
         $count = count($note_ids);
+        
 
         if (!$new_topic_id) {
-             $this->json_respond(['success' => false, 'message' => 'Topic ID required.']);
+             $this->json_respond(['success' => false, 'message' => 'Topic ID required.'.$count]);
              return;
         }
         
@@ -177,7 +179,7 @@ class TopicController extends Controller
     {
         // Placeholder implementation for existing api_filter
         $data = $this->json_request();
-        $query = $data->query ?? '';
+        $query = $data['query'] ?? '';
         $results = [];
 
         if (strtolower($query) === 'math') {
@@ -194,27 +196,29 @@ class TopicController extends Controller
     }
 
     public function api_pin_topic($id) {
-        $this->json_respond([
-            "success" => true,
-            "message" => "Topic 'Theoretical Physics' successfully pinned.",
-            "data" => [
-                "topic_id" => (int)$id,
-                "is_pinned" => true,
-                "updated_at" => "2025-11-26 18:36:45"
-            ]
-        ]);
+        $topics_model = new Topics();
+        if ($topics_model->pin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully pinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => true]
+            ]);
+        } else {
+            $this->json_respond(["success" => false, "message" => "Failed to pin topic."]);
+        }
     }
 
     public function api_unpin_topic($id) {
-        $this->json_respond([
-            "success" => true,
-            "message" => "Topic 'Theoretical Physics' successfully unpinned.",
-            "data" => [
-                "topic_id" => (int)$id,
-                "is_pinned" => false,
-                "updated_at" => "2025-11-26 18:36:45"
-            ]
-        ]);
+        $topics_model = new Topics();
+        if ($topics_model->unpin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully unpinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => false]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to unpin topic."]);
+        }
     }
 
     public function api_load_more() {

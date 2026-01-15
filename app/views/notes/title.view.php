@@ -36,11 +36,11 @@ include_once '../app/views/partials/header.view.php';
 
                         echo '
                         <a href="'.ROOT.'/notes/title/'.$data['recent_topic_ids'][$key].'" class="no-style-link">
-                        <div class="card-container">
+                        <div class="card-container" data-id="'.$data['recent_topic_ids'][$key].'">
                             <div class="card">
                                 <div class="icon-placeholder" style="background-color:var('.$colors[$rand_no].');">
                                     📁
-                                    <span class="unpin-icon">unpin</span>
+                                    <span class="unpin-icon" data-id="'.$data['recent_topic_ids'][$key].'">unpin</span>
                                 
                                 </div>
                                 

@@ -37,11 +37,11 @@
 
                         echo '
                         <a href="'.ROOT.'/notes/view/'.$data['pinned_note_ids'][$key].'" class="no-style-link">
-                        <div class="card-container">
+                        <div class="card-container" data-id="'.$data['pinned_note_ids'][$key].'">
                             <div class="card">
                                 <div class="icon-placeholder" style="background-color:var('.$colors[$rand_no].');">
                                     📁
-                                    <span class="unpin-icon">unpin</span>
+                                    <span class="unpin-icon" data-id="'.$data['pinned_note_ids'][$key].'">unpin</span>
                                 
                                 </div>
                                 

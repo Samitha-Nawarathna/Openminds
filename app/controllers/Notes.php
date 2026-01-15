@@ -4,6 +4,7 @@ class Notes extends Controller
 {
     public function index()
     {
+        
         $topics = new Topics();
         $params = [
             'order_by' => 'id',
@@ -11,14 +12,26 @@ class Notes extends Controller
             'limit' => 10
         ];
         
+        // Fetch pinned topics
+        $pinned_topics_rows = $topics->where(['pinned' => 1]);
+        $pinned_topic_names = [];
+        $pinned_topic_ids = [];
+
+        if ($pinned_topics_rows) {
+             foreach ($pinned_topics_rows as $row) {
+                 $pinned_topic_names[] = $row->name;
+                 $pinned_topic_ids[] = $row->id;
+             }
+        }
+
         $data = [
             'create_url' => 'topics/create/',
             'initial_load' => [
                 'topics' => json_decode(json_encode($topics->filter_and_search($params)), true) ?: [],
                 'has_more' => true // logic to check count? For now assume true or check count
             ],
-            'recent_topics' => ["science", "art", "maths"], // Placeholder or fetch real
-            'recent_topic_ids' => [1, 2, 3]
+            'recent_topics' => $pinned_topic_names,
+            'recent_topic_ids' => $pinned_topic_ids
         ];
         
         $this->view('notes/title', $data);
@@ -37,6 +50,18 @@ class Notes extends Controller
         // Fetch notes
         $notes = json_decode(json_encode($note_model->filter_and_search($params)), true) ?: [];
         
+        // Fetch pinned notes for this topic
+        $pinned_notes_rows = $note_model->where(['topic_id' => $topic_id, 'pinned' => 1]);
+        $pinned_note_titles = [];
+        $pinned_note_ids = [];
+
+        if ($pinned_notes_rows) {
+            foreach ($pinned_notes_rows as $row) {
+                $pinned_note_titles[] = $row->title;
+                $pinned_note_ids[] = $row->id;
+            }
+        }
+        
         $data = [
             'current_user_id' => $_SESSION['user_id'] ?? 0,
             'browsing_topic_title' => (new Topics())->first(['id' => $topic_id])->name ?? 'Unknown Topic',
@@ -46,8 +71,8 @@ class Notes extends Controller
                 'notes' => $notes,
                 'has_more' => count($notes) >= 10
             ],
-            'pinned_notes' => [], // Implement pinned logic query if needed
-            'pinned_note_ids' => []
+            'pinned_notes' => $pinned_note_titles,
+            'pinned_note_ids' => $pinned_note_ids
         ];
 
         $this->view('notes/note', $data);
@@ -184,53 +209,116 @@ class Notes extends Controller
             $note_id = $_POST['note_id'] ?? '';
             $title = $_POST['title'] ?? '';
             $content = $_POST['content'] ?? '';
-            $tags = $_POST['tags'] ?? [];
+            $tags_input = $_POST['tags'] ?? ''; 
 
             //load required models
+            $note_model = new NoteModel;
+            $note_tags_model = new NoteTags;
+            $tags_model = new Tags;
                 
             //retrieve existing note
+            $note = $note_model->first(['id' => $note_id]);
+
+            if (!$note) {
+                 // Handle 404
+                 header("Location: ".ROOT."/notes?error=Note+not+found");
+                 exit();
+            }
 
             //validate ownership if not own by current user redirect to note page with errror message
+            if ($note->owner_id != $_SESSION['user_id']) {
+                 header("Location: ".ROOT."/notes?error=Access+Denied");
+                 exit();
+            }
 
             // Update note details
+            $note_model->update($note_id, [
+                'title' => $title,
+                'content' => $content,
+                'updated_at' => date("Y-m-d H:i:s") // Assuming your DB uses this format or default Timestamp handles it
+            ]);
+
+            // Handle Tags
+            
+            // 1. Remove existing tags for this note
+            // NoteTags model likely extends Model, so we can use delete
+            // But Model's delete uses id/id_column. Since note_tags table (note_id, tag_id) typically
+            // doesn't have a single 'id' column, but we want to delete all by note_id.
+            // Using delete($note_id, 'note_id') should work to delete ALL rows matching note_id.
+            $note_tags_model->delete($note_id, 'note_id');
+            
+            // 2. Re-insert tags
+            $tag_list = is_array($tags_input) ? $tags_input : explode(",", $tags_input);
+
+            foreach ($tag_list as $tag_name) {
+                $tag_name = trim($tag_name);
+                if (empty($tag_name)) continue;
+
+                // Check if tag exists, if not create it
+                $tag_data = $tags_model->first(['name' => $tag_name]);
+                if (!$tag_data) {
+                    $tag_id = $tags_model->insert(['name' => $tag_name]);
+                } else {
+                    $tag_id = $tag_data->id;
+                }
+
+                // Associate tag with note
+                $note_tags_model->insert([
+                    'note_id' => $note_id,
+                    'tag_id' => $tag_id
+                ]);
+            }
 
             // Redirect to the note view page after updating
-            header("Location: ".ROOT."/notes/view/" . $note_id);
+            header("Location: ".ROOT."/notes/view/" . $note_id . "?message=Note+updated+successfully");
 
             exit();
         }
         // $note_id = $_GET['id'] ?? null;
 
-       // --- MOCK DATA SETUP ---
-       $notes = new NoteModel;
-       $note_shares = new NoteShares;
-       $note_tags = new NoteTags;
-       $topics = new Topics;
-       $tags = new Tags;
+        $note_model = new NoteModel;
+        $note_tags_model = new NoteTags;
+        $topics_model = new Topics;
+        $tags_model = new Tags;
 
-       $note_data = $notes->first(['id' => $note_id]);
-       // show($note_id);
+        $note = $note_model->first(['id' => $note_id]);
 
-       $topic_id = $note_data ? $note_data->topic_id : null;
-       $topic_name = $topics->first(['id' => $topic_id])->name ?? 'Unknown Topic';
+        if (!$note) {
+             // Handle 404 or redirect
+             header("Location: ".ROOT."/notes");
+             exit();
+        }
 
-       $note_tags = $note_tags->where(['note_id' => $note_id]);
+        if ($note->owner_id != $_SESSION['user_id']) {
+            // Authorized check
+             header("Location: ".ROOT."/notes");
+             exit();
+        }
 
-       $tag_names = [];
+        // Get Topic Name (if passed to view)
+        $topic = $topics_model->first(['id' => $note->topic_id]);
+        $topic_name = $topic ? $topic->name : 'Unknown';
 
-       foreach ($note_tags as $tag) {
-           $tag_names[] = $tags->first(['id' => $tag->tag_id])->name;
-       }
-
-       $note_data = [
-           'note' => [
-               'id' => $note_id,
-               'title' => $note_data->title ?? 'Unknown Note',
-               'content' => $note_data->content ?? 'No content available.',
-               'tags' => $tag_names,
-               'topic' => $topic_name
-           ]
-       ];
+        // Get Tags
+        $note_tags = $note_tags_model->where(['note_id' => $note_id]);
+        $tag_names = [];
+        if($note_tags) {
+             foreach($note_tags as $nt) {
+                 $t = $tags_model->first(['id' => $nt->tag_id]);
+                 if($t) $tag_names[] = $t->name;
+             }
+        }
+        
+        $note_data = [
+            'note' => [
+                'id' => $note->id,
+                'title' => $note->title,
+                'content' => $note->content,
+                'tags' => $tag_names,
+                'topic' => $topic_name,
+                'owner_id' => $note->owner_id
+            ]
+        ];
 
         $data = [
             'top_tags' => [
@@ -248,17 +336,21 @@ class Notes extends Controller
 
     public function delete()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $note_id = $_POST['note_id'] ?? '';
-            // Load required models
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+             $note_id = $_POST['note_id'] ?? $_GET['id'] ?? $_GET['note_id'] ?? '';
+            
+            $note_model = new NoteModel;
+            $note = $note_model->first(['id' => $note_id]);
 
-            // Validate ownership if not own by current user redirect to note page with error message
-
-            // Perform deletion logic here (e.g., remove from database)
-
-            // Redirect to notes list after deletion
-            header("Location: ".ROOT."/notes/notes?message=Note+".$note_id."+deleted+successfully");
-            exit();
+            if ($note && $note->owner_id == $_SESSION['user_id']) {
+                $note_model->delete($note_id);
+                // Redirect to topics list or dashboard
+                header("Location: ".ROOT."/notes/list/".$note->topic_id."?message=Note+deleted");
+                exit();
+            } else {
+                 header("Location: ".ROOT."/notes?error=Access+Denied");
+                 exit();
+            }
         }
     }
 
@@ -273,15 +365,39 @@ class Notes extends Controller
 
         $note_id = $_GET['note_id'] ?? null;
 
-        // --- MOCK DATA SETUP ---
-        $data = [
-            'note_id' => 'note_42_share',
-            'note_title' => 'Color theory',
-            // Users currently shared with
-            'initial_shared_users' => [
+        // Validated ownership and fetch logic
+        $note_model = new NoteModel;
+        $note = $note_model->first(['id' => $note_id]);
+        
+        if(!$note || $note->owner_id != $_SESSION['user_id']){
+             header("Location: ".ROOT."/notes"); 
+             exit();
+        }
 
-            ],
-            'form_action_url' => '/your-backend-controller/share-note'
+        $note_shares = new NoteShares;
+        $user_model = new User;
+        
+        $shares = $note_shares->where(['note_id' => $note_id]);
+        $shared_users = [];
+        
+        if($shares){
+            foreach($shares as $share){
+                $u = $user_model->first(['id' => $share->user_id]);
+                if($u) {
+                    $shared_users[] = [
+                        'id' => $u->id,
+                        'name' => $u->username, 
+                        'avatar' => $u->image ?? 'assets/images/placeholder.jpg'
+                    ];
+                }
+            }
+        }
+
+        $data = [
+            'note_id' => $note_id,
+            'note_title' => $note->title,
+            'initial_shared_users' => $shared_users,
+            'form_action_url' => ROOT.'/notes/api/share'
         ];
 
         $this->view('notes/share', $data);
@@ -530,56 +646,24 @@ class Notes extends Controller
             // 1. Instantiate the Model
             $note_model = new NoteModel();
     
-            // --- 2. Define MOCK SEARCH PARAMETERS for Testing ---
-            // Modify these parameters to test different filtering scenarios.
+            $data = $this->json_request();
+            $input = !empty($data) ? $data : $_POST;
+
             $search_params = [
-                // PAGINATION
-                'offset'    => 0, // Start at the first record (page 1)
-                'limit'     => 10, // Fetch 10 records per "page"
-    
-                // EQUALITY FILTERS (WHERE column IN (values))
-                'where'     => [
-                    // Example: Only show notes from owner IDs 94 and 101
-                    // 'owner_id'      => [94, 101], 
-                    // Example: Only show pinned notes (pinned = 1)
-                    // 'pinned'        => [1], 
-                ],
-    
-                // INEQUALITY FILTERS (WHERE column NOT IN (values))
-                'where_not' => [
-                    // Example: Exclude notes associated with topic ID 6
-                    'topic_id'      => [6],
-                ],
-    
-                // STRING MATCHING (WHERE column LIKE '%term%')
-                'like'      => [
-                    // Example: Search for the word 'science' in the title OR content
-                    'title'     => 'science',
-                    // 'content'   => 'science', 
-                ],
-                
-                // NUMERICAL/DATE RANGE FILTERS (WHERE column BETWEEN min AND max)
-                // 'range'     => [
-                //     // Example: Only show notes created in the last 6 weeks (adjust date as needed)
-                //     'created_at' => [
-                //         '2025-10-01 00:00:00', // Start Date
-                //         '2025-12-31 23:59:59', // End Date
-                //     ],
-                // ],
-    
-                // ORDERING
-                'order_by'  => 'created_at',
-                'order_dir' => 'DESC', // Newest first
-                'unique' => true
+                'offset'    => $input['offset'] ?? 0,
+                'limit'     => $input['limit'] ?? 10,
+                'where'     => $input['where'] ?? [],
+                'where_not' => $input['where_not'] ?? [],
+                'like'      => $input['like'] ?? [],
+                'order_by'  => $input['order_by'] ?? 'created_at',
+                'order_dir' => $input['order_dir'] ?? 'DESC',
+                'unique'    => true
             ];
             
-            // --- To test the next page of results, change the offset: ---
-            // $search_params['offset'] = 10; 
-    
-            // --- To test a different search term: ---
-            // $search_params['like']['title'] = 'algebra';
-            // $search_params['like']['content'] = 'algebra';
-            // $search_params['where']['pinned'] = [0]; // Unpinned notes
+            // Allow filtering by owner if not specified or ensure security
+            if (!isset($search_params['where']['owner_id'])) {
+                 $search_params['where']['owner_id'] = $_SESSION['user_id'];
+            }
     
             // 3. Execute the search
             $results = $note_model->filter_and_search($search_params);
