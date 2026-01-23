@@ -84,7 +84,7 @@ class QuillEditor {
         }
 
         static get observedAttributes() {
-            return ['placeholder', 'height', 'readonly', 'storage-key', 'autosave', 'autosave-interval'];
+            return ['placeholder', 'height', 'readonly', 'storage-key', 'autosave', 'autosave-interval', 'content', 'value'];
         }
 
         connectedCallback() {
@@ -118,7 +118,7 @@ class QuillEditor {
         initializeQuill() {
             const container = this.querySelector('.editor-container');
             const placeholder = this.getAttribute('placeholder') || 'Start writing...';
-            const content = this.getAttribute('content') || this.getAttribute('valaue') || '';
+            const content = this.getAttribute('content') || this.getAttribute('value') || '';
 
             const toolbarOptions = [
                 ['bold', 'italic', 'underline'],

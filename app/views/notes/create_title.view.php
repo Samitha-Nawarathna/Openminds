@@ -11,8 +11,13 @@
 <div class="main-content-container"> 
         <section id="create-topic-section">
             <h2 class="title">Create Topic</h2>
+<<<<<<< HEAD
             <label for="topic-name-input">Enter the topic name:</label>
             <input type="text" id="topic-name-input" placeholder="e.g., Quantum Physics Basics" name="topic_name">
+=======
+            <label for="topic-name-input" >Enter the topic name:</label>
+            <input type="text" id="topic-name-input"  placeholder="e.g., Quantum Physics Basics">
+>>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
             <p id="validation-result" class="validation-message"></p>
             <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()">Create Topic</button>
         </section>
@@ -64,6 +69,7 @@
     </div>
     
 <script>
+<<<<<<< HEAD
 
     const ROOT = "<?=ROOT?>/";
 
@@ -428,6 +434,9 @@
     }
 
 })();
+=======
+    window.ROOT = "<?=ROOT?>/";
+>>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
 </script>
 
 <?php

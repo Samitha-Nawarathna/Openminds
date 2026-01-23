@@ -64,13 +64,12 @@
             if (!empty($data['initial_exercises'])) {
                 foreach ($data['initial_exercises'] as $exercise) {
                     // Logic to determine link based on tab/role could go here or in Controller, keeping simple for view
-                    echo '<a class="no-style-link" href="' . ROOT . '/exercises/attempt?id=' . htmlspecialchars($exercise['id']) . '">';
-                    echo '<div class="exercise-item" data-id="' . htmlspecialchars($exercise['id']) . '">';                
+                    echo '<a class="exercise-item no-style-link" href="' . ROOT . '/exercises/attempt?id=' . htmlspecialchars($exercise['id']) . '" >';
+                                  
                     echo '  <span class="exercise-title-list">' . htmlspecialchars($exercise['title']) . '</span>';
                     echo '  <span class="subject-pill" data-subject="' . htmlspecialchars($exercise['subject']) . '">';
                     echo '      ' . htmlspecialchars($exercise['subject']) . '';
                     echo '  </span>';
-                    echo '</div>';
                     echo '</a>';
                 }
             } else {

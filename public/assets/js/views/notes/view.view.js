@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const runningTimerState = document.getElementById('running-timer-state');
     const countdownDisplayFixed = document.getElementById('countdown-display-fixed');
     const cancelTimerBtn = document.getElementById('cancel-timer-btn');
-    
+
     // --- Modal Elements ---
     const timerModal = document.getElementById('timer-modal');
     const closeModalBtn = timerModal.querySelector('.close-btn');
@@ -22,27 +22,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagsContent = document.getElementById('tags-content');
 
     // --- State Variables ---
-    let timerInterval = null; 
+    let timerInterval = null;
     let isRunning = false;
     let totalSeconds = 0;
 
     // --- Utility and Core Timer Functions ---
-    function open_note(id)
-    {
+    function open_note(id) {
         note_card.style.transform = 'translateX(-100%)';
         window.abstractNoteModalManager.openNote(id);
     }
 
     window.open_note = open_note;
 
-    function close_note()
-    {
+    function close_note() {
         note_card.style.transform = 'translateX(-50%)';
     }
 
     window.close_note = close_note;
 
-    
+
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -67,14 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Please enter a valid focus time (1-180 minutes).");
             return;
         }
-        
+
         totalSeconds = minutes * 60;
         isRunning = true;
         timerModal.style.display = 'none'; // Close the modal upon starting
-        
+
         // --- UI Changes for Start (Fixed Display) ---
         focusButtonTrigger.style.display = 'none';
-        runningTimerState.style.display = 'flex'; 
+        runningTimerState.style.display = 'flex';
 
         // Initial display update
         countdownDisplayFixed.textContent = formatTime(totalSeconds);
@@ -105,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //         const isExpanded = tagsToggleBtn.getAttribute('aria-expanded') === 'true' || false;
     //         tagsToggleBtn.setAttribute('aria-expanded', !isExpanded);
     //         tagsContent.classList.toggle('show');
-            
+
     //         const icon = tagsToggleBtn.querySelector('.toggle-icon');
     //         if (icon) {
     //             icon.textContent = isExpanded ? '▼' : '▲';
@@ -135,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Timer Event Listeners ---
-    
+
     // 1. Start timer from modal
     if (timerStartModalBtn) {
         timerStartModalBtn.addEventListener('click', () => {
@@ -157,15 +155,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Delete Button Confirmation ---
-    document.querySelector('.btn-delete').addEventListener('click', (e) => {
-        e.preventDefault(); 
-        if (confirm("Are you sure you want to delete this note?")) {
-            const deleteLink = e.currentTarget.querySelector('a');
-            if (deleteLink) {
-                window.location.href = deleteLink.href;
-            } else {
-                alert("Note deleted... Mock action complete.");
+    const deleteBtn = document.querySelector('.btn-delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm("Are you sure you want to delete this note?")) {
+                const deleteForm = document.getElementById('delete-note-form');
+                if (deleteForm) {
+                    deleteForm.submit();
+                } else {
+                    console.error("Delete form not found");
+                }
             }
-        }
-    });
+        });
+    }
 });

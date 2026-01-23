@@ -20,6 +20,7 @@
             <a href="<?=ROOT?>/notes/create" class="btn-create">+ Create</a>
         </div>
 
+        <?php if (!empty($data['pinned_notes'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
                 <div class="title"><h3>Pinned Notes</h3></div>
@@ -37,11 +38,11 @@
 
                         echo '
                         <a href="'.ROOT.'/notes/view/'.$data['pinned_note_ids'][$key].'" class="no-style-link">
-                        <div class="card-container">
+                        <div class="card-container" data-id="'.$data['pinned_note_ids'][$key].'">
                             <div class="card">
                                 <div class="icon-placeholder" style="background-color:var('.$colors[$rand_no].');">
                                     📁
-                                    <span class="unpin-icon">unpin</span>
+                                    <span class="unpin-icon" data-id="'.$data['pinned_note_ids'][$key].'">unpin</span>
                                 
                                 </div>
                                 
@@ -59,6 +60,7 @@
             </div>
             
         </div>
+        <?php endif; ?>
 
     
 </div>
@@ -75,7 +77,7 @@
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['notes'] as $note) {
                 // Added data-id for JS event listener
-                echo '<div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">' . htmlspecialchars($note['title']) . '<span class="pin-icon">pin</span></div>';
+                echo '<a class="no-style-link" href="'.ROOT.'/notes/view/'.$note['id'].'"><div class="note-item" data-id="' . htmlspecialchars($note['id']) . '">' . htmlspecialchars($note['title']) . '<span class="pin-icon">pin</span></div></a>';
             }
             ?>
         </div>

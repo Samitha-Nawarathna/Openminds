@@ -268,6 +268,95 @@ nav .right-side ul .profile-pic {
     min-height: 80px; 
 }
 
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.profile-item:hover {
+    background-color: #f9fafb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Left Section: Image and Name */
+.left-align {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-picture-xs {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.username-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1a1a1b;
+}
+
+.subject-info {
+    font-size: 0.8rem;
+    color: #65676b;
+}
+
+/* Right Section: Badges */
+.right-align {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.role-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Status Badges */
+.status-badge--banned {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #dc3545;
+    background-color: #ffeef0;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Utility Classes */
+.no-style-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+}
+
+.opacity-low { /* Example for your ${opacityClass} */
+    opacity: 0.6;
+}
+
 /* Style the dropdown */
 .dropdown {
     position: relative;
@@ -699,35 +788,24 @@ form .input-group textarea {
      📦 TABS
   ------------------------------ */
 
+/* Update the parent to manage the height */
 .content-tabs {
     width: 100%;
-    position: relative;
-    height: auto;
+    display: grid; /* Use grid to stack tabs on top of each other */
+    grid-template-columns: 1fr;
 }
 
 .content-tab {
-    padding: var(--space-sm);
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    transform: scale(0.9);
-    opacity: 0;
-    z-index: 0;
-    transition: transform 0.5s ease, opacity 1s ease;
-    /* height: ; */
-    overflow-y: auto;
-    overflow-x: hidden;
-    background-color: var(--color-blue-50);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    gap: var(--space-xs);
+    grid-area: 1 / 1; /* Stack all tabs in the same grid cell */
+    position: relative; /* Change from absolute to relative */
+    display: none; /* Hide by default */
+    flex-direction: column; /* Ensure profiles stack vertically */
+    transition: opacity 0.5s ease;
+    /* Remove transform: scale(0.9) if it causes layout shifting */
 }
 
 .content-tab.active {
-    transform: scale(1);
+    display: flex; /* Only show the active tab */
     opacity: 1;
     z-index: 2;
 }

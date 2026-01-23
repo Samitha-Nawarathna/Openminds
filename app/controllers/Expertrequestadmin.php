@@ -103,4 +103,51 @@ final class Expertrequestadmin extends Controller
 
     }
 
+        /**
+     * AJAX Endpoint: Translates UI state to Database Filter Params
+     */
+    public function filter_requests()
+    {
+        // Decode JSON body from fetch request
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        $limit = (int)($data['limit'] ?? 10);
+        $offset = (int)($data['offset'] ?? 0);
+
+        // Build the params array for the abstract database method
+        $params = [
+            'select'    => ['*'],
+            'limit'     => $limit,
+            'offset'    => $offset,
+            'order_by'  => $data['sort'] ?? 'request_id',
+            'order_dir' => $data['dir'] ?? 'DESC'
+        ];
+
+        // 1. Status Filter (from Tabs)
+        if (!empty($data['review'])) {
+            $params['where']['review'] = $data['review'];
+        }
+
+        // 2. Keyword Search (using LIKE)
+        if (!empty($data['search'])) {
+            $params['like']['description'] = $data['search'];
+        }
+
+        // 3. Subject Filter (from Advanced Modal)
+        if (!empty($data['subject'])) {
+            $params['where']['subject'] = $data['subject'];
+        }
+
+        $request_model = new UserRequestsModel();
+        // This leverages your existing abstract database method
+        $results = $request_model->filter_and_search($params);
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'results' => $results,
+            'has_more' => count($results) === $limit
+        ]);
+    }
+
 }

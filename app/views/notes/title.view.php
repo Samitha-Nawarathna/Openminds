@@ -19,6 +19,7 @@ include_once '../app/views/partials/header.view.php';
             <a href="<?=ROOT?>/topics/create" class="btn-create">+ Create</a>
         </div>
 
+        <?php if (!empty($data['recent_topics'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
                 <div class="title"><h3>Pinned Topics</h3></div>
@@ -36,11 +37,11 @@ include_once '../app/views/partials/header.view.php';
 
                         echo '
                         <a href="'.ROOT.'/notes/title/'.$data['recent_topic_ids'][$key].'" class="no-style-link">
-                        <div class="card-container">
+                        <div class="card-container" data-id="'.$data['recent_topic_ids'][$key].'">
                             <div class="card">
                                 <div class="icon-placeholder" style="background-color:var('.$colors[$rand_no].');">
                                     📁
-                                    <span class="unpin-icon">unpin</span>
+                                    <span class="unpin-icon" data-id="'.$data['recent_topic_ids'][$key].'">unpin</span>
                                 
                                 </div>
                                 
@@ -58,6 +59,7 @@ include_once '../app/views/partials/header.view.php';
             </div>
             
         </div>
+        <?php endif; ?>
 
         <div class="list-container" id="topics-list">
             <h3>Available Topics</h3>
@@ -65,7 +67,7 @@ include_once '../app/views/partials/header.view.php';
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {
                 // Added data-id for JS event listener
-                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '<span class="pin-icon">pin</span></a></div>';
+                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '<span class="pin-icon">pin</span></a></div>';
             }
             ?>
         </div>

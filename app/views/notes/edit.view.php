@@ -11,7 +11,7 @@
 ?>
 
 <div class="creator-wrapper">
-    <form action="<?=ROOT?>/notes/edit?id=<?= htmlspecialchars($data['note']['id']) ?>" method="POST" id="note-update-form">
+    <form action="<?=ROOT?>/notes/edit/<?= htmlspecialchars($data['note']['id']) ?>" method="POST" id="note-update-form">
         
         <input type="hidden" name="note_id" id="note-id-field" value="<?= htmlspecialchars($data['note']['id']) ?>">
         
@@ -23,9 +23,14 @@
                     <input type="text" id="note-title" class="note-data" name="title" placeholder="Title" value="<?= htmlspecialchars($data['note']['title']) ?>" required>
                 </div>
 
-                <div class="input-group">
-                    <textarea id="note-content" name="content" placeholder="Write your detailed note content here..." rows="18" required><?= htmlspecialchars($data['note']['content']) ?></textarea>
-                </div>
+                <quill-editor 
+                    id="editor"
+                    name="content"
+                    placeholder="Write your detailed note content here..."
+                    storage-key="note-edit-<?= htmlspecialchars($data['note']['id']) ?>"
+                    height="450px"
+                    content="<?= htmlspecialchars($data['note']['content']) ?>">
+                </quill-editor>
                 
                 <input type="hidden" id="hidden-tags-field" name="tags" value="">
                 <input type="hidden" id="hidden-topic-field" name="topic" value="">
@@ -80,6 +85,7 @@
     // Pass initial data to JavaScript for pre-loading state
     const INITIAL_TAGS = <?= json_encode($data['note']['tags']) ?>;
     const INITIAL_TOPIC = "<?= htmlspecialchars($data['note']['topic']) ?>";
+    const INITIAL_CONTENT = <?= json_encode($data['note']['content']) ?>;
 </script>
 
 <?php

@@ -278,6 +278,22 @@ class Exercises extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['exercise_id'] ?? 1;
             // Process submitted answers here
+            $user_id = $_SESSION['user_id'] ?? null;
+            $answers = $_POST['answers'] ?? []; // Assuming answers are posted as an array [question_id => selected_option]
+
+            if ($user_id) {
+                // 1. Calculate Score (Mock logic or real if answers available)
+                // For now, let's assume we can calculate it or just set a default for the event
+                $score = 85.0; // Mock score
+
+                // 2. Save Attempt (If ExerciseAttempt model exists)
+                // $attempt = new ExerciseAttempt;
+                // $attempt_id = $attempt->insert([...]);
+
+                // 3. Log Event
+                $event = new Event;
+                $event->log($user_id, 'exercise_attempted', 'Exercise', $id, ['score' => $score, 'subject_id' => 1]);
+            }
 
             header('Location: '.ROOT.'/exercises/viewattempt/'.$id.'/12345');
             exit();

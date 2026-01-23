@@ -1,193 +1,302 @@
+:root {
+    --sidebar-width: 320px;
+    --header-bg: #ffffff;
+    --color-primary: #007bff; /* Adjust to your original primary color if different */
+    --space-xl: 40px;
+}
+
+/* --- Layout Structure --- */
+.profilebrowser-layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+.profilebrowser-main {
+    flex-grow: 1;
+    transition: margin-right 0.3s ease;
+    background-color: #f9f9f9; /* Original background if applicable */
+}
+
+/* --- Sticky Header & Container --- */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--header-bg);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
-    margin-top: var(--space-xl);
     padding: 0 15px;
 }
 
-/* --- Header Styles --- */
+/* --- Original Typography & Header Styles --- */
 .exercise-browser-header {
+    padding-top: var(--space-xl);
     margin-bottom: 30px;
-    text-align: left;
 }
 
 .main-title {
-    font-size: 3em;
+    font-size: 3em; /* Restored original size */
     font-weight: 600;
     margin: 0;
     color: #333;
 }
 
-h1 {
-    font-size: var(--font-size-lg); /* Using the new large font size token */
-    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
-    text-align: left;
-    margin-bottom: var(--space-md); /* Using space-md for good separation */
-    color: var(--color-text); /* Using the dark text color token */
-}
-
-/* --- Filter, Tabs, and Buttons (Reused Styles) --- */
-
 .filter-bar {
     display: flex;
     gap: 10px;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
 }
 
 #exercise-filter-input {
     flex-grow: 1;
-    padding: 10px 15px;
+    padding: 12px 15px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 1em;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
-.btn-filter {
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #ffffff;
-    color: #555;
-    cursor: pointer;
-}
-
-.btn-create {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    background-color: var(--color-primary);
-    color: white;
-    font-weight: 600;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-}
-
-.tabs-container {
-    display: flex;
-    gap: var(--space-sm);
-    margin-bottom: 20px;
-}
-
-.tab-button {
-    padding: 8px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: white;
-    color: #555;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.tab-button.active {
-    background-color: var(--color-primary);
-    color: white;
+#exercise-filter-input:focus {
     border-color: var(--color-primary);
 }
 
-/* --- Exercise List Styles --- */
-
-.list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.exercise-item {
+.btn-filter {
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    background-color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    transition: transform 0.1s;
+    gap: 8px;
 }
 
-.exercise-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+/* --- Right Sidebar (Collapsible) --- */
+.filter-sidebar {
+    position: fixed;
+    right: -340px;
+    top: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.08);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.exercise-title-list {
-    flex-grow: 1;
-    font-size: 1.1em;
-    color: #333;
+.filter-sidebar.active {
+    right: 0;
 }
 
-/* --- Subject Pill Styles (No fixed colors here, controlled by JS) --- */
-.role-pill {
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 0.8em;
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2em;
     font-weight: 600;
-    white-space: nowrap;
-    margin-right: 15px;
-    min-width: 70px; /* Gives pills a minimum size for uniformity */
-    text-align: center;
-    background-color: var(--color-green-100);
 }
 
-/* Load More Button Styles (Reused) */
-.load-more-container {
-    text-align: center;
-    margin: 20px 0 50px 0;
-}
-
-.btn-load-more {
-    padding: 10px 30px;
-    border: 1px solid var(--color-primary);
-    border-radius: 8px;
-    background-color: white;
-    color: var(--color-primary);
+.btn-close-sidebar {
+    background: none;
+    border: none;
+    font-size: 28px;
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s;
+    color: #aaa;
+    line-height: 1;
 }
 
+.filter-scroll-area {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-group h4 {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    cursor: pointer;
+    font-size: 0.95em;
+}
+
+.filter-select, .filter-date {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.filter-actions {
+    padding: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+.btn-clear {
+    background: none;
+    border: none;
+    color: #ff5e5e;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+/* --- Original Profile Item Styles --- */
 .profile-item {
     background-color: white;
     padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    font-size: 1.1em;
-    color: #333;
-    transition: transform 0.1s;
-    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
     display: flex;
-    justify-content: space-between;
-    display: flex;
-}
-
-.profile-item .left-align
-{
-    flex: 1;
-    display: flex;
-    gap: var(--space-sm);
     align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
 }
-
-.profile-item .right-align
-{
-flex: 0;   
-}
-
-.profile-item .icons
-{
-    display: flex;
-    justify-content: end;
-}
-
-
 
 .profile-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px); /* Restored original hover effect */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.right-align
-{
+.left-align {
     display: flex;
     align-items: center;
+    gap: 15px;
+}
+
+.profile-picture-xs {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.username {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.subject-info {
+    font-size: 0.85em;
+    color: #777;
+}
+
+.right-align {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+/* --- Original Tab Styles --- */
+.tab-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tab-button {
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9em;
+    text-transform: capitalize;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #333;
+    color: white;
+}
+
+.btn-none {
+    background-color: #eee;
+    color: #777;
+}
+
+/* --- Loading & Empty States --- */
+.skeleton-loader {
+    background: #f0f0f0;
+    background-image: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 20%, #f0f0f0 40%, #f0f0f0 100%);
+    background-repeat: no-repeat;
+    background-size: 800px 100%;
+    animation: skeletonShimmer 1.2s infinite linear;
+    border-radius: 12px;
+    height: 80px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.no-results i {
+    font-size: 3em;
+    margin-bottom: 10px;
+    opacity: 0.3;
+}
+
+/* --- Utilities --- */
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.role-pill {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-pill--expert { background: #e3f2fd; color: #1976d2; }
+.role-pill--other { background: #f5f5f5; color: #616161; }
+
+.status-badge--banned {
+    font-size: 0.7em;
+    font-weight: 800;
+    color: #d32f2f;
 }

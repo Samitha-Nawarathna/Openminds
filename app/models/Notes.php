@@ -62,4 +62,15 @@ class NoteModel
     }
 
 
+
+    public function pin($id)
+    {
+        return $this->update($id, ['pinned' => 1]);
+    }
+
+    public function unpin($id)
+    {
+        return $this->update($id, ['pinned' => 0]);
+    }
+
 }
