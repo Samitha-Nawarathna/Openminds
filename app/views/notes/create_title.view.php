@@ -12,9 +12,9 @@
         <section id="create-topic-section">
             <h2 class="title">Create Topic</h2>
             <label for="topic-name-input">Enter the topic name:</label>
-            <input type="text" id="topic-name-input" placeholder="e.g., Quantum Physics Basics">
+            <input type="text" id="topic-name-input" placeholder="e.g., Quantum Physics Basics" name="topic_name">
             <p id="validation-result" class="validation-message"></p>
-            <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()" disabled>Create Topic</button>
+            <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()">Create Topic</button>
         </section>
 
         </div>
@@ -124,9 +124,9 @@
             // console.log(await response.text()); // Consume response to avoid memory leaks
             return await response.json();
 
-        } catch (error) {
-            console.error('API Request Error:', error);
-            return { success: false, message: 'Network or server error.' };
+        // } catch (error) {
+        //     console.error('API Request Error:', error);
+        //     return { success: false, message: 'Network or server error.' };
         }
     }
 

@@ -23,30 +23,30 @@ class TopicController extends Controller
     public function api_create()
     {
         $data = $this->json_request();
-
-        // In a real application, you would initialize the Topics model here.
-        // $topics_model = new Topics();
+        $topics_model = new Topics();
 
         $name = trim($data['name'] ?? '');
-        $creator_id = $_SESSION['user_id'] ?? 'MOCK_USER_1'; // Use mock user ID if not in session
+        $creator_id = $_SESSION['user_id'] ?? 0; // Fallback to 0 if not logged in, though auth should be enforced
 
         if (empty($name)) {
             $this->json_respond(['success' => false, 'message' => 'Topic name cannot be empty.']);
             return;
         }
         
-        // MOCK: Check for availability to prevent creating a duplicate
-        // In a real app: $is_available = $topics_model->is_name_available($name);
-        $is_available = ($name !== 'Mock Topic' && $name !== 'Existing Topic');
-
-        if (!$is_available) {
+        // Check for availability to prevent creating a duplicate
+        if (!$topics_model->is_name_available($name)) {
             $this->json_respond(['success' => false, 'message' => 'Topic name already taken.']);
             return;
         }
 
-        // MOCK: Simulate insertion and generation of a new ID
-        $new_topic_id = rand(100, 999); 
-        // In a real app: $new_topic_id = $topics_model->insert(['name' => $name, 'creator_id' => $creator_id]);
+        // Insert and get the new ID
+        $insert_data = [
+            'name' => $name,
+            'creator_id' => $creator_id,
+            'pinned' => 0
+        ];
+        
+        $new_topic_id = $topics_model->insert($insert_data);
 
         if ($new_topic_id) {
             // Return the new topic_id so the frontend can use it for moving notes
@@ -62,7 +62,6 @@ class TopicController extends Controller
      */
     public function api_is_name_available($name)
     {
-        // $data = $this->json_request();
         $name = trim($name ?? '');
 
         if (empty($name)) {
@@ -70,16 +69,20 @@ class TopicController extends Controller
             return;
         }
 
-        // MOCK: Simulate database check. 'Existing Topic' is the only reserved name.
-        $is_available = (strtolower($name) !== 'existing topic');
+        $topics_model = new Topics();
+        $is_available = $topics_model->is_name_available($name); // This returns true if EXISTS, so wait.
+        // Checking Model logic: "return $topic !== false;" means it returns TRUE if found (NOT available).
+        // Let's re-read the model.
+        // Model: is_name_available($name) { $topic = $this->first(...); return $topic !== false; }
+        // So if it returns true, it means it EXISTS.
         
-        // Corrected logic: 
-        if ($is_available) {
+        // The API expects 'available' => true if it DOES NOT exist.
+        // So if $topics_model->is_name_available($name) is true, then available is false.
+        
+        if (!$topics_model->is_name_available($name)) {
             $this->json_respond(['available' => true, 'message' => 'Topic name is available.']);
-            return;
         } else {
             $this->json_respond(['available' => false, 'message' => 'Topic name already exists.']);
-            return;
         }
     }
 

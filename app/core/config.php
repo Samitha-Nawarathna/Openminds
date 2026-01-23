@@ -12,7 +12,7 @@ if ($_SERVER["SERVER_NAME"] == "localhost")
     define('DBNAME', 'openminds');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
-    define('DBPASS', '1234');
+    define('DBPASS', '');
     define('DBDRIVER', '');
 
     // define('DBNAME', 'samitha_openminds');

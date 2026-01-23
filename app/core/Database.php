@@ -1,5 +1,17 @@
 <?php
 
+// $newTopic =$_POST['topic_name'];
+// //database connection
+// $connection = new openmindssql('localhost', 'root', '', 'topic');
+// if($connection->connect_error){
+//     die("Connection failed: " . $connection->connect_error);
+// } else {
+//     $stmt = $connection->prepare("insert into registration (topicid, topic_name) values (?, ?)");
+//     $stmt->bind_param("is", $newTopic);
+//     $stmt->execute();
+//     echo "New record created successfully";
+// }
+
 trait Database
 {
     private function connect()

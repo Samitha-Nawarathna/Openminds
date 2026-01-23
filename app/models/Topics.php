@@ -5,6 +5,11 @@ class Topics
     use Model;
 
     protected $table = 'topics';
+    protected $allowedColumns = [
+        'name',
+        'creator_id',
+        'pinned'
+    ];
 
     public function is_name_available($name)
     {
