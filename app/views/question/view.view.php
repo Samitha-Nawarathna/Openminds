@@ -8,72 +8,25 @@ include_once '../app/views/partials/header.view.php';
 ?>
 
 <?php
-// --- MOCK API DATA SETUP (Mimics server-side data retrieval) ---
-$CURRENT_USER_ID = 1; 
-
-$mockQuestionDetails = [
-    'id' => 1,
-    'title' => "What is the Big O Notation for an unbalanced Binary Search Tree?",
-    'description' => "I am studying data structures, and I understand that a balanced BST has an average search time of O(log n). However, what happens when it becomes completely unbalanced? What is the worst-case scenario for operations like search, insertion, and deletion?",
-    'author_id' => 1,
-    'author_name' => "Alice",
-    'author_role' => "student",
-    'time_posted' => "2025-10-30 10:00",
-    'tags' => ["data-structures", "algorithms", "big-o"],
-    'vote_count' => 5,
-    'user_voted' => true,
-    'user_vote_type' => 'up'
-];
-
-$mockInitialAnswers = [
-    ['id' => 102, 'content' => "Since an unbalanced BST effectively becomes a linked list in the worst case (e.g., sequentially inserted data), the Big O notation for search, insertion, and deletion becomes O(n).", 'author_id' => 2, 'author_name' => "You", 'author_role' => "student", 'time_posted' => "2025-10-31 10:15", 'vote_count' => 10, 'user_voted' => false, 'is_accepted' => true],
-    ['id' => 103, 'content' => "Correct. To mitigate this risk, modern systems often rely on self-balancing trees like AVL or Red-Black trees, which guarantee O(log n) worst-case performance by performing rotations.", 'author_id' => 3, 'author_name' => "Dr. Smith", 'author_role' => "admin", 'time_posted' => "2025-10-31 10:30", 'vote_count' => 25, 'user_voted' => true, 'user_vote_type' => 'up', 'is_accepted' => false],
-    ['id' => 104, 'content' => "It's important to remember that 'unbalanced' means skewed, but the average case for a randomly built BST remains O(log n). The O(n) is strictly the worst-case scenario.", 'author_id' => 4, 'author_name' => "Bob Expert", 'author_role' => "expert", 'time_posted' => "2025-10-31 10:45", 'vote_count' => 5, 'user_voted' => false, 'is_accepted' => false]
-];
-
-// Generate 9 more mock answers
-for ($i = 0; $i < 9; $i++) {
-    $mockInitialAnswers[] = [
-        'id' => 105 + $i,
-        'content' => "A student answer number " . ($i + 1) . ". The worst-case for an unbalanced BST is O(n), which is terrible for performance.",
-        'author_id' => 10 + $i,
-        'author_name' => "Student " . ($i + 1),
-        'author_role' => ($i % 3 === 0 ? "mentor" : "student"),
-        'time_posted' => "2025-10-31 11:00",
-        'vote_count' => 1,
-        'user_voted' => false,
-        'is_accepted' => false
-    ];
-}
-
-$totalAnswerCount = count($mockInitialAnswers);
-$answersToDisplay = 10;
-
-// Sort answers (PHP mimic of initial JS sort)
-usort($mockInitialAnswers, function($a, $b) use ($CURRENT_USER_ID) {
-    if ($a['author_id'] === $CURRENT_USER_ID) return -1;
-    if ($b['author_id'] === $CURRENT_USER_ID) return 1;
-    if ($a['is_accepted'] && !$b['is_accepted']) return -1;
-    if (!$a['is_accepted'] && $b['is_accepted']) return 1;
-    $roleOrder = ['admin' => 4, 'expert' => 3, 'mentor' => 2, 'student' => 1];
-    return $roleOrder[strtolower($b['author_role'])] - $roleOrder[strtolower($a['author_role'])];
-});
-
-$initialAnswersList = array_slice($mockInitialAnswers, 0, $answersToDisplay);
-$hasMoreAnswers = $totalAnswerCount > $answersToDisplay;
-
-$initialData = [
-    'question' => $mockQuestionDetails,
-    'answers' => [
-        'list' => $initialAnswersList,
-        'has_more' => $hasMoreAnswers
-    ],
-    'totalAnswerCount' => $totalAnswerCount
-];
-
-$initialDataJson = json_encode($initialData);
+// Inject initial data into a global JS variable
+$initialDataJson = json_encode($data ?? []);
 ?>
 
+<style>
+    /* Styling for Read-Only Quill Editors to look like Viewers */
+    quill-editor[readonly] .editor-container {
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        padding: 10px;
+    }
+    
+    /* Ensure content inside doesn't overflow */
+    quill-editor[readonly] .ql-editor {
+        min-height: auto;
+        overflow-y: visible; 
+    }
+</style>
 
 <div id="question-page-container">
     <div id="question-panel">

@@ -468,6 +468,103 @@
         margin: 0.5rem 0.25rem;
         padding-top: 0.5rem;
     }
+
+    /* ---------------------------------- */
+    /* Notifications */
+    /* ---------------------------------- */
+    .notification-wrapper {
+        position: relative;
+    }
+
+    .notification-dropdown {
+        position: fixed; /* Fixed to viewport to escape sidebar overflow */
+        /* Top and Left will be set by JS */
+        width: 300px;
+        background: white;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        z-index: 1100; /* Higher than sidebar (1000) */
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-10px);
+        transition: opacity 0.2s, transform 0.2s;
+        display: block; /* Always block, visibility controlled by opacity/pointer-events */
+    }
+
+    .notification-dropdown.visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0);
+    }
+    
+    /* Remove hover selector since we use JS class now */
+    /* .notification-wrapper:hover .notification-dropdown { ... } */
+
+    .notification-header {
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--color-border);
+        background: var(--color-gray-100);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        font-size: 0.9rem;
+    }
+
+    .notification-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.85rem;
+        color: var(--color-text-dark);
+    }
+    
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-item.empty {
+        text-align: center;
+        color: var(--color-text-light);
+        padding: 1.5rem;
+    }
+    
+    .notif-date {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        margin-top: 0.25rem;
+    }
+
+    .notification-footer {
+        padding: 0.75rem;
+        text-align: center;
+        border-top: 1px solid var(--color-border);
+        background: var(--color-gray-100);
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+    }
+
+    .view-all-btn {
+        display: inline-block;
+        font-size: 0.85rem;
+        color: var(--color-primary-accent);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .view-all-btn:hover {
+        text-decoration: underline;
+    }
+
+    /* Adjust for collapsed sidebar */
+    .collapsed .notification-dropdown {
+        left: 100%; /* Keep it pushed out */
+    }
 </style>
 
 
@@ -540,12 +637,36 @@
 
         <div class="nav-section">
             <div class="nav-header">User Management</div>
+            <a href="<?=ROOT?>/profile" class="nav-link" data-tooltip="Profile">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="nav-link-text">Profile</span>
+            </a>
+            
+            <div class="nav-item-wrapper notification-wrapper">
+                <a href="#" class="nav-link notification-trigger" data-tooltip="Notifications">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span class="nav-link-text">Notifications</span>
+                </a>
+                <div class="notification-dropdown">
+                    <div class="notification-header">Recent Notifications</div>
+                    <ul class="notification-list"></ul>
+                    <div class="notification-footer">
+                        <a href="<?=ROOT?>/dashboard" class="view-all-btn">View all</a>
+                    </div>
+                </div>
+            </div>
+
             <a href="<?=ROOT?>/expertrequest" class="nav-link" data-tooltip="Expert Requests (My)">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="10" cy="8" r="5"/><path d="M2 21a8 8 0 0 1 14 0"/><path d="m18.5 17.5 4.5 4.5"/></svg>
                 <span class="nav-link-text">Expert Requests (My)</span>
             </a>
 
-            <?php if ($nav_role === "admin"): ?>
+            <a href="<?=ROOT?>/logout" class="nav-link" data-tooltip="Log out">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                <span class="nav-link-text">Log out</span>
+            </a>
+
+            <?php if ($nav_role === "expert"): ?>
                 <div class="admin-divider">
                     <div class="nav-header">Admin Privileges</div>
                     <a href="<?=ROOT?>/expertrequestadmin" class="nav-link" data-tooltip="Expert Requests (Admin)">
@@ -561,6 +682,10 @@
                             <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                         <span class="nav-link-text">User Profiles</span>
+                    </a>
+                    <a href="<?=ROOT?>/announcements" class="nav-link" data-tooltip="Announcements">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                        <span class="nav-link-text">Announcements</span>
                     </a>
                 </div>
             <?php endif; ?>
@@ -656,6 +781,7 @@
             }
         });
         
+        
         // If a sub-link is active, ensure its parent dropdown is open on load
         const activeSubLink = document.querySelector('.submenu .nav-link.active');
         if (activeSubLink) {
@@ -666,6 +792,90 @@
                 parentSubmenu.classList.add('open');
                 parentToggle.classList.add('open');
             }
+        }
+        
+        // --- Notification Logic ---
+        const notificationTrigger = document.querySelector('.notification-trigger');
+        const notificationDropdown = document.querySelector('.notification-dropdown');
+        const notificationList = document.querySelector('.notification-list');
+        let notificationsLoaded = false;
+        let notifHideTimer = null;
+
+        function showDropdown() {
+            if (notifHideTimer) {
+                clearTimeout(notifHideTimer);
+                notifHideTimer = null;
+            }
+
+            const rect = notificationTrigger.getBoundingClientRect();
+            notificationDropdown.style.top = `${rect.top}px`;
+            // Position to the right of the sidebar (trigger width + padding/margin logic)
+            // rect.right gives the right edge of the trigger
+            notificationDropdown.style.left = `${rect.right + 10}px`; 
+            notificationDropdown.classList.add('visible');
+        }
+
+        function hideDropdown() {
+            notifHideTimer = setTimeout(() => {
+                notificationDropdown.classList.remove('visible');
+            }, 300); // Small delay to allow moving mouse to dropdown
+        }
+
+        if (notificationTrigger && notificationDropdown) {
+            // Trigger events
+            notificationTrigger.addEventListener('mouseenter', async () => {
+                showDropdown();
+
+                if (notificationsLoaded) return;
+                
+                // Show loading state
+                notificationList.innerHTML = '<li class="notification-item empty">Loading...</li>';
+                
+                try {
+                    const res = await fetch('<?=ROOT?>/ajax/retrive_user_notifications', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            data: { receiver_id: <?= $_SESSION['user_id'] ?? 0 ?> },
+                            offset: 0,
+                            limit: 10
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        let content = '';
+                        data.slice(0, 10).forEach(notif => {
+                            const text = notif.content || notif.message || "New notification";
+                            const date = notif.created_at ? new Date(notif.created_at).toLocaleDateString() : '';
+                            content += `
+                                <li class="notification-item">
+                                    <div class="notif-text">${text}</div>
+                                    <div class="notif-date">${date}</div>
+                                </li>`;
+                        });
+                        notificationList.innerHTML = content;
+                    } else {
+                        notificationList.innerHTML = '<li class="notification-item empty">No new notifications</li>';
+                    }
+                    
+                    notificationsLoaded = true; 
+                    
+                } catch (error) {
+                    console.error("Failed to load notifications", error);
+                    notificationList.innerHTML = '<li class="notification-item empty">Error loading notifications</li>';
+                }
+            });
+
+            notificationTrigger.addEventListener('mouseleave', hideDropdown);
+
+            // Dropdown events (to keep it open when hovered)
+            notificationDropdown.addEventListener('mouseenter', () => {
+                if (notifHideTimer) clearTimeout(notifHideTimer);
+            });
+
+            notificationDropdown.addEventListener('mouseleave', hideDropdown);
         }
     });
 </script>

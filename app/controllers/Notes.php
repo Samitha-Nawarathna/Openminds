@@ -179,6 +179,10 @@ class Notes extends Controller
             }
 
             //redirect to note view page
+            // Log Event
+            $event = new Event;
+            $event->log($current_user_id, 'note_created', 'Note', $note_id, ['title' => $title, 'subject_id' => 1]); // Default subject ID or fetch from topic
+
             header("Location: ".ROOT."/notes/view/" . $note_id);
 
 
@@ -270,6 +274,10 @@ class Notes extends Controller
             }
 
             // Redirect to the note view page after updating
+            // Log Event
+            $event = new Event;
+            $event->log($_SESSION['user_id'], 'note_updated', 'Note', $note_id, ['subject_id' => 1]);
+
             header("Location: ".ROOT."/notes/view/" . $note_id . "?message=Note+updated+successfully");
 
             exit();
@@ -344,6 +352,11 @@ class Notes extends Controller
 
             if ($note && $note->owner_id == $_SESSION['user_id']) {
                 $note_model->delete($note_id);
+
+                // Log Event
+                $event = new Event;
+                $event->log($_SESSION['user_id'], 'note_deleted', 'Note', $note_id, []);
+
                 // Redirect to topics list or dashboard
                 header("Location: ".ROOT."/notes/list/".$note->topic_id."?message=Note+deleted");
                 exit();
@@ -599,16 +612,15 @@ class Notes extends Controller
     }
 
     public function api_store_refer_event($note_id) {
-        // Assume logic to log note referral event for $note_id
+        $user_id = $_SESSION['user_id'] ?? 0; // Or handle if not logged in
+        if ($user_id) {
+            $event = new Event;
+            $event->log($user_id, 'note_referred', 'Note', $note_id, ['duration_seconds' => 30]); // Duration is mock for now unless sent from frontend
+        }
+        
         $this->json_respond([
             "success" => true,
-            "message" => "Note referral event successfully stored.",
-            "data" => [
-                "note_id" => (int)$note_id,
-                "user_id" => 42,
-                "event_type" => "note_referred",
-                "referral_count" => 5
-            ]
+            "message" => "Note referral event successfully stored."
         ]);
     }
 

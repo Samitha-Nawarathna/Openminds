@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jan 10, 2026 at 04:36 AM
+-- Generation Time: Jan 18, 2026 at 10:16 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -20,6 +20,50 @@ SET time_zone = "+00:00";
 --
 -- Database: `openminds`
 --
+
+DELIMITER $$
+--
+-- Functions
+--
+DROP FUNCTION IF EXISTS `CalculateUserPoints`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `CalculateUserPoints` (`target_user_id` INT) RETURNS DECIMAL(12,6) DETERMINISTIC BEGIN
+    DECLARE total_points DECIMAL(12,6) DEFAULT 0;
+
+    SELECT SUM(points_per_event) INTO total_points FROM (
+        -- Points for actions the user PERFORMED (from events table)
+        SELECT 
+            (CASE 
+                WHEN event_type = 'question_answered' THEN 0.2
+                WHEN event_type = 'question_asked' THEN 0.2
+                WHEN event_type = 'note_created' THEN 0.2
+                WHEN event_type = 'exercise_attempted' THEN 0.1
+                WHEN event_type = 'vote_given' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.direction')) = 'upvote' THEN 0.2
+                WHEN event_type = 'vote_given' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.direction')) = 'downvote' THEN 0.1
+                ELSE 0
+            END) * EXP(-(CASE 
+                WHEN event_type IN ('question_answered', 'question_asked', 'note_created') THEN 0.1115718
+                WHEN event_type IN ('exercise_attempted', 'vote_given') THEN 0.1785148
+                ELSE 0
+            END) * DATEDIFF(CURRENT_TIMESTAMP, event_time) / 30) as points_per_event
+        FROM events WHERE user_id = target_user_id
+
+        UNION ALL
+
+        -- Points for being the OWNER of an item someone else interacted with
+        -- (Example: Someone upvoted your Question)
+        SELECT 
+            0.2 * EXP(-0.0892574 * DATEDIFF(CURRENT_TIMESTAMP, e.event_time) / 30)
+        FROM events e
+        JOIN question q ON e.entity_id = q.id AND e.entity_type = 'Question'
+        WHERE e.event_type = 'vote_given' 
+          AND JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote'
+          AND q.creator_id = target_user_id AND e.user_id != target_user_id
+    ) AS all_points;
+
+    RETURN IFNULL(total_points, 0);
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -69,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   PRIMARY KEY (`id`),
   KEY `q_id` (`q_id`),
   KEY `fk_answer_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `answer`
@@ -80,7 +124,8 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (2, 'INNER JOIN returns matching rows; LEFT JOIN keeps all left-side rows.', 3, 2, '2025-10-16 06:18:32', 0),
 (3, 'TCP is reliable but slower; UDP is faster but doesn’t guarantee delivery.', 4, 3, '2025-10-16 06:18:32', 0),
 (4, 'Use flexbox or grid to center elements both vertically and horizontally.', 42, 4, '2025-10-16 06:18:32', 0),
-(5, 'Action and reaction forces are equal and opposite.', 43, 5, '2025-10-16 06:18:32', 0);
+(5, 'Action and reaction forces are equal and opposite.', 43, 5, '2025-10-16 06:18:32', 0),
+(6, '{\"ops\":[{\"insert\":\"slkdfn\\n\"}]}', 1, 14, '2026-01-16 18:47:27', 0);
 
 -- --------------------------------------------------------
 
@@ -156,6 +201,29 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 (28, 1, '2025-11-25 00:07:24', 'note_refered', 'notes', 101, '{\"duration_seconds\": 125}'),
 (29, 2, '2025-11-25 00:07:24', 'note_refered', 'notes', 102, '{\"duration_seconds\": 305}'),
 (30, 3, '2025-11-25 00:07:24', 'note_refered', 'notes', 101, '{\"duration_seconds\": 45}');
+
+--
+-- Triggers `events`
+--
+DROP TRIGGER IF EXISTS `after_event_insert`;
+DELIMITER $$
+CREATE TRIGGER `after_event_insert` AFTER INSERT ON `events` FOR EACH ROW BEGIN
+    -- Update the Actor's points
+    UPDATE user 
+    SET points = CalculateUserPoints(NEW.user_id) 
+    WHERE id = NEW.user_id;
+
+    -- If it's an interaction (like a vote), update the content owner's points too
+    IF NEW.event_type = 'vote_given' AND NEW.entity_type = 'Question' THEN
+        UPDATE user 
+        SET points = CalculateUserPoints((SELECT creator_id FROM question WHERE id = NEW.entity_id))
+        WHERE id = (SELECT creator_id FROM question WHERE id = NEW.entity_id);
+    END IF;
+    
+    -- You can add logic for Answer owners here similarly
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -468,7 +536,7 @@ CREATE TABLE IF NOT EXISTS `notes` (
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
   KEY `fk_note_topic` (`topic_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notes`
@@ -495,7 +563,8 @@ INSERT INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_
 (36, 'title', '{\"ops\":[{\"insert\":\"s\\n\"}]}', 6, 101, '2025-11-20 05:22:47', '2025-11-20 05:22:47', 0),
 (38, 'sciene', '{\"ops\":[{\"insert\":\"sss\\n\"}]}', 7, 102, '2025-11-26 07:15:26', '2025-11-26 07:15:26', 0),
 (39, 'science note', '{\"ops\":[{\"insert\":\"something \"},{\"attributes\":{\"bold\":true},\"insert\":\"here\"},{\"insert\":\"\\n\"}]}', 8, 102, '2025-11-26 07:19:28', '2025-11-26 07:19:28', 0),
-(40, 'science', '{\"ops\":[{\"insert\":\"sci \\n\"}]}', 9, 1, '2025-12-09 16:03:21', '2025-12-09 16:03:21', 0);
+(40, 'science', '{\"ops\":[{\"insert\":\"sci \\n\"}]}', 9, 1, '2025-12-09 16:03:21', '2025-12-09 16:03:21', 0),
+(41, 'science_Test', '{\"ops\":[{\"insert\":\"this is \"},{\"attributes\":{\"bold\":true},\"insert\":\"an\"},{\"insert\":\" sample content\\n\"}]}', 15, 1, '2026-01-13 15:19:35', '2026-01-15 03:25:36', 0);
 
 -- --------------------------------------------------------
 
@@ -568,6 +637,7 @@ INSERT INTO `note_tags` (`note_id`, `tag_id`) VALUES
 (14, 9),
 (20, 9),
 (34, 9),
+(41, 9),
 (6, 10),
 (28, 17),
 (29, 17),
@@ -592,7 +662,9 @@ INSERT INTO `note_tags` (`note_id`, `tag_id`) VALUES
 (39, 51),
 (40, 51),
 (35, 52),
-(39, 52);
+(39, 52),
+(41, 54),
+(41, 55);
 
 -- --------------------------------------------------------
 
@@ -972,7 +1044,7 @@ CREATE TABLE IF NOT EXISTS `question` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_question_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `question`
@@ -1195,7 +1267,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tags`
@@ -1203,6 +1275,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
 
 INSERT INTO `tags` (`id`, `name`) VALUES
 (27, ''),
+(55, '22\\'),
 (21, '4'),
 (48, 'biology'),
 (26, 'chem'),
@@ -1239,6 +1312,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (15, 're'),
 (14, 'sc'),
 (24, 'sci'),
+(56, 'scie'),
 (18, 'science'),
 (31, 'sciene'),
 (4, 'SQL'),
@@ -1247,6 +1321,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (11, 'test_t1'),
 (12, 'test_t2'),
 (13, 'test_t3'),
+(54, 'tho'),
 (29, 'txt'),
 (41, 'u'),
 (43, 'wave therory'),
@@ -1269,7 +1344,7 @@ CREATE TABLE IF NOT EXISTS `topics` (
   `creator_id` int NOT NULL,
   `pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if the topic is pinned, 0 otherwise',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `topics`
@@ -1284,7 +1359,13 @@ INSERT INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
 (6, 's', 101, 0),
 (7, 'd', 102, 0),
 (8, 'theo', 102, 0),
-(9, 'science', 1, 0);
+(9, 'science', 1, 0),
+(10, 'science_test_topic', 1, 0),
+(11, 'science2', 1, 0),
+(12, 'science3', 1, 0),
+(13, 'science4', 1, 0),
+(14, 'science5', 1, 0),
+(15, 'science6', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -1305,6 +1386,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `profile_picture` varchar(200) NOT NULL DEFAULT '\\uploads\\\\0\\profile.avif',
   `display_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `points` decimal(12,6) NOT NULL DEFAULT '0.000000',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
@@ -1314,68 +1396,68 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`, `banned`, `profile_pic`, `is_deleted`, `profile_picture`, `display_name`) VALUES
-(1, 'alice', 'hashed_pw1', 'abc@gmail.com', 3, '2025-07-29 10:58:45', 1, NULL, 0, './uploads/1/profile.png', 'alice'),
-(2, 'bob_mentor', 'hashed_pw2', 'bob@example.com', 2, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(3, 'carol_expert', 'hashed_pw3', 'carol@example.com', 3, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(4, 'dave_admin', 'hashed_pw4', 'dave@example.com', 4, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(5, 'eva_student', 'hashed_pw5', 'eva@example.com', 1, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(40, 'user1', 'pw1', 'user1@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alice Wonder'),
-(41, 'user2', 'pw2', 'user2@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Bob Stone'),
-(42, 'user3', 'pw3', 'user3@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Charlie Kim'),
-(43, 'user4', 'pw4', 'user4@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Diana Ray'),
-(44, 'user5', 'pw5', 'user5@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Edward Blake'),
-(45, 'user6', 'pw6', 'user6@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Frank Yu'),
-(46, 'user7', 'pw7', 'user7@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Grace Li'),
-(47, 'user8', 'pw8', 'user8@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harry West'),
-(48, 'user9', 'pw9', 'user9@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Irene Cho'),
-(49, 'user10', 'pw10', 'user10@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'John Doe'),
-(50, 'user11', 'pw11', 'user11@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Sophia Lane'),
-(51, 'user12', 'pw12', 'user12@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Michael Cruz'),
-(52, 'user13', 'pw13', 'user13@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Emma Patel'),
-(53, 'user14', 'pw14', 'user14@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Daniel Green'),
-(54, 'user15', 'pw15', 'user15@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Olivia Brooks'),
-(55, 'user16', 'pw16', 'user16@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ethan Hayes'),
-(56, 'user17', 'pw17', 'user17@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ava Carter'),
-(57, 'user18', 'pw18', 'user18@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Noah James'),
-(58, 'user19', 'pw19', 'user19@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mia Flores'),
-(59, 'user20', 'pw20', 'user20@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lucas Turner'),
-(60, 'user21', 'pw21', 'user21@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Chloe Adams'),
-(61, 'user22', 'pw22', 'user22@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mason Hill'),
-(62, 'user23', 'pw23', 'user23@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Isabella Wright'),
-(63, 'user24', 'pw24', 'user24@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Liam Scott'),
-(64, 'user25', 'pw25', 'user25@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Amelia Reed'),
-(65, 'user26', 'pw26', 'user26@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Benjamin Clark'),
-(66, 'user27', 'pw27', 'user27@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harper Ross'),
-(67, 'user28', 'pw28', 'user28@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jacob Lee'),
-(68, 'user29', 'pw29', 'user29@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lily Parker'),
-(69, 'user30', 'pw30', 'user30@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Samuel Young'),
-(70, 'user31', 'pw31', 'user31@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Victoria Ward'),
-(71, 'user32', 'pw32', 'user32@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alexander Hall'),
-(72, 'user33', 'pw33', 'user33@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Zoe Fisher'),
-(73, 'user34', 'pw34', 'user34@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Matthew Price'),
-(74, 'user35', 'pw35', 'user35@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Natalie Howard'),
-(75, 'user36', 'pw36', 'user36@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ryan Morgan'),
-(76, 'user37', 'pw37', 'user37@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ella Bennett'),
-(77, 'user38', 'pw38', 'user38@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jack Hughes'),
-(78, 'user39', 'pw39', 'user39@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Aria Rivera'),
-(79, 'user40', 'pw40', 'user40@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Gabriel Collins'),
-(80, 'user41', 'pw41', 'user41@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Hannah Mitchell'),
-(81, 'user42', 'pw42', 'user42@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'David Kelly'),
-(82, 'user43', 'pw43', 'user43@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Scarlett Long'),
-(83, 'user44', 'pw44', 'user44@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Andrew Cooper'),
-(84, 'user45', 'pw45', 'user45@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Leah Torres'),
-(85, 'user46', 'pw46', 'user46@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Joseph Gray'),
-(86, 'user47', 'pw47', 'user47@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Stella Watson'),
-(87, 'user48', 'pw48', 'user48@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'William Sanders'),
-(88, 'user49', 'pw49', 'user49@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Layla Ramirez'),
-(89, 'user50', 'pw50', 'user50@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'James Foster'),
-(91, 'student_test', '$2y$10$4mbTnYhM0RpIJelv1iB3IurJTtlvXlpaQIi0f6hlz6u4Vu.1LCu/a', 'animelearnin528@gmail.com', 2, '2025-10-21 00:22:59', 0, NULL, 0, './uploads/91/profile.', 'mentor_test'),
-(92, 'expert_test', '$2y$10$jBvl192tUZr0DDxlWPUwoeyZnoxU7Fg0CKG/z2XmWx.Ya49Rqshuq', 'samithanawarathna322@gmail.com', 3, '2025-10-21 00:34:01', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'expert_test'),
-(94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test'),
-(97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test'),
-(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3'),
-(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha');
+INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`, `banned`, `profile_pic`, `is_deleted`, `profile_picture`, `display_name`, `points`) VALUES
+(1, 'alice', 'hashed_pw1', 'abc@gmail.com', 3, '2025-07-29 10:58:45', 1, NULL, 0, './uploads/1/profile.png', 'alice', 0.000000),
+(2, 'bob_mentor', 'hashed_pw2', 'bob@example.com', 2, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(3, 'carol_expert', 'hashed_pw3', 'carol@example.com', 3, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(4, 'dave_admin', 'hashed_pw4', 'dave@example.com', 4, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(5, 'eva_student', 'hashed_pw5', 'eva@example.com', 1, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(40, 'user1', 'pw1', 'user1@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alice Wonder', 0.000000),
+(41, 'user2', 'pw2', 'user2@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Bob Stone', 0.000000),
+(42, 'user3', 'pw3', 'user3@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Charlie Kim', 0.000000),
+(43, 'user4', 'pw4', 'user4@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Diana Ray', 0.000000),
+(44, 'user5', 'pw5', 'user5@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Edward Blake', 0.000000),
+(45, 'user6', 'pw6', 'user6@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Frank Yu', 0.000000),
+(46, 'user7', 'pw7', 'user7@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Grace Li', 0.000000),
+(47, 'user8', 'pw8', 'user8@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harry West', 0.000000),
+(48, 'user9', 'pw9', 'user9@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Irene Cho', 0.000000),
+(49, 'user10', 'pw10', 'user10@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'John Doe', 0.000000),
+(50, 'user11', 'pw11', 'user11@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Sophia Lane', 0.000000),
+(51, 'user12', 'pw12', 'user12@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Michael Cruz', 0.000000),
+(52, 'user13', 'pw13', 'user13@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Emma Patel', 0.000000),
+(53, 'user14', 'pw14', 'user14@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Daniel Green', 0.000000),
+(54, 'user15', 'pw15', 'user15@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Olivia Brooks', 0.000000),
+(55, 'user16', 'pw16', 'user16@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ethan Hayes', 0.000000),
+(56, 'user17', 'pw17', 'user17@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ava Carter', 0.000000),
+(57, 'user18', 'pw18', 'user18@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Noah James', 0.000000),
+(58, 'user19', 'pw19', 'user19@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mia Flores', 0.000000),
+(59, 'user20', 'pw20', 'user20@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lucas Turner', 0.000000),
+(60, 'user21', 'pw21', 'user21@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Chloe Adams', 0.000000),
+(61, 'user22', 'pw22', 'user22@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mason Hill', 0.000000),
+(62, 'user23', 'pw23', 'user23@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Isabella Wright', 0.000000),
+(63, 'user24', 'pw24', 'user24@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Liam Scott', 0.000000),
+(64, 'user25', 'pw25', 'user25@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Amelia Reed', 0.000000),
+(65, 'user26', 'pw26', 'user26@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Benjamin Clark', 0.000000),
+(66, 'user27', 'pw27', 'user27@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harper Ross', 0.000000),
+(67, 'user28', 'pw28', 'user28@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jacob Lee', 0.000000),
+(68, 'user29', 'pw29', 'user29@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lily Parker', 0.000000),
+(69, 'user30', 'pw30', 'user30@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Samuel Young', 0.000000),
+(70, 'user31', 'pw31', 'user31@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Victoria Ward', 0.000000),
+(71, 'user32', 'pw32', 'user32@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alexander Hall', 0.000000),
+(72, 'user33', 'pw33', 'user33@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Zoe Fisher', 0.000000),
+(73, 'user34', 'pw34', 'user34@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Matthew Price', 0.000000),
+(74, 'user35', 'pw35', 'user35@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Natalie Howard', 0.000000),
+(75, 'user36', 'pw36', 'user36@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ryan Morgan', 0.000000),
+(76, 'user37', 'pw37', 'user37@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ella Bennett', 0.000000),
+(77, 'user38', 'pw38', 'user38@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jack Hughes', 0.000000),
+(78, 'user39', 'pw39', 'user39@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Aria Rivera', 0.000000),
+(79, 'user40', 'pw40', 'user40@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Gabriel Collins', 0.000000),
+(80, 'user41', 'pw41', 'user41@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Hannah Mitchell', 0.000000),
+(81, 'user42', 'pw42', 'user42@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'David Kelly', 0.000000),
+(82, 'user43', 'pw43', 'user43@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Scarlett Long', 0.000000),
+(83, 'user44', 'pw44', 'user44@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Andrew Cooper', 0.000000),
+(84, 'user45', 'pw45', 'user45@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Leah Torres', 0.000000),
+(85, 'user46', 'pw46', 'user46@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Joseph Gray', 0.000000),
+(86, 'user47', 'pw47', 'user47@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Stella Watson', 0.000000),
+(87, 'user48', 'pw48', 'user48@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'William Sanders', 0.000000),
+(88, 'user49', 'pw49', 'user49@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Layla Ramirez', 0.000000),
+(89, 'user50', 'pw50', 'user50@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'James Foster', 0.000000),
+(91, 'student_test', '$2y$10$4mbTnYhM0RpIJelv1iB3IurJTtlvXlpaQIi0f6hlz6u4Vu.1LCu/a', 'animelearnin528@gmail.com', 2, '2025-10-21 00:22:59', 0, NULL, 0, './uploads/91/profile.', 'mentor_test', 0.000000),
+(92, 'expert_test', '$2y$10$jBvl192tUZr0DDxlWPUwoeyZnoxU7Fg0CKG/z2XmWx.Ya49Rqshuq', 'samithanawarathna322@gmail.com', 3, '2025-10-21 00:34:01', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'expert_test', 0.000000),
+(94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test', 0.000000),
+(97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test', 0.000000),
+(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3', 0.000000),
+(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 0.000000);
 
 -- --------------------------------------------------------
 

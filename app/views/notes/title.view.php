@@ -19,6 +19,7 @@ include_once '../app/views/partials/header.view.php';
             <a href="<?=ROOT?>/topics/create" class="btn-create">+ Create</a>
         </div>
 
+        <?php if (!empty($data['recent_topics'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
                 <div class="title"><h3>Pinned Topics</h3></div>
@@ -58,6 +59,7 @@ include_once '../app/views/partials/header.view.php';
             </div>
             
         </div>
+        <?php endif; ?>
 
         <div class="list-container" id="topics-list">
             <h3>Available Topics</h3>

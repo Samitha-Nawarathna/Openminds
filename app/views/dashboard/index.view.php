@@ -46,10 +46,10 @@
 
 
     <div class="page-wrapper">
-
+<!-- 
     <header>
         <div class="logo">
-            Openminds
+             Openminds
         </div>
 
         <div class="search-bar">
@@ -68,6 +68,7 @@
             <div class="user-avatar" id="user-avatar" title="Go to Profile Settings"></div>
         </div>
     </header>
+     -->
 
 <div class="dashboard-grid">
     
@@ -84,9 +85,9 @@
                     Consistency (7 Days)
 
                 </div>
-                <div class="heatmap" id="heatmap-container"></div>
-                <!-- <div class="stat-sub" style="margin-top: 1rem;" id="consistency-subtext" style="display:none;">...</div> -->
-                <a href="#" class="kpi-action-link">View Analysis            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                <!-- <div class="heatmap" id="heatmap-container"></div> -->
+                    <div class="kpi-value" id="stat-consistency">5/7</div>
+                <a href="<?=ROOT?>analysis" class="kpi-action-link">View Analysis            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
             </div>
 

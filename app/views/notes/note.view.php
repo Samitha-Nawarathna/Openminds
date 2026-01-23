@@ -20,6 +20,7 @@
             <a href="<?=ROOT?>/notes/create" class="btn-create">+ Create</a>
         </div>
 
+        <?php if (!empty($data['pinned_notes'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
                 <div class="title"><h3>Pinned Notes</h3></div>
@@ -59,6 +60,7 @@
             </div>
             
         </div>
+        <?php endif; ?>
 
     
 </div>

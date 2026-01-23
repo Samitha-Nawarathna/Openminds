@@ -32,6 +32,8 @@ require "DashboardModel.php";
 
 require "AnnouncementModel.php";
 
+require "Event.php";
+
 //views
 
 require "views/ExerciseSummary.php";

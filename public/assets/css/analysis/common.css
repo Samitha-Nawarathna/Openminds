@@ -7,98 +7,133 @@
             /* ==========================================================
                1. BASE PALETTE DEFINITIONS (New System)
                ========================================================== */
-        
+
             /* Primary Palette - Blue */
             --color-blue-50: #f0f6ff;
             --color-blue-100: #d6e4ff;
             --color-blue-200: #adc8ff;
             --color-blue-400: #5b8def;
-            --color-blue-500: #1f74ff; /* primary */
+            --color-blue-500: #1f74ff;
+            /* primary */
             --color-blue-700: #004ecc;
-        
+
             /* Green Palette - Success */
             --color-green-50: #f3faf5;
             --color-green-100: #d9f2e1;
             --color-green-300: #86d19e;
-            --color-green-500: #34c759; /* success */
+            --color-green-500: #34c759;
+            /* success */
             --color-green-700: #228b38;
-        
+
             /* Yellow Palette - Warning */
             --color-yellow-50: #fff9e5;
             --color-yellow-200: #ffe680;
-            --color-yellow-400: #ffcd00; /* warning */
+            --color-yellow-400: #ffcd00;
+            /* warning */
             --color-yellow-600: #b38600;
-        
+
             /* Red Palette - Error / CTA */
             --color-red-500: #ff385c;
             --color-red-700: #d9042b;
             --color-error-feedback: #ff3b30;
-        
+
             /* Neutral Palette */
-            --color-gray-50: #fafafa; /* main background */
+            --color-gray-50: #fafafa;
+            /* main background */
             --color-gray-100: #f5f5f5;
-            --color-gray-200: #e5e5e5; /* border */
-            --color-gray-300: #d4d4d4; /* placeholder */
-            --color-gray-600: #525252; /* light text/muted */
-            --color-gray-900: #171717; /* dark text */
-        
+            --color-gray-200: #e5e5e5;
+            /* border */
+            --color-gray-300: #d4d4d4;
+            /* placeholder */
+            --color-gray-600: #525252;
+            /* light text/muted */
+            --color-gray-900: #171717;
+            /* dark text */
+
             /* New Spacing Tokens */
             --space-xxs: 0.25rem;
-            --space-xs-new: 0.5rem; /* Renamed to avoid collision with old --space-xs mapping */
+            --space-xs-new: 0.5rem;
+            /* Renamed to avoid collision with old --space-xs mapping */
             --space-sm-new: 1.2rem;
             --space-md-new: 1.7rem;
             --space-lg-new: 2.2rem;
             --space-xl-new: 3.2rem;
-        
+
             /* New Radius Tokens */
             --radius-sm: 4px;
             --radius-md: 8px;
             --radius-lg: 12px;
-        
+
             /* New Shadow Token */
             --shadow-sm-new: 0 2px 4px rgba(0, 0, 0, 0.06);
-        
-        
+
+
             /* ==========================================================
                2. COMPATIBILITY MAPPING (Old Names -> New Values)
                ========================================================== */
-        
+
             /* --- Colors --- */
-            --color-primary-accent: var(--color-blue-500);          /* #1f74ff (Primary Blue) */
-            --color-secondary-accent: var(--color-yellow-400);      /* #ffcd00 (Warning Yellow) */
-            --color-tertiary-accent: var(--color-blue-700);         /* #004ecc (Deep Blue) */
-            --color-primary-accent-light: var(--color-blue-50);     /* #f0f6ff (Light Blue) */
-            --color-primary-accent-mid: var(--color-blue-200);      /* #adc8ff (Mid Blue) */
-            
-            --color-text-dark: var(--color-gray-900);               /* #171717 (Darkest Text) */
-            --color-text-light: var(--color-gray-600);              /* #525252 (Muted Text) */
-            --color-text-white: #FFFFFF;                            /* Pure White */
-            
-            --color-bg-main: var(--color-gray-50);                  /* #fafafa (Main Background) */
-            --color-bg-sidebar: #FFFFFF;                            /* Pure White (Sidebar/Card) */
-            --color-bg-card: #FFFFFF;                               /* Pure White (Sidebar/Card) */
-            --color-border: var(--color-gray-200);                  /* #e5e5e5 (Border) */
-            --color-red: var(--color-red-700);                      /* #d9042b (Used for Admin Banned/Negative) */
-        
+            --color-primary-accent: var(--color-blue-500);
+            /* #1f74ff (Primary Blue) */
+            --color-secondary-accent: var(--color-yellow-400);
+            /* #ffcd00 (Warning Yellow) */
+            --color-tertiary-accent: var(--color-blue-700);
+            /* #004ecc (Deep Blue) */
+            --color-primary-accent-light: var(--color-blue-50);
+            /* #f0f6ff (Light Blue) */
+            --color-primary-accent-mid: var(--color-blue-200);
+            /* #adc8ff (Mid Blue) */
+
+            --color-text-dark: var(--color-gray-900);
+            /* #171717 (Darkest Text) */
+            --color-text-light: var(--color-gray-600);
+            /* #525252 (Muted Text) */
+            --color-text-white: #FFFFFF;
+            /* Pure White */
+
+            --color-bg-main: var(--color-gray-50);
+            /* #fafafa (Main Background) */
+            --color-bg-sidebar: #FFFFFF;
+            /* Pure White (Sidebar/Card) */
+            --color-bg-card: #FFFFFF;
+            /* Pure White (Sidebar/Card) */
+            --color-border: var(--color-gray-200);
+            /* #e5e5e5 (Border) */
+            --color-red: var(--color-red-700);
+            /* #d9042b (Used for Admin Banned/Negative) */
+
             /* --- Typography --- */
-            --font-family-primary: 'Inter', sans-serif;             /* New Font System */
-            
+            --font-family-primary: 'Inter', sans-serif;
+            /* New Font System */
+
             /* --- Spacing (Mapped by Rank) --- */
-            --space-xs: var(--space-xxs);                           /* 0.25rem (4px) */
-            --space-sm: var(--space-xs-new);                        /* 0.5rem (8px) */
-            --space-md: var(--space-sm-new);                        /* 1.2rem (approx 19px, was 1rem) */
-            --space-lg: var(--space-md-new);                        /* 1.7rem (approx 27px, was 1.5rem) */
-            --space-xl: var(--space-lg-new);                        /* 2.2rem (approx 35px, was 2rem) */
-            
+            --space-xs: var(--space-xxs);
+            /* 0.25rem (4px) */
+            --space-sm: var(--space-xs-new);
+            /* 0.5rem (8px) */
+            --space-md: var(--space-sm-new);
+            /* 1.2rem (approx 19px, was 1rem) */
+            --space-lg: var(--space-md-new);
+            /* 1.7rem (approx 27px, was 1.5rem) */
+            --space-xl: var(--space-lg-new);
+            /* 2.2rem (approx 35px, was 2rem) */
+
             /* --- Borders --- */
-            --border-radius-sm: var(--radius-sm);                   /* 4px */
-            --border-radius-md: var(--radius-md);                   /* 8px */
-            --border-radius-lg: var(--radius-lg);                   /* 12px */
-            --border-radius-pill: 50px;                             /* Kept constant */
-            
+            --border-radius-sm: var(--radius-sm);
+            /* 4px */
+            --border-radius-md: var(--radius-md);
+            /* 8px */
+            --border-radius-lg: var(--radius-lg);
+            /* 12px */
+            --border-radius-pill: 50px;
+            /* Kept constant */
+
             /* --- Shadows --- */
-            --shadow-sm: var(--shadow-sm-new);                      /* 0 2px 4px rgba(0, 0, 0, 0.06) */
-        }        /* Global Resets */
+            --shadow-sm: var(--shadow-sm-new);
+            /* 0 2px 4px rgba(0, 0, 0, 0.06) */
+        }
+
+        /* Global Resets */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -127,12 +162,14 @@
             border-right: 1px solid var(--color-border);
             height: 100vh;
         }
+
         .sidebar-logo {
             font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: var(--space-xl);
             padding-left: var(--space-sm);
         }
+
         .sidebar-menu-title {
             font-size: 0.75rem;
             font-weight: 600;
@@ -141,7 +178,7 @@
             padding: 0 var(--space-sm);
             margin-bottom: var(--space-sm);
         }
-        
+
         /* --- Main Content Area --- */
         .main-content {
             flex-grow: 1;
@@ -149,20 +186,22 @@
             overflow-y: auto;
             /* height: 100vh; */
             /* Stack charts vertically */
-            /* width: 100%; */
+            width: 60vw;
             display: flex;
             flex-direction: column;
             gap: var(--space-lg);
-            max-width: 60vw !important;
+            max-width: 60vw;
             align-self: center !important;
-            justify-self: center !important;
+            margin: 0 auto;
+            /* justify-self: center !important; */
         }
-        
+
         .main-header {
-             font-size: 1.75rem;
-             font-weight: 600;
-             color: var(--color-text-dark);
-             margin-bottom: var(--space-sm); /* Reduced margin */
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: var(--space-sm);
+            /* Reduced margin */
         }
 
         /* --- Card Component (Base) --- */
@@ -175,7 +214,7 @@
             display: block !important;
 
         }
-        
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -183,7 +222,7 @@
             /* Add bottom padding/margin if chart has no top-padding */
             padding-bottom: var(--space-md);
         }
-        
+
         .card-title {
             font-size: 1.125rem;
             font-weight: 600;
@@ -198,7 +237,7 @@
             padding: var(--space-xs);
             border-radius: var(--border-radius-pill);
         }
-        
+
         .toggle-button {
             border: none;
             background-color: transparent;
@@ -210,13 +249,13 @@
             color: var(--color-text-light);
             transition: all 0.2s ease;
         }
-        
+
         .toggle-button.active {
             background-color: var(--color-bg-card);
             color: var(--color-text-dark);
             box-shadow: var(--shadow-sm);
         }
-        
+
         /* ApexCharts class overrides to match design system */
         .apexcharts-tooltip {
             font-family: var(--font-family-primary);
@@ -224,7 +263,7 @@
             box-shadow: var(--shadow-sm) !important;
             border-radius: var(--border-radius-sm) !important;
         }
-        
+
         .apexcharts-tooltip-title {
             background: var(--color-bg-main) !important;
             border-bottom: 1px solid var(--color-border) !important;
@@ -236,11 +275,12 @@
             font-weight: 500;
             color: var(--color-text-light) !important;
         }
-        
+
         /* --- New Layouts --- */
         .overview-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 4 columns for 4 KPIs */
+            grid-template-columns: repeat(2, 1fr);
+            /* 4 columns for 4 KPIs */
             grid-template-rows: repeat(2, 1fr);
             gap: var(--space-lg);
             /* width: 50vw; */
@@ -248,10 +288,11 @@
 
         .top-analytics-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 columns for subjects and tags */
+            grid-template-columns: 1fr 1fr;
+            /* 2 columns for subjects and tags */
             gap: var(--space-lg);
         }
-        
+
         /* --- Overview KPI Card Specific Styling --- */
         .kpi-card {
             background-color: var(--color-bg-card);
@@ -274,7 +315,7 @@
             line-height: 1;
             margin-bottom: var(--space-sm);
         }
-        
+
         .kpi-change {
             display: flex;
             align-items: center;
@@ -287,13 +328,15 @@
         }
 
         .kpi-change.negative {
-            color: #E53E3E; /* Red color for negative change */
+            color: #E53E3E;
+            /* Red color for negative change */
         }
 
         /* --- Sidebar Navigation --- */
         ul {
             list-style: none;
         }
+
         .sidebar {
             width: 280px;
             background-color: var(--color-bg-sidebar);
@@ -315,7 +358,7 @@
         .sidebar-menu {
             margin-bottom: var(--space-lg);
         }
-        
+
 
         .sidebar-menu-title {
             font-size: 0.75rem;
@@ -338,7 +381,7 @@
             transition: background-color 0.2s ease, color 0.2s ease;
             text-decoration: none !important;
         }
-        
+
         .sidebar-link:hover {
             background-color: var(--color-bg-main);
             color: var(--color-text-dark);
@@ -356,7 +399,7 @@
             margin-right: var(--space-md);
             stroke-width: 2;
         }
-        
+
         .sidebar-link.active svg {
             stroke: var(--color-primary-accent);
         }
@@ -372,7 +415,8 @@
         }
 
         .sidebar-submenu {
-            padding-left: calc(var(--space-md) + 20px); /* Align with text, not icon */
+            padding-left: calc(var(--space-md) + 20px);
+            /* Align with text, not icon */
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
@@ -384,12 +428,13 @@
             padding-bottom: var(--space-sm);
             text-decoration: none !important;
         }
-        
+
         /* JS-toggled class */
         .submenu-open .sidebar-submenu {
-            max-height: 200px; /* Adjust as needed */
+            max-height: 200px;
+            /* Adjust as needed */
         }
-        
+
         .submenu-open .chevron-icon {
             transform: rotate(180deg);
         }
