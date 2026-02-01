@@ -10,12 +10,7 @@ class Exercises extends Controller
         function generate_mock_exercises($type, $offset, $limit) {
             // Mock data for the 'All' exercises
             $all_exercises = [
-                ['id' => 1, 'title' => 'what is lagrangian method?', 'subject' => 'Physics', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'how Jacobian related to gradient?', 'subject' => 'Maths', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'solve in Hamiltonian mechanics?', 'subject' => 'Physics', 'relation' => 'Attempted'],
-                ['id' => 1, 'title' => 'what does this operator do?', 'subject' => 'Quantum Computing', 'relation' => 'Created'],
-                ['id' => 1, 'title' => 'how shadow work described by jung?', 'subject' => 'Psychology', 'relation' => 'Attempted'],
-                ['id' => 1, 'title' => 'how to solve this in linear algebra?', 'subject' => 'Maths', 'relation' => 'Created'],
+              
             ];
 
             $data_source = $all_exercises;
@@ -542,55 +537,78 @@ class Exercises extends Controller
 
     public function expertreview()
     {
-        $id = $_GET['id'] ?? null;
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Process expert review submission
-            exit();
+        // ============= EXPERT ROLE CHECK =============
+        // Only expert users can access pending exercise reviews
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert') {
+            header('Location: ' . ROOT . 'home?message=Only experts can review exercises');
+            exit;
         }
 
-        //check user is not the creator and also expert in same subject which exercise in
-        $data = [
-            'exercise_details' => [
-                'id' => 'ex_123',
-                'title' => 'Advanced Color Theory in UI Design',
-                'creator' => 'Alice',
-                'role' => 'under graphic design',
-                'created_at' => '26-02-2027',
-                'tags' => ['art', 'color', 'design principles'],
-                'upvotes' => 10000,
-                'downvotes' => 2000
-            ],
-            // NEW: Mock review data
-            'review_data' => [
-                'average_score' => 0.8,
-                'analysis_link' => '/exercises/ex_123/analysis',
-                'edit_link' => '/exercises/ex_123/edit' // Points to your editor view
-            ],
-            'questions' => [
-                [
-                    'id' => 'q1',
-                    'question_text' => 'Which of the following is considered a "cool" color?',
-                    'options' => ['Red', 'Yellow', 'Blue', 'Orange'],
-                    'correct_index' => 2 // Mock correct answer for display logic
-                ],
-                [
-                    'id' => 'q2',
-                    'question_text' => 'Which color harmony is most effective for creating contrast while maintaining visual balance?',
-                    'options' => ['Analogous', 'Monochromatic', 'Complementary', 'Triadic'],
-                    'correct_index' => 2
-                ],
-                [
-                    'id' => 'q3',
-                    'question_text' => 'The HSL color model stands for Hue, Saturation, and what?',
-                    'options' => ['Luminance', 'Lightness', 'Level', 'Layer'],
-                    'correct_index' => 1
-                ],
-            ]
-        ];
+        $current_expert_id = $_SESSION['user_id'];
+        
+        // If GET request with exercise ID, load specific exercise for review
+        if ($this->is_get()) {
+            $exercise_id = $_GET['id'] ?? null;
 
+            if (!$exercise_id) {
+                header('Location: ' . ROOT . 'exercises?message=Exercise ID is required');
+                exit;
+            }
 
-        $this->view('exercises/expertreview', $data);
+            $exercise_id = (int)$exercise_id;
+
+            try {
+                $pdo = $this->db();
+                
+                // Fetch exercise with creator and subject info
+                $exerciseStmt = $pdo->prepare("
+                    SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, 
+                           s.name AS subject_name, u.username AS creator_name
+                    FROM exercises e 
+                    LEFT JOIN subjects s ON s.id = e.subject_id
+                    LEFT JOIN user u ON u.id = e.creator_id
+                    WHERE e.id = :id AND e.status = 'pending'
+                    LIMIT 1
+                ");
+                $exerciseStmt->execute([':id' => $exercise_id]);
+                $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$exercise) {
+                    header('Location: ' . ROOT . 'exercises?message=Exercise not found or not pending');
+                    exit;
+                }
+
+                // Check: Expert cannot review their own exercises
+                if ($exercise['creator_id'] == $current_expert_id) {
+                    header('Location: ' . ROOT . 'exercises?message=You cannot review your own exercises');
+                    exit;
+                }
+
+                // Fetch bundle data (questions, options, etc)
+                $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+
+                $data = [
+                    'exercise_id' => $exercise_id,
+                    'exercise_title' => $exercise['title'],
+                    'creator_name' => $exercise['creator_name'],
+                    'subject_name' => $exercise['subject_name'],
+                    'created_at' => $exercise['created_at'],
+                ];
+
+                $this->view('exercises/expertreview', $data);
+
+            } catch (Exception $e) {
+                error_log('expertreview error: ' . $e->getMessage());
+                header('Location: ' . ROOT . 'exercises?message=Error loading exercise');
+                exit;
+            }
+        }
+        // If POST request, this is the actual review submission (handled by JS)
+        else if ($this->is_post()) {
+            // This is typically handled by api_approve_exercise() or api_reject_exercise()
+            header('Location: ' . ROOT . 'exercises');
+            exit;
+        }
     }
 
     public function viewattempt($exercise_id, $attempt_id)
@@ -620,22 +638,336 @@ class Exercises extends Controller
         $this->view('exercises/viewattempt', $data);
     }
 
-    public function approve()
+    /**
+     * API: POST /exercises/api/approve
+     * Approves a pending exercise.
+     */
+    public function api_approve_exercise()
     {
-        $exercise_id = $_POST['exercise_id'] ?? null;
+        // Only experts can approve
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert') {
+            $this->json_error('Only experts can approve exercises', 403);
+        }
 
-        //implement here
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json_error('Method not allowed', 405);
+        }
 
-        header('Location: '.ROOT.'/exercises?message=Exercise '.$exercise_id.' approved successfully');
+        $data = $this->json_request();
+        $exercise_id = (int)($data['exercise_id'] ?? 0);
+        $current_expert_id = $_SESSION['user_id'];
+
+        if (!$exercise_id) {
+            $this->json_error('Missing exercise ID', 400);
+        }
+
+        try {
+            $pdo = $this->db();
+
+            // Fetch the exercise
+            $exerciseStmt = $pdo->prepare("SELECT id, status, creator_id FROM exercises WHERE id = :id LIMIT 1");
+            $exerciseStmt->execute([':id' => $exercise_id]);
+            $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise) {
+                $this->json_error('Exercise not found', 404);
+            }
+
+            if ($exercise['status'] !== 'pending') {
+                $this->json_error('Exercise is not pending', 400);
+            }
+
+            // Check: Expert cannot review their own exercises
+            if ($exercise['creator_id'] == $current_expert_id) {
+                $this->json_error('You cannot approve your own exercises', 403);
+            }
+
+            // Update exercise status to 'approved'
+            // IMPORTANT: Only update status, reviewed_by, and updated_at - DO NOT modify schema
+            $updateStmt = $pdo->prepare("
+                UPDATE exercises 
+                SET status = 'approved', reviewed_by = :reviewed_by, updated_at = NOW()
+                WHERE id = :id
+            ");
+            $updateStmt->execute([
+                ':id' => $exercise_id,
+                ':reviewed_by' => $current_expert_id
+            ]);
+
+            $this->json_respond([
+                'success' => true,
+                'message' => 'Exercise approved successfully',
+                'exercise_id' => $exercise_id,
+                'new_status' => 'approved'
+            ]);
+
+        } catch (Exception $e) {
+            error_log('api_approve_exercise error: ' . $e->getMessage());
+            $this->json_error('Database error while approving exercise', 500);
+        }
     }
 
-    public function reject()
+    /**
+     * API: POST /exercises/api/reject
+     * Rejects a pending exercise with optional feedback.
+     */
+    public function api_reject_exercise()
     {
-        $exercise_id = $_POST['exercise_id'] ?? null;
+        // Only experts can reject
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert') {
+            $this->json_error('Only experts can reject exercises', 403);
+        }
 
-        //implement here
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json_error('Method not allowed', 405);
+        }
 
-        header('Location: '.ROOT.'/exercises?message=Exercise '.$exercise_id.' rejected successfully');
+        $data = $this->json_request();
+        $exercise_id = (int)($data['exercise_id'] ?? 0);
+        $feedback = trim($data['feedback'] ?? '');
+        $current_expert_id = $_SESSION['user_id'];
+
+        if (!$exercise_id) {
+            $this->json_error('Missing exercise ID', 400);
+        }
+
+        try {
+            $pdo = $this->db();
+
+            // Fetch the exercise
+            $exerciseStmt = $pdo->prepare("SELECT id, status, creator_id FROM exercises WHERE id = :id LIMIT 1");
+            $exerciseStmt->execute([':id' => $exercise_id]);
+            $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise) {
+                $this->json_error('Exercise not found', 404);
+            }
+
+            if ($exercise['status'] !== 'pending') {
+                $this->json_error('Exercise is not pending', 400);
+            }
+
+            // Check: Expert cannot review their own exercises
+            if ($exercise['creator_id'] == $current_expert_id) {
+                $this->json_error('You cannot reject your own exercises', 403);
+            }
+
+            // Update exercise: keep status as 'pending', save feedback, and update timestamp
+            // Feedback is stored but exercise remains pending for creator to revise
+            $updateStmt = $pdo->prepare("
+                UPDATE exercises 
+                SET feedback = :feedback, reviewed_by = :reviewed_by, updated_at = NOW()
+                WHERE id = :id
+            ");
+            $updateStmt->execute([
+                ':id' => $exercise_id,
+                ':feedback' => !empty($feedback) ? $feedback : null,
+                ':reviewed_by' => $current_expert_id
+            ]);
+
+            // Optional: Send notification to creator about feedback
+            // This can be implemented by creating a notification record
+            if (!empty($feedback)) {
+                $this->send_feedback_notification($pdo, $exercise['creator_id'], $exercise_id, $feedback);
+            }
+
+            $this->json_respond([
+                'success' => true,
+                'message' => 'Feedback sent to exercise creator',
+                'exercise_id' => $exercise_id,
+                'status' => 'pending',
+                'feedback_sent' => !empty($feedback)
+            ]);
+
+        } catch (Exception $e) {
+            error_log('api_reject_exercise error: ' . $e->getMessage());
+            $this->json_error('Database error while sending feedback', 500);
+        }
+    }
+
+    /**
+     * Helper: Sends a notification to the creator with feedback
+     */
+    private function send_feedback_notification($pdo, $creator_id, $exercise_id, $feedback)
+    {
+        try {
+            // Create notification entry for the creator
+            $notificationStmt = $pdo->prepare("
+                INSERT INTO notifications (sender_id, receiver_id, content, created_at)
+                VALUES (:sender_id, :receiver_id, :content, NOW())
+            ");
+            $notificationStmt->execute([
+                ':sender_id' => $_SESSION['user_id'],
+                ':receiver_id' => $creator_id,
+                ':content' => "Your exercise #$exercise_id received feedback: " . substr($feedback, 0, 100)
+            ]);
+        } catch (Exception $e) {
+            error_log('send_feedback_notification error: ' . $e->getMessage());
+            // Don't throw - this is auxiliary functionality
+        }
+    }
+
+    /**
+     * API: GET /exercises/api/pending
+     * Fetches pending exercises for expert review.
+     * Supports pagination and optional subject filtering.
+     */
+    public function api_get_pending_exercises()
+    {
+        // Only experts can view pending exercises for review
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert') {
+            $this->json_error('Only experts can view pending exercises', 403);
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            $this->json_error('Method not allowed', 405);
+        }
+
+        $offset = (int)($_GET['offset'] ?? 0);
+        $limit = (int)($_GET['limit'] ?? 10);
+        $subject_id = (int)($_GET['subject_id'] ?? 0);
+
+        // Validate pagination params
+        if ($limit < 1 || $limit > 100) $limit = 10;
+        if ($offset < 0) $offset = 0;
+
+        try {
+            $pdo = $this->db();
+
+            // Build query to fetch pending exercises
+            $query = "
+                SELECT e.id, e.title, e.description, e.status, e.created_at, 
+                       e.subject_id, s.name AS subject_name, 
+                       e.creator_id, u.username AS creator_name,
+                       (SELECT COUNT(*) FROM exercisequestion WHERE exercise_id = e.id) AS question_count
+                FROM exercises e
+                LEFT JOIN subjects s ON s.id = e.subject_id
+                LEFT JOIN user u ON u.id = e.creator_id
+                WHERE e.status = 'pending'
+            ";
+
+            $params = [];
+
+            // Optional: Filter by subject
+            if ($subject_id > 0) {
+                $query .= " AND e.subject_id = :subject_id";
+                $params[':subject_id'] = $subject_id;
+            }
+
+            // Exclude creator's own exercises
+            $query .= " AND e.creator_id != :current_user_id";
+            $params[':current_user_id'] = $_SESSION['user_id'];
+
+            // Order by creation date (newest first) and paginate
+            $query .= " ORDER BY e.created_at DESC LIMIT :limit OFFSET :offset";
+
+            $stmt = $pdo->prepare($query);
+            $stmt->execute(array_merge($params, [
+                ':limit' => $limit,
+                ':offset' => $offset
+            ]));
+            $exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get total count for pagination info
+            $countQuery = "
+                SELECT COUNT(*) as total FROM exercises e
+                WHERE e.status = 'pending' AND e.creator_id != :current_user_id
+            ";
+            if ($subject_id > 0) {
+                $countQuery .= " AND e.subject_id = :subject_id";
+            }
+
+            $countStmt = $pdo->prepare($countQuery);
+            $countStmt->execute(array_merge(
+                [':current_user_id' => $_SESSION['user_id']],
+                ($subject_id > 0) ? [':subject_id' => $subject_id] : []
+            ));
+            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+            $this->json_respond([
+                'success' => true,
+                'exercises' => array_map(function ($e) {
+                    return [
+                        'id' => (int)$e['id'],
+                        'title' => $e['title'],
+                        'description' => $e['description'],
+                        'creator_name' => $e['creator_name'],
+                        'subject_name' => $e['subject_name'],
+                        'question_count' => (int)$e['question_count'],
+                        'created_at' => $e['created_at']
+                    ];
+                }, $exercises),
+                'total' => (int)$total,
+                'offset' => $offset,
+                'limit' => $limit,
+                'has_more' => ($offset + $limit) < $total
+            ]);
+
+        } catch (Exception $e) {
+            error_log('api_get_pending_exercises error: ' . $e->getMessage());
+            $this->json_error('Failed to load pending exercises', 500);
+        }
+    }
+
+    /**
+     * API: GET /exercises/api/load_review_data/{exercise_id}
+     * Loads exercise data for review (similar to attempt data but with read-only mode).
+     */
+    public function api_load_review_data($exercise_id = null)
+    {
+        // Only experts can load review data
+        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert') {
+            $this->json_error('Only experts can review exercises', 403);
+        }
+
+        $exercise_id = (int)$exercise_id;
+        if ($exercise_id <= 0) {
+            $this->json_error('Missing exercise ID', 400);
+        }
+
+        try {
+            $pdo = $this->db();
+            
+            // Fetch exercise
+            $exerciseStmt = $pdo->prepare("
+                SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at,
+                       s.name AS subject_name, u.username AS creator_name
+                FROM exercises e
+                LEFT JOIN subjects s ON s.id = e.subject_id
+                LEFT JOIN user u ON u.id = e.creator_id
+                WHERE e.id = :id AND e.status = 'pending'
+                LIMIT 1
+            ");
+            $exerciseStmt->execute([':id' => $exercise_id]);
+            $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise) {
+                $this->json_error('Exercise not found or not pending', 404);
+            }
+
+            // Check: Expert cannot review their own exercises
+            if ($exercise['creator_id'] == $_SESSION['user_id']) {
+                $this->json_error('You cannot review your own exercises', 403);
+            }
+
+            // Fetch bundle (questions and options)
+            $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+
+            $this->json_respond([
+                'success' => true,
+                'id' => (int)$bundle['exercise']['id'],
+                'title' => $bundle['exercise']['title'],
+                'subject' => $bundle['exercise']['subject_name'],
+                'creator_name' => $exercise['creator_name'],
+                'created_at' => $bundle['exercise']['created_at'],
+                'creator_id' => (int)$bundle['exercise']['creator_id'],
+                'questions' => $bundle['questions']
+            ]);
+
+        } catch (Exception $e) {
+            error_log('api_load_review_data error: ' . $e->getMessage());
+            $this->json_error('Unable to load review data', 500);
+        }
     }
 
     /**

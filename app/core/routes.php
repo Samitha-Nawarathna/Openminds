@@ -84,6 +84,17 @@ App::post('exercises/approve', 'Exercises@approve');
 App::post('exercises/reject', 'Exercises@reject');
 
 
+// --- EXPERT REVIEW API ENDPOINTS (NEW) ---
+// Get pending exercises for expert review
+App::get('exercises/api/pending', 'Exercises@api_get_pending_exercises');
+// Load exercise data for review (with questions and options)
+App::get('exercises/api/load_review_data/{exercise_id}', 'Exercises@api_load_review_data');
+// Approve a pending exercise
+App::post('exercises/api/approve_exercise', 'Exercises@api_approve_exercise');
+// Reject/send feedback on a pending exercise
+App::post('exercises/api/reject_exercise', 'Exercises@api_reject_exercise');
+
+
 // ----------------------------------------------------------------------
 // --- NEW EXERCISES API ENDPOINTS ---
 // ----------------------------------------------------------------------
