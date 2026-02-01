@@ -1444,26 +1444,35 @@ class Exercises extends Controller
         }
 
         try {
-            $voteModel = new UserVoteExercise();
-            $existingVote = $voteModel->first([
-                'user_id' => $current_user,
-                'exercise_id' => $exercise_id
-            ]);
+            // Convert vote type from 'Upvoted'/'Downvoted' to 'upvote'/'downvote'
+            $dbVoteType = strtolower(str_replace('d', '', $vote_type)); // 'Upvoted' -> 'upvote'
+            
+            $pdo = $this->db();
+            
+            // Check if vote already exists (composite primary key: exercise_id, u_id)
+            $checkStmt = $pdo->prepare("SELECT votetype FROM uservoteexercise WHERE exercise_id = :exercise_id AND u_id = :u_id LIMIT 1");
+            $checkStmt->execute([':exercise_id' => $exercise_id, ':u_id' => $current_user]);
+            $existingVote = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($existingVote) {
-                $voteModel->update($existingVote->id, [
-                    'votetype' => strtolower(str_replace('d', '', $vote_type))
+                // Update existing vote (use composite key in WHERE clause)
+                $updateStmt = $pdo->prepare("UPDATE uservoteexercise SET votetype = :votetype WHERE exercise_id = :exercise_id AND u_id = :u_id");
+                $updateStmt->execute([
+                    ':votetype' => $dbVoteType,
+                    ':exercise_id' => $exercise_id,
+                    ':u_id' => $current_user
                 ]);
             } else {
-                $voteModel->insert([
-                    'user_id' => $current_user,
-                    'exercise_id' => $exercise_id,
-                    'votetype' => strtolower(str_replace('d', '', $vote_type))
+                // Insert new vote
+                $insertStmt = $pdo->prepare("INSERT INTO uservoteexercise (exercise_id, u_id, votetype) VALUES (:exercise_id, :u_id, :votetype)");
+                $insertStmt->execute([
+                    ':exercise_id' => $exercise_id,
+                    ':u_id' => $current_user,
+                    ':votetype' => $dbVoteType
                 ]);
             }
 
             // Return updated vote count for the UI
-            $pdo = $this->db();
             $countStmt = $pdo->prepare("SELECT SUM(CASE WHEN votetype = 'upvote' THEN 1 WHEN votetype = 'downvote' THEN -1 ELSE 0 END) AS vote_count FROM uservoteexercise WHERE exercise_id = :exercise_id");
             $countStmt->execute([':exercise_id' => $exercise_id]);
             $voteCount = (int)($countStmt->fetch(PDO::FETCH_ASSOC)['vote_count'] ?? 0);
@@ -1504,18 +1513,20 @@ class Exercises extends Controller
         }
 
         try {
-            $voteModel = new UserVoteExercise();
-            $vote = $voteModel->first([
-                'user_id' => $current_user,
-                'exercise_id' => $exercise_id
-            ]);
+            $pdo = $this->db();
+            
+            // Check user's vote using correct column name u_id
+            $voteStmt = $pdo->prepare("SELECT votetype FROM uservoteexercise WHERE exercise_id = :exercise_id AND u_id = :u_id LIMIT 1");
+            $voteStmt->execute([':exercise_id' => $exercise_id, ':u_id' => $current_user]);
+            $vote = $voteStmt->fetch(PDO::FETCH_ASSOC);
 
             $status = 'None';
             if ($vote) {
-                $status = ucfirst($vote->votetype) . 'd';
+                // Convert 'upvote' -> 'Upvoted', 'downvote' -> 'Downvoted'
+                $status = ucfirst($vote['votetype']) . 'd';
             }
 
-            $pdo = $this->db();
+            // Get vote count (already have $pdo from above)
             $countStmt = $pdo->prepare("SELECT SUM(CASE WHEN votetype = 'upvote' THEN 1 WHEN votetype = 'downvote' THEN -1 ELSE 0 END) AS vote_count FROM uservoteexercise WHERE exercise_id = :exercise_id");
             $countStmt->execute([':exercise_id' => $exercise_id]);
             $voteCount = (int)($countStmt->fetch(PDO::FETCH_ASSOC)['vote_count'] ?? 0);
