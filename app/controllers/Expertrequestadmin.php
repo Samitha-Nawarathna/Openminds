@@ -23,8 +23,30 @@ final class Expertrequestadmin extends Controller
             exit;
         }
 
-        $this->view('expertrequestsadmin/view', $retrive_result->get_data());
+        $data = $retrive_result->get_data();
 
+        // Scan for files in the request directory
+        if (!empty($data['proof_link'])) {
+            $folder = dirname($data['proof_link']);
+            $supporting_docs = [];
+
+            if (is_dir($folder)) {
+                $files = scandir($folder);
+                foreach ($files as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        // Separate CV from supporting docs
+                        if ($file !== 'CV.pdf' && basename($data['proof_link']) !== $file) {
+                            $supporting_docs[] = $file;
+                        }
+                    }
+                }
+            }
+            $data['supporting_docs'] = $supporting_docs;
+        } else {
+            $data['supporting_docs'] = [];
+        }
+
+        $this->view('expertrequestsadmin/view', $data);
     }
 
     public function approve()

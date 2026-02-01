@@ -1,7 +1,8 @@
 /* General Body Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--color-secondary-background); /* Light lavender background */
+    background-color: var(--color-secondary-background);
+    /* Light lavender background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -37,18 +38,21 @@ textarea {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
-    box-sizing: border-box; /* Important for consistent sizing */
+    box-sizing: border-box;
+    /* Important for consistent sizing */
     transition: border-color 0.2s;
 }
 
 input[type="text"]:focus,
 textarea:focus {
     outline: none;
-    border-color: #7c8dff; /* Highlight color on focus */
+    border-color: #7c8dff;
+    /* Highlight color on focus */
 }
 
 textarea {
-    resize: vertical; /* Allow user to resize vertically */
+    resize: vertical;
+    /* Allow user to resize vertically */
 }
 
 /* Tag Specific Styles */
@@ -56,7 +60,8 @@ textarea {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 10px; /* Space between tags and the input bar */
+    margin-bottom: 10px;
+    /* Space between tags and the input bar */
 }
 
 .tag-pill {
@@ -80,7 +85,8 @@ textarea {
 
 /* Button Styles */
 .btn-save {
-    background-color: #7c8dff; /* Primary blue/purple */
+    background-color: #7c8dff;
+    /* Primary blue/purple */
     color: white;
     border: none;
     padding: 15px;

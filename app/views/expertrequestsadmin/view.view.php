@@ -35,35 +35,71 @@
     
     <div class="container request-content">
         <h1>View Request</h1>
-        <img class='preview' src="<?=ROOT.$data['image_url']?>" alt="profile picture" >
-        <div class="name">by <a href="#"></a><?=$data['display_name']?></div>
-        <div class="display-group">
-            <?= htmlspecialchars($data['subject'] ?? '') ?>
-        </div>
-        <div class="display-group">
-            <?= htmlspecialchars($data['description'] ?? '') ?>
-        </div>
-
-        <div class="upload-wrapper" style="display: <?=$document_show?>">
-                    <!-- <div class="input-group"><?=$data['proof_link']?></div> -->
-                    <form action="<?=ROOT?>/expertrequests/download?proof_link=<?=$data['proof_link']?>" method="post">
-                        <input type="submit" class="button btn-none" value="download document">
-                    </form>
-                </div>
-
-        <div class="user-actions" style="display: <?=$pending_show?>">
-        <input type="button" class="button btn-none btn-approve" value="Approve">
-        <input type="button" class="button btn-error btn-reject" value="Reject">  
+        <div class="header-section">
+            <img class='preview' src="<?=ROOT.$data['image_url']?>" alt="profile picture" >
+            <div class="name">by <a href="#"></a><?=$data['display_name']?></div>
         </div>
 
         <div class="status">
             <div class="approved display-group" style="display:<?=$approved_show?>">request has been approved!</div>
             <div class="rejected display-group" style="display:<?=$rejected_show?>">request has been reject. here is why</div>
             <div class="pending display-group" style="display:<?=$pending_show?>">Pending for approval.</div>
+        </div>
+
+        <div class="display-group">
+            <label class="field-label">Subject</label>
+            <div class="subject-pill">
+                <?= htmlspecialchars($data['subject'] ?? '') ?>
+            </div>
+        </div>
+
+        <div class="display-group">
+            <label class="field-label">Description</label>
+            <div class="description-content">
+                <?= htmlspecialchars($data['description'] ?? '') ?>
+            </div>
+        </div>
+
+        <div class="upload-wrapper" style="display: <?=$document_show?>; flex-direction: column; align-items: flex-start; gap: 16px;">
+            
+            <!-- Main CV -->
+            <div class="file-group">
+                <label class="field-label" style="margin-bottom: 8px; display: block;">Curriculum Vitae</label>
+                <form action="<?=ROOT?>/expertrequest/download" method="get" target="_blank">
+                    <input type="hidden" name="request_id" value="<?=$data['id']?>">
+                    <button type="submit" class="button btn-none" style="text-align: left; padding-left: var(--space-sm); color: black; font-weight: 600;">
+                        Download CV (PDF)
+                    </button>
+                </form>
+            </div>
+
+            <!-- Supporting Documents -->
+            <?php if (!empty($data['supporting_docs'])): ?>
+            <div class="file-group">
+                <label class="field-label" style="margin-bottom: 8px; display: block;">Supporting Documents</label>
+                <div class="file-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <?php foreach($data['supporting_docs'] as $doc): ?>
+                    <form action="<?=ROOT?>/expertrequest/download" method="get" target="_blank">
+                        <input type="hidden" name="request_id" value="<?=$data['id']?>">
+                        <input type="hidden" name="file" value="<?=htmlspecialchars($doc)?>">
+                        <button type="submit" class="button btn-none" style="text-align: left; padding-left: var(--space-sm); color: black; font-size: 0.95rem;">
+                            attachment: <?=htmlspecialchars($doc)?>
+                        </button>
+                    </form>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </div>
 
+        <div class="user-actions" style="display: <?=$pending_show?>">
+        <input type="button" class="button btn-none btn-approve" value="Approve">
+        <input type="button" class="button btn-error-soft btn-reject" value="Reject">  
+        </div>
+
         <div class="display-group" style="display: <?=$rejected_show?>">
+            <label class="field-label" style="color: var(--color-red);">Feedback</label>
             <?= htmlspecialchars($data['feedback'] ?? '') ?>
         </div>
 

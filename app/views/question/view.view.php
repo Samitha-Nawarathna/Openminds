@@ -121,7 +121,9 @@ $initialDataJson = json_encode($data ?? []);
 <script>
     // Inject initial data into a global JS variable
     const INITIAL_DATA = <?php echo $initialDataJson; ?>;
+    const CURRENT_USER_ID = <?php echo $data['current_user_id']; ?>;
 </script>
+
 
 <?php
 

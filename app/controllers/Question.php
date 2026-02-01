@@ -4,8 +4,42 @@ class Question extends Controller
 {
     public function index()
     {
+        $data = [];
+        $user_id = $_SESSION['user_id'] ?? null;
 
-        $this->view('question/browser');
+        if ($user_id) {
+            $question_model = new QuestionModel;
+            $answer_model = new Answer;
+
+            // Fetch User's Questions
+            $my_questions = $question_model->where(['creator_id' => $user_id]);
+            $questions_count = is_array($my_questions) ? count($my_questions) : 0;
+            $question_votes = 0;
+            if ($my_questions) {
+                foreach ($my_questions as $q) {
+                    $question_votes += ($q->vote_count ?? 0);
+                }
+            }
+
+            // Fetch User's Answers
+            $my_answers = $answer_model->where(['creator_id' => $user_id]);
+            $answers_count = is_array($my_answers) ? count($my_answers) : 0;
+            $answer_votes = 0;
+            if ($my_answers) {
+                foreach ($my_answers as $a) {
+                    $answer_votes += ($a->vote_count ?? 0);
+                }
+            }
+
+            $data['user_stats'] = [
+                'questions' => $questions_count,
+                'answers' => $answers_count,
+                'q_votes' => $question_votes,
+                'a_votes' => $answer_votes
+            ];
+        }
+
+        $this->view('question/browser', $data);
     }
 
 
@@ -198,7 +232,8 @@ class Question extends Controller
                 'list' => $answer_list,
                 'has_more' => ($total_answers > $limit)
             ],
-            'totalAnswerCount' => $total_answers
+            'totalAnswerCount' => $total_answers,
+            'current_user_id' => $current_user
         ];
 
         $this->view('question/view', $data);
@@ -689,6 +724,8 @@ class Question extends Controller
         $current_user = $_SESSION['user_id'] ?? null;
 
         $questions_model = new QuestionModel;
+        $answer_model = new Answer;
+        $user_vote_question = new Uservotequestion;
         $user_model = new User;
         $tag_model = new Tags;
         $q_tag_model = new Questiontag;
@@ -702,26 +739,9 @@ class Question extends Controller
         
         $where = [];
 
-        // 1. Handle Tag Filtering first (id matching)
+        // 1. Handle Search (Title)
         if (!empty($tag_filter)) {
-            // Find tag id
-            $tag = $tag_model->first(['name' => $tag_filter]);
-            if ($tag) {
-                // Find question IDs with this tag
-                $tagged_qs = $q_tag_model->where(['tag_id' => $tag->id]);
-                if ($tagged_qs) {
-                    $q_ids = array_column($tagged_qs, 'question_id');
-                    $where['id'] = $q_ids;
-                } else {
-                    // Tag exists but no questions, return empty
-                    echo json_encode(['questions' => [], 'has_more' => false]);
-                    return;
-                }
-            } else {
-                 // Tag doesn't exist, return empty
-                 echo json_encode(['questions' => [], 'has_more' => false]);
-                 return;
-            }
+            $params['like'] = ['title' => $tag_filter];
         }
 
         // 2. Handle Tab Filtering
@@ -731,16 +751,23 @@ class Question extends Controller
                 return;
             }
             $where['creator_id'] = $current_user;
-        } elseif ($tab === 'unanswered') {
-             // This is harder with simple Model methods. 
-             // Ideally: WHERE id NOT IN (SELECT q_id FROM answer)
-             // For now, we might skip this or implement a custom query in Model if needed.
-             // Leaving simplified for now: Fetch all and filter in PHP (inefficient) or use a custom query.
-             // Let's rely on filter_and_search capabilities.
-             // It doesn't seem to support "NOT IN subquery". 
-             // We'll treat 'unanswered' as 'all' for this MVP refactor or handled roughly.
-             // Actually, we can fetch all questions and check answers count? No, pagination breaks.
-             // Let's postpone strict 'unanswered' logic or just show all for now.
+        } elseif ($tab === 'answered') {
+             // For "You answered" tab - get questions where current user has answered
+             if (!$current_user) {
+                echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+                return;
+             }
+             
+             // Get all answers by this user
+             $user_answers = $answer_model->where(['creator_id' => $current_user]);
+             
+             if ($user_answers) {
+                 $q_ids = array_unique(array_column($user_answers, 'q_id'));
+                 $where['id'] = array_values($q_ids);
+             } else {
+                 echo json_encode(['questions' => [], 'has_more' => false]);
+                 return;
+             }
         }
 
         if (!empty($where)) {
@@ -770,18 +797,51 @@ class Question extends Controller
                  }
              }
              
-             // Basic Answer count (inefficient N+1 but works for now)
-             // Or we could join.
+             // 1. Get Answer Count & Solved Status
+             $answers = $answer_model->where(['q_id' => $q->id]);
+             $answer_count = $answers ? count($answers) : 0;
+             $is_solved = false;
+             
+             if ($answers) {
+                 foreach ($answers as $ans) {
+                     if (!empty($ans->chosen) && $ans->chosen == 1) { // Assuming 'chosen' column implies solved
+                         $is_solved = true;
+                         break;
+                     }
+                 }
+             }
+             
+             // 2. Get Vote Counts
+             $votes = $user_vote_question->where(['q_id' => $q->id]);
+             $upvotes = 0;
+             $downvotes = 0;
+             $user_vote_type = null;
+             
+             if ($votes) {
+                 foreach ($votes as $v) {
+                     if ($v->votetype === 'upvote') $upvotes++;
+                     elseif ($v->votetype === 'downvote') $downvotes++;
+                     
+                     if ($current_user && $v->u_id == $current_user) {
+                         $user_vote_type = ($v->votetype === 'upvote') ? 'up' : 'down';
+                     }
+                 }
+             }
+             
+             $net_votes = $upvotes - $downvotes;
              
              $result_data[] = [
                  'id' => $q->id,
                  'title' => $q->title,
-                 'content' => $q->content, // Snippet?
+                 'content' => $q->content,
                  'creator_id' => $q->creator_id,
                  'creator' => $creator_name,
                  'created_at' => $q->created_at,
                  'tags' => $tag_names,
-                 // 'answers_count' => ...
+                 'answer_count' => $answer_count,
+                 'is_solved' => $is_solved,
+                 'vote_count' => $net_votes,
+                 'user_vote_type' => $user_vote_type
              ];
         }
 
