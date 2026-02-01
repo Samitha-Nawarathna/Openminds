@@ -20,7 +20,8 @@ function format_count($n) {
 <?php 
 // Assuming $data contains attempt_id passed from the Controller.
 $attempt_id = $data['attempt_id'] ?? 2001; // Default to mock ID
-$attempt_details_api_url = ROOT . '/exercises/api/history/' . 5;
+// Use the actual attempt ID from the controller to avoid 404s on the results fetch
+$attempt_details_api_url = ROOT . '/exercises/api/history/' . $attempt_id;
 $exercise_id = $data['exercise_id'] ?? 101; // Needed for vote buttons
 $vote_status_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;

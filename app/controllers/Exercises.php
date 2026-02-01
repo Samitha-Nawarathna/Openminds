@@ -82,15 +82,15 @@ class Exercises extends Controller
         }
 
         $data = $this->json_request();
-        // $current_user = $_SESSION['user_id'] ?? null;
-        $current_user = $_SESSION['user_id'] ?? 2;
+        $current_user = $_SESSION['user_id'] ?? null;
+        // $current_user = $_SESSION['user_id'] ?? 2;
 
         // Require authentication
-        // if (!$current_user) {
-        //     http_response_code(401);
-        //     echo json_encode(['success' => false, 'message' => 'Authentication required to create exercises.']);
-        //     return;
-        // }
+        if (!$current_user) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Authentication required to create exercises.']);
+            return;
+        }
 
         $metadata = $data['metadata'] ?? null;
         $questions = $data['questions'] ?? null;
@@ -1108,7 +1108,7 @@ class Exercises extends Controller
         // Get current user from session (fallback to test user 2 if not set)
         //$current_user = $_SESSION['user_id'] ?? null;
         
-        $current_user = $_SESSION['user_id'] ?? 2;
+        $current_user = $_SESSION['user_id'] ?? null;
         if (!$current_user) {
             $this->json_error('Authentication required.', 401);
         }
@@ -1338,6 +1338,8 @@ class Exercises extends Controller
 
             $answerStmt = $pdo->prepare("SELECT id, answer_text, is_correct, question_id FROM exerciseanswer WHERE question_id = :question_id ORDER BY display_order ASC, id ASC");
             $attemptAnswerStmt = $pdo->prepare("SELECT user_response, is_correct, score_earned FROM attempt_answer WHERE attempt_id = :attempt_id AND question_id = :question_id LIMIT 1");
+            // Map exercisequestion.id to the related question.id created during submission
+            $questionMapStmt = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
 
             $details = [];
             $maxScore = 0;
@@ -1347,7 +1349,19 @@ class Exercises extends Controller
                 $answerStmt->execute([':question_id' => $q['id']]);
                 $optionsRaw = $answerStmt->fetchAll(PDO::FETCH_ASSOC);
 
-                $attemptAnswerStmt->execute([':attempt_id' => $attempt_id, ':question_id' => $q['id']]);
+                // Attempt answers are stored against question.id (not exercisequestion.id)
+                $mappedQuestionId = null;
+                $mapTitle = 'Exercise ' . $attempt['exe_id'] . ' - Q' . $q['id'];
+                $questionMapStmt->execute([':title' => $mapTitle]);
+                $mappedRow = $questionMapStmt->fetch(PDO::FETCH_ASSOC);
+                if ($mappedRow) {
+                    $mappedQuestionId = (int)$mappedRow['id'];
+                }
+
+                $attemptAnswerStmt->execute([
+                    ':attempt_id' => $attempt_id,
+                    ':question_id' => $mappedQuestionId ?? 0
+                ]);
                 $attemptAnswer = $attemptAnswerStmt->fetch(PDO::FETCH_ASSOC);
 
                 $selectedIds = [];
@@ -1370,6 +1384,10 @@ class Exercises extends Controller
                     'prompt' => $q['question_text'],
                     'user_score' => (float)($attemptAnswer['score_earned'] ?? 0),
                     'max_weight' => (float)$q['weight'],
+                    // Use stored attempt_answer flag; avoid recalculating correctness here
+                    'is_correct' => (bool)($attemptAnswer['is_correct'] ?? 0),
+                    // Treat question weight as difficulty for UI display
+                    'difficulty' => (int)$q['weight'],
                     'explanation' => $q['explanation'],
                     'options' => $options,
                 ];
@@ -1381,6 +1399,11 @@ class Exercises extends Controller
                 'exercise_id' => (int)$attempt['exe_id'],
                 'exercise_title' => $attempt['title'],
                 'subject' => $attempt['subject_name'],
+                // Score response uses stored attempt score (no recalculation)
+                'raw_score' => (float)$attempt['score'],
+                'max_score' => $maxScore,
+                'percentage_score' => $maxScore > 0 ? round(((float)$attempt['score'] / $maxScore) * 100, 2) : 0,
+                // Keep existing keys for backward compatibility
                 'total_score' => (float)$attempt['score'],
                 'total_max_score' => $maxScore,
                 'attempted_at' => $attempt['date'],
@@ -1439,10 +1462,17 @@ class Exercises extends Controller
                 ]);
             }
 
+            // Return updated vote count for the UI
+            $pdo = $this->db();
+            $countStmt = $pdo->prepare("SELECT SUM(CASE WHEN votetype = 'upvote' THEN 1 WHEN votetype = 'downvote' THEN -1 ELSE 0 END) AS vote_count FROM uservoteexercise WHERE exercise_id = :exercise_id");
+            $countStmt->execute([':exercise_id' => $exercise_id]);
+            $voteCount = (int)($countStmt->fetch(PDO::FETCH_ASSOC)['vote_count'] ?? 0);
+
             $this->json_respond([
                 'success' => true,
                 'message' => 'Vote successfully registered.',
-                'current_vote_status' => $vote_type
+                'current_vote_status' => $vote_type,
+                'vote_count' => $voteCount
             ]);
         } catch (Exception $e) {
             error_log('api_submit_vote error: '.$e->getMessage());
@@ -1485,9 +1515,15 @@ class Exercises extends Controller
                 $status = ucfirst($vote->votetype) . 'd';
             }
 
+            $pdo = $this->db();
+            $countStmt = $pdo->prepare("SELECT SUM(CASE WHEN votetype = 'upvote' THEN 1 WHEN votetype = 'downvote' THEN -1 ELSE 0 END) AS vote_count FROM uservoteexercise WHERE exercise_id = :exercise_id");
+            $countStmt->execute([':exercise_id' => $exercise_id]);
+            $voteCount = (int)($countStmt->fetch(PDO::FETCH_ASSOC)['vote_count'] ?? 0);
+
             $this->json_respond([
                 'success' => true,
-                'current_vote_status' => $status
+                'current_vote_status' => $status,
+                'vote_count' => $voteCount
             ]);
         } catch (Exception $e) {
             error_log('api_get_vote_status error: '.$e->getMessage());

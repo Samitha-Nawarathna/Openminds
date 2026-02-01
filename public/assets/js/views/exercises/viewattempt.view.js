@@ -228,7 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
         titleEl.textContent = RESULTS_DATA.exercise_title || 'Exercise Results';
         subjectEl.textContent = RESULTS_DATA.subject || 'Review Mode'; 
         if (questionSubtextEl) {
-            questionSubtextEl.textContent = 'Review your answers';
+            const difficultyLabel = qData.difficulty ?? qData.max_weight ?? 0;
+            const resultLabel = qData.is_correct ? 'Correct' : 'Incorrect';
+            questionSubtextEl.textContent = `Difficulty: ${difficultyLabel} • Result: ${resultLabel}`;
         }
 
         const progressPercent = Math.min(100, Math.round((currentQIndex / totalQCount) * 100));
@@ -349,14 +351,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update the score text in paragraph
         const scoreTextEl = document.getElementById('score-text');
+        const rawScore = RESULTS_DATA.raw_score ?? RESULTS_DATA.total_score ?? 0;
+        const maxScore = RESULTS_DATA.max_score ?? RESULTS_DATA.total_max_score ?? 0;
+        const percentageScore = RESULTS_DATA.percentage_score ?? (maxScore ? (rawScore / maxScore) * 100 : 0);
+
         if (scoreTextEl) {
-            scoreTextEl.textContent = `${RESULTS_DATA.total_score || 0} out of ${RESULTS_DATA.total_max_score || 0}`;
+            scoreTextEl.textContent = `${rawScore} out of ${maxScore}`;
         }
         
         // Update score badge color based on overall result (e.g., > 50% score)
-        const scorePercentage = (RESULTS_DATA.total_score / RESULTS_DATA.total_max_score);
-        const scoreClass = scorePercentage >= 0.5 ? 'passed' : 'failed';
-        finalScoreEl.textContent = `${RESULTS_DATA.total_score || 0} / ${RESULTS_DATA.total_max_score || 0}`;
+        const scoreClass = percentageScore >= 50 ? 'passed' : 'failed';
+        finalScoreEl.textContent = `${rawScore} / ${maxScore}`;
         
         // Clear existing classes and add new ones
         finalScoreEl.className = 'score-badge';
