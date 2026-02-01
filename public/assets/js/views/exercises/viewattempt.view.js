@@ -382,6 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentQIndex < RESULTS_DATA.details.length - 1) {
             currentQIndex++;
             renderQuestion();
+        } else {
+            // On last question, show the summary modal
+            showResultsSummaryModal();
+            mainContentEl.classList.add('hidden');
         }
     }
     
@@ -401,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Next Button
         if (currentQIndex === totalQCount - 1) {
             nextBtn.textContent = 'End Review ✓';
-            nextBtn.disabled = true;
+            nextBtn.disabled = false; // Keep enabled so user can click to show modal
         } else {
             nextBtn.textContent = 'Next Question →';
             nextBtn.disabled = false;
