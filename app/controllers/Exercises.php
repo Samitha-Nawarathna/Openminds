@@ -593,9 +593,10 @@ class Exercises extends Controller
                     'creator_name' => $exercise['creator_name'],
                     'subject_name' => $exercise['subject_name'],
                     'created_at' => $exercise['created_at'],
+                    'mode' => 'review',
                 ];
 
-                $this->view('exercises/expertreview', $data);
+                $this->view('exercises/attempt', $data);
 
             } catch (Exception $e) {
                 error_log('expertreview error: ' . $e->getMessage());

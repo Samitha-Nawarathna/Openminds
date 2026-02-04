@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // VOTE_STATUS_URL, VOTE_SUBMIT_URL (NOW REMOVED FROM THIS PAGE - will be on results)
     
     const API_URL = window.EXERCISE_API_URL || '';
+    const MODE = window.EXERCISE_MODE || 'attempt';
+    const REVIEW_APPROVE_URL = window.REVIEW_APPROVE_URL || '';
+    const REVIEW_REJECT_URL = window.REVIEW_REJECT_URL || '';
+    const REVIEW_EXERCISE_ID = window.REVIEW_EXERCISE_ID || '';
     let SUBMIT_URL = window.EXERCISE_SUBMIT_URL || '';
     let EXERCISE_DATA = {}; // Holds the full exercise structure (questions, options, answers, explanations)
     let currentQIndex = 0;
@@ -49,10 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCreatorRoleEl = document.getElementById('modal-creator-role');
     const modalDateEl = document.getElementById('modal-date');
 
-    // NEW: Confirmation Modal Elements
+    // NEW: Confirmation Modal Elements (Attempt Mode)
     const confirmationModal = document.getElementById('confirmation-modal');
     const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+    // Review Decision Modal Elements (Review Mode)
+    const reviewDecisionModal = document.getElementById('review-decision-modal');
+    const reviewApproveBtn = document.getElementById('review-approve-btn');
+    const reviewRejectBtn = document.getElementById('review-reject-btn');
+    const reviewCancelBtn = document.getElementById('review-cancel-btn');
+    const reviewFeedbackEl = document.getElementById('review-feedback');
+
+    const isReviewMode = MODE === 'review';
 
     // NOTE: Vote buttons removed from this page - will be implemented on results page
 
@@ -109,6 +122,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             hideLoading();
 
+            if (isReviewMode) {
+                if (modalEl) {
+                    modalEl.classList.add('hidden');
+                }
+                mainContentEl.classList.remove('hidden');
+                renderQuestion(currentQIndex);
+                questionContainer.focus();
+            }
+
         } catch (error) {
             console.error('Error loading exercise:', error);
             hideLoading();
@@ -143,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Handles the Start Assessment button click */
     function startAssessment() {
+        if (isReviewMode) {
+            return;
+        }
         startBtn.textContent = "Continue...";
         modalEl.classList.add('hidden');
         mainContentEl.classList.remove('hidden');
@@ -172,6 +197,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------------------
     // --- C. QUESTION RENDERING AND STATE MANAGEMENT (Client-Side) ---
     // ---------------------------------------------------------------------
+
+    function getDifficultyLabel(weight) {
+        const w = Number(weight || 0);
+        if (w <= 1) return 'Easy';
+        if (w <= 2) return 'Medium';
+        return 'Hard';
+    }
+
+    function getDifficultyClass(label) {
+        if (label === 'Easy') return 'difficulty-easy';
+        if (label === 'Medium') return 'difficulty-medium';
+        return 'difficulty-hard';
+    }
 
     /** Renders the question UI based on the index */
     function renderQuestion(index) {
@@ -210,15 +248,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputType = correctCount > 1 ? 'checkbox' : 'radio';
 
         // Build question container structure
+        const difficultyLabel = getDifficultyLabel(question.weight);
+        const difficultyClass = getDifficultyClass(difficultyLabel);
+
         questionContainer.innerHTML = `
             <div class="question-prompt-block">
                 <h2 id="question-prompt" class="question-title" role="heading" aria-level="2">${question.prompt}</h2>
+                ${isReviewMode ? `<div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div>` : ''}
             </div>
             <div id="answer-options" class="answer-options-list" role="${inputType === 'radio' ? 'radiogroup' : 'group'}" aria-label="Answer options for question ${index + 1}"></div>
         `;
 
         if (questionSubtextEl) {
-            questionSubtextEl.textContent = 'Select the correct answer';
+            questionSubtextEl.textContent = isReviewMode ? 'Review mode: correct answers highlighted' : 'Select the correct answer';
         }
 
         // Update progress display
@@ -248,20 +290,31 @@ document.addEventListener('DOMContentLoaded', () => {
             input.dataset.optionId = option.option_id;
             input.setAttribute('aria-label', `Option ${optIndex + 1}`);
 
+            if (isReviewMode) {
+                input.disabled = true;
+                if (option.is_correct) {
+                    input.checked = true;
+                    label.classList.add('is-correct');
+                    if (stateIcon) stateIcon.textContent = '✓';
+                }
+            }
+
             // Restore user selection if already attempted
             if (savedAnswers.includes(option.option_id)) {
                 input.checked = true;
                 label.classList.add('is-selected');
             }
 
-            // Listener to enable check button and update selected UI
-            input.addEventListener('change', () => {
-                if (!questionIsChecked) {
-                    checkBtn.disabled = false;
-                }
-                answersDiv.querySelectorAll('.option-card').forEach(card => card.classList.remove('is-selected'));
-                label.classList.add('is-selected');
-            });
+            // Listener to enable check button and update selected UI (Attempt Mode Only)
+            if (!isReviewMode) {
+                input.addEventListener('change', () => {
+                    if (!questionIsChecked) {
+                        checkBtn.disabled = false;
+                    }
+                    answersDiv.querySelectorAll('.option-card').forEach(card => card.classList.remove('is-selected'));
+                    label.classList.add('is-selected');
+                });
+            }
 
             const text = document.createElement('span');
             text.className = 'option-text';
@@ -279,15 +332,26 @@ document.addEventListener('DOMContentLoaded', () => {
             answersDiv.appendChild(label);
         });
 
-        // If user already answered this (e.g., navigated back), re-display the results
-        if (userAnswers[question.question_id]) {
-            showPostCheckState();
-            checkQuestion(true); // Re-run logic to apply colors/feedback without resaving answers
+        if (isReviewMode) {
+            explanationBox.classList.remove('hidden');
+            showExplanation();
+            checkBtn.classList.add('hidden');
+            explainBtn.classList.add('hidden');
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            nextBtn.textContent = currentQIndex === EXERCISE_DATA.questions.length - 1 ? 'Finish Review' : 'Next Question';
+        } else {
+            // If user already answered this (e.g., navigated back), re-display the results
+            if (userAnswers[question.question_id]) {
+                showPostCheckState();
+                checkQuestion(true); // Re-run logic to apply colors/feedback without resaving answers
+            }
         }
     }
 
     /** Saves answer and displays feedback */
     function checkQuestion(recheck = false) {
+        if (isReviewMode) return;
         if (!recheck && questionIsChecked) return; 
 
         questionIsChecked = true;
@@ -353,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Manages the button state after the user clicks Check Answer */
     function showPostCheckState() {
+        if (isReviewMode) return;
         checkBtn.classList.add('hidden');
         explainBtn.classList.remove('hidden');
         
@@ -383,6 +448,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Moves to the next question or submits */
     function goToNextQuestion() {
+        if (isReviewMode && currentQIndex === EXERCISE_DATA.questions.length - 1) {
+            showReviewDecisionModal();
+            return;
+        }
+
         if (currentQIndex < EXERCISE_DATA.questions.length - 1) {
             currentQIndex++;
             renderQuestion(currentQIndex);
@@ -400,11 +470,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 id="explanation-text"
                 readonly
                 height="fit-content"
-                content="${question.explanation}"
+                content="${question.explanation || 'No explanation provided.'}"
             >
             </quill-editor>
         `;
         explanationBox.classList.remove('hidden');
+    }
+
+    // ---------------------------------------------------------------------
+    // --- REVIEW MODE: APPROVE/REJECT ---
+    // ---------------------------------------------------------------------
+
+    function showReviewDecisionModal() {
+        if (!reviewDecisionModal) return;
+        reviewFeedbackEl.value = '';
+        reviewDecisionModal.classList.remove('hidden');
+        reviewApproveBtn.focus();
+    }
+
+    function hideReviewDecisionModal() {
+        if (!reviewDecisionModal) return;
+        reviewDecisionModal.classList.add('hidden');
+    }
+
+    async function submitReviewDecision(action) {
+        const feedback = (reviewFeedbackEl?.value || '').trim();
+        if (action === 'reject' && feedback.length < 5) {
+            alert('Rejection requires a minimum of 5 characters of feedback.');
+            reviewFeedbackEl.focus();
+            return;
+        }
+
+        const targetUrl = action === 'approve' ? REVIEW_APPROVE_URL : REVIEW_REJECT_URL;
+        if (!targetUrl || !REVIEW_EXERCISE_ID) {
+            alert('Review submission endpoint is missing.');
+            return;
+        }
+
+        try {
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    exercise_id: REVIEW_EXERCISE_ID,
+                    feedback: feedback
+                })
+            });
+
+            const result = await response.json();
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || 'Review submission failed.');
+            }
+
+            alert(`Successfully submitted ${action} for Exercise ID ${REVIEW_EXERCISE_ID}.`);
+            window.location.href = ROOT + 'exercises';
+        } catch (error) {
+            console.error('Review Submission Error:', error);
+            alert('A network error occurred during submission: ' + error.message);
+        }
     }
 
     // ---------------------------------------------------------------------
@@ -503,22 +626,35 @@ document.addEventListener('DOMContentLoaded', () => {
     explainBtn.addEventListener('click', showExplanation);
     
     // NEW: Submit button now shows confirmation modal first
-    submitBtn.addEventListener('click', showConfirmationModal);
+    if (!isReviewMode) {
+        submitBtn.addEventListener('click', showConfirmationModal);
+    }
     
     // NEW: Confirmation modal actions
-    confirmSubmitBtn.addEventListener('click', submitAssessment);
-    confirmCancelBtn.addEventListener('click', hideConfirmationModal);
+    if (confirmSubmitBtn && confirmCancelBtn) {
+        confirmSubmitBtn.addEventListener('click', submitAssessment);
+        confirmCancelBtn.addEventListener('click', hideConfirmationModal);
+    }
     
     // NEW: Close confirmation modal with Escape key
     document.addEventListener('keydown', (e) => {
+        if (!confirmationModal) return;
         if (e.key === 'Escape' && !confirmationModal.classList.contains('hidden')) {
             hideConfirmationModal();
         }
     });
 
     // Modal/Details Actions
-    startBtn.addEventListener('click', startAssessment);
+    if (startBtn) {
+        startBtn.addEventListener('click', startAssessment);
+    }
     detailsLink.addEventListener('click', showDetailsModal);
+
+    if (reviewApproveBtn && reviewRejectBtn && reviewCancelBtn) {
+        reviewApproveBtn.addEventListener('click', () => submitReviewDecision('approve'));
+        reviewRejectBtn.addEventListener('click', () => submitReviewDecision('reject'));
+        reviewCancelBtn.addEventListener('click', hideReviewDecisionModal);
+    }
     
     // NOTE: Vote actions removed - will be on results page
 
@@ -528,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         
         // Enter key = Check Answer or Next Question
-        if (e.key === 'Enter' && !checkBtn.classList.contains('hidden') && !checkBtn.disabled) {
+        if (!isReviewMode && e.key === 'Enter' && !checkBtn.classList.contains('hidden') && !checkBtn.disabled) {
             checkQuestion(false);
         } else if (e.key === 'Enter' && !nextBtn.classList.contains('hidden')) {
             goToNextQuestion();

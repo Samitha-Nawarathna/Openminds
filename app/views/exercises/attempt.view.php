@@ -21,9 +21,14 @@ function format_count($n) {
 <?php 
 // Assuming $data contains initial metadata (like exercise_id) passed from the Controller.
 $exercise_id = $data['exercise_id'] ?? 92; // Default to mock ID
+$mode = $data['mode'] ?? 'attempt'; // attempt | review
+
 $attempt_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id;
+$review_api_url = ROOT . '/exercises/api/load_review_data/' . $exercise_id;
 $vote_status_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
+$approve_url = ROOT . 'exercises/api/approve_exercise';
+$reject_url = ROOT . 'exercises/api/reject_exercise';
 ?>
 
 <!-- NEW: Loading Overlay for Initial Data Fetch -->
@@ -33,7 +38,7 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 </div>
 
 <!-- NEW: Removed Vote UI from Details Modal (will be moved to results page) -->
-<div id="details-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+<div id="details-modal" class="modal <?php echo $mode === 'review' ? 'hidden' : ''; ?>" role="dialog" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-content">
         
         <div class="meta-data">
@@ -53,7 +58,8 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
     </div>
 </div>
 
-<!-- NEW: Confirmation Modal for Final Submission -->
+<!-- NEW: Confirmation Modal for Final Submission (Attempt Mode Only) -->
+<?php if ($mode === 'attempt'): ?>
 <div id="confirmation-modal" class="confirmation-modal hidden" role="dialog" aria-labelledby="confirm-title" aria-modal="true">
     <div class="confirmation-content">
         <h3 id="confirm-title">Submit Your Assessment?</h3>
@@ -68,6 +74,29 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
         </div>
     </div>
 </div>
+<?php endif; ?>
+
+<!-- NEW: Review Decision Panel (Expert Review Mode Only) -->
+<?php if ($mode === 'review'): ?>
+<div id="review-decision-modal" class="confirmation-modal hidden" role="dialog" aria-labelledby="review-decision-title" aria-modal="true">
+    <div class="confirmation-content">
+        <h3 id="review-decision-title">Finalize Expert Review</h3>
+        <p>Please approve or reject this exercise. Feedback is optional for approval and required for rejection.</p>
+        <textarea id="review-feedback" class="feedback-textarea" placeholder="Enter review feedback (required for rejection)"></textarea>
+        <div class="confirmation-actions">
+            <button id="review-cancel-btn" class="btn secondary" aria-label="Return to review">
+                Continue Review
+            </button>
+            <button id="review-approve-btn" class="btn primary" aria-label="Approve exercise">
+                Approve
+            </button>
+            <button id="review-reject-btn" class="btn-red" aria-label="Reject exercise">
+                Reject
+            </button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="container hidden" id="main-exercise-content">
     <header class="exercise-header" style="display:none;">
@@ -131,10 +160,14 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 </div>
 
 <script>
-    window.EXERCISE_API_URL = '<?= $attempt_api_url ?>';
-    window.EXERCISE_SUBMIT_URL = '<?= ROOT . "/exercises/api/attempt/" . $exercise_id ?>';
+    window.EXERCISE_MODE = '<?= $mode ?>';
+    window.EXERCISE_API_URL = '<?= $mode === "review" ? $review_api_url : $attempt_api_url ?>';
+    window.EXERCISE_SUBMIT_URL = '<?= $mode === "review" ? "" : (ROOT . "/exercises/api/attempt/" . $exercise_id) ?>';
     window.VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
     window.VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
+    window.REVIEW_APPROVE_URL = '<?= $approve_url ?>';
+    window.REVIEW_REJECT_URL = '<?= $reject_url ?>';
+    window.REVIEW_EXERCISE_ID = '<?= $exercise_id ?>';
 </script>
 
 <?php
