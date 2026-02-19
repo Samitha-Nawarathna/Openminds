@@ -4,50 +4,43 @@ class Exercises extends Controller
 {
     public function index()
     {
-        // --- MOCK DATA SETUP ---
-
-        // Helper function to generate mock exercise data (Moved the function outside $data setup)
-        function generate_mock_exercises($type, $offset, $limit) {
-            // Mock data for the 'All' exercises
-            $all_exercises = [
-              
-            ];
-
-            $data_source = $all_exercises;
-            
-            // Filter based on the requested tab (only filtering by 'all' for initial load mock)
-            // Note: If initial tab was 'created', you'd apply that filter here.
-            if ($type === 'created') {
-                $data_source = array_filter($all_exercises, fn($e) => $e['relation'] === 'Created');
-            } elseif ($type === 'attempted') {
-                $data_source = array_filter($all_exercises, fn($e) => $e['relation'] === 'Attempted');
-            }
-
-            $notes_to_return = array_slice($data_source, $offset, $limit);
-            $has_more = count($data_source) > ($offset + $limit); 
-
-            return [
-                'exercises' => array_values($notes_to_return),
-                'has_more' => $has_more
-            ];
-        }
+        $role = $_SESSION['role'] ?? 'student';
+        $user_id = $_SESSION['user_id'] ?? 0;
+        $can_create = in_array($role, ['expert', 'admin'], true);
+        $can_edit = $can_create;
 
         // Initial load parameters
         $initial_tab = 'all';
         $initial_offset = 0;
-        $initial_limit = 5; // Use 5 to demonstrate 'Load More' immediately
+        $initial_limit = 5;
 
-        $initial_load_result = generate_mock_exercises($initial_tab, $initial_offset, $initial_limit);
+        $exerciseModel = new ExercisesModel();
+        $expert_subject_ids = $this->get_expert_subject_ids($role, $user_id);
+        $initial_load_result = $exerciseModel->get_browser_list([
+            'role' => $role,
+            'user_id' => $user_id,
+            'tab' => $initial_tab,
+            'offset' => $initial_offset,
+            'limit' => $initial_limit,
+            'expert_subject_ids' => $expert_subject_ids,
+        ]);
+
+        $initial_exercises = array_map(function ($row) {
+            return (array)$row;
+        }, $initial_load_result['rows'] ?? []);
 
         $data = [
-            'current_user_id' => 'user_1',
+            'current_user_id' => $user_id,
             'initial_tab' => $initial_tab, 
             'create_url' => '/your-backend-controller/create-exercise-view',
             // NEW: Initial exercises data is stored here
-            'initial_exercises' => $initial_load_result['exercises'],
-            'initial_has_more' => $initial_load_result['has_more'],
+            'initial_exercises' => $initial_exercises,
+            'initial_has_more' => ($initial_offset + $initial_limit) < ($initial_load_result['total'] ?? 0),
             'initial_limit' => $initial_limit,
-            'initial_offset' => $initial_offset
+            'initial_offset' => $initial_offset,
+            'role' => $role,
+            'can_create' => $can_create,
+            'can_edit' => $can_edit
         ];
         $this->view('exercises/browser', $data);
     }
@@ -363,6 +356,9 @@ class Exercises extends Controller
 
 
         // --- MOCK DATA SETUP ---
+        $role = $_SESSION['role'] ?? 'student';
+        $can_edit = in_array($role, ['expert', 'admin'], true);
+
         $data = [
             'exercise_details' => [
                 'id' => $exercise_data->id,
@@ -377,7 +373,8 @@ class Exercises extends Controller
                 
             ],
             'questions' => $question_list,
-            'review_data' => $review_data
+            'review_data' => $review_data,
+            'can_edit' => $can_edit
         ];
 
         $this->view('exercises/view', $data);
@@ -1667,67 +1664,65 @@ class Exercises extends Controller
         $search = $_GET['q'] ?? '';
         $subject = $_GET['subject'] ?? '';
         $sort = $_GET['sort'] ?? 'id-DESC'; // Format: "column-direction"
-        $offset = $_GET['offset'] ?? 0;
-        $limit = $_GET['limit'] ?? 5;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
         $user_id = $_SESSION['user_id'] ?? 0; // Assuming session is active
+        $role = $_SESSION['role'] ?? 'student';
 
-        // 3. Build Filter Params for Model::filter_and_search
-        $filter_params = [
-            'select' => ['*'], // Or specific columns
-            'limit' => $limit,
+        $limit = ($limit > 0 && $limit <= 100) ? $limit : 5;
+        $offset = $offset >= 0 ? $offset : 0;
+
+        $can_create = in_array($role, ['expert', 'admin'], true);
+        $can_edit = $can_create;
+
+        $expert_subject_ids = $this->get_expert_subject_ids($role, $user_id);
+
+        // 3. Fetch Data
+        $result = $exerciseModel->get_browser_list([
+            'role' => $role,
+            'user_id' => $user_id,
+            'tab' => $tab,
+            'search' => $search,
+            'subject' => $subject,
+            'sort' => $sort,
             'offset' => $offset,
-            'where' => [],
-            'like' => []
-        ];
-
-        // A. Handle "Tabs" (Business Logic)
-        if ($tab === 'created') {
-            $filter_params['where']['user_id'] = $user_id; // "Created by you"
-        } 
-        elseif ($tab === 'attempted') {
-            // Note: This might require a JOIN or a separate lookup in a real app if 'attempted' status is in another table.
-            // For this example, assuming 'relation' or similar logic exists, or we query a pivot table first.
-            // Simplified: $filter_params['where']['status'] = 'attempted'; 
-        }
-        elseif ($tab === 'pending') {
-             // Admin/Expert guard check recommended here
-             $filter_params['where']['status'] = 'pending';
-        }
-
-        // B. Handle Search (Title)
-        if (!empty($search)) {
-            $filter_params['like']['title'] = $search; // Matches Model's LIKE logic
-        }
-
-        // C. Handle Advanced Filters
-        if (!empty($subject)) {
-            $filter_params['where']['subject'] = $subject;
-        }
-
-        // D. Handle Sorting
-        if (!empty($sort)) {
-            $parts = explode('-', $sort);
-            if (count($parts) === 2) {
-                $filter_params['order_by'] = $parts[0];   // e.g., 'title'
-                $filter_params['order_dir'] = $parts[1];  // e.g., 'ASC'
-            }
-        }
-
-        // 4. Fetch Data
-        $exercises = $exerciseModel->filter_and_search($filter_params);
-
-        // 5. Check if there are more results (for Load More button)
-        // A common trick is to fetch limit + 1, then pop the last one to know if more exist.
-        // But since we are using offset/limit standard, we can just check if count == limit
-        // or run a separate count query. For simplicity here:
-        $has_more = (count($exercises) == $limit); 
-        // Note: The most accurate way is a separate count query or fetching +1.
-
-        // 6. Return JSON
-        $this->json_respond([
-            'exercises' => $exercises,
-            'has_more' => $has_more
+            'limit' => $limit,
+            'expert_subject_ids' => $expert_subject_ids,
         ]);
+
+        $total = $result['total'] ?? 0;
+        $has_more = ($offset + $limit) < $total;
+
+        // 4. Return JSON
+        $this->json_respond([
+            'exercises' => $result['rows'] ?? [],
+            'has_more' => $has_more,
+            'role' => $role,
+            'permissions' => [
+                'can_create' => $can_create,
+                'can_edit' => $can_edit
+            ]
+        ]);
+    }
+
+    private function get_expert_subject_ids($role, $user_id)
+    {
+        if (!in_array($role, ['expert'], true)) {
+            return [];
+        }
+
+        $experts = new Experts();
+        $rows = $experts->where(['user_id' => $user_id], 0, null, ['subject_id']);
+        if (!$rows) {
+            return [];
+        }
+
+        $subject_ids = [];
+        foreach ($rows as $row) {
+            $subject_ids[] = (int)$row->subject_id;
+        }
+
+        return array_values(array_unique($subject_ids));
     }
 }
 
