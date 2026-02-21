@@ -34,5 +34,6 @@ if ($current_url !== $last_url) {
 <?php 
     if (!isset($no_navbar) || $no_navbar === false) {
         include_once('../app/views/partials/navbar.view.php');
+        // include_once ('../app/views/partials/Rnavbar.view.php');
     }
 ?>

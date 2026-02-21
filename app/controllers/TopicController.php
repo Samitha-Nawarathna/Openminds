@@ -29,40 +29,21 @@ class TopicController extends Controller
         $topics_model = new Topics();
 
         $name = trim($data['name'] ?? '');
-<<<<<<< HEAD
-        $creator_id = $_SESSION['user_id'] ?? 0; // Fallback to 0 if not logged in, though auth should be enforced
-=======
         $creator_id = $_SESSION['user_id'] ?? 0; // 0 or handle authentication error
->>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
 
         if (empty($name)) {
             $this->json_respond(['success' => false, 'message' => 'Topic name cannot be empty.']);
             return;
         }
         
-<<<<<<< HEAD
-        // Check for availability to prevent creating a duplicate
-=======
         // Check for availability
->>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
         if (!$topics_model->is_name_available($name)) {
             $this->json_respond(['success' => false, 'message' => 'Topic name already taken.']);
             return;
         }
 
-<<<<<<< HEAD
-        // Insert and get the new ID
-        $insert_data = [
-            'name' => $name,
-            'creator_id' => $creator_id,
-            'pinned' => 0
-        ];
-        
-        $new_topic_id = $topics_model->insert($insert_data);
-=======
         // Insert new topic
         $new_topic_id = $topics_model->insert(['name' => $name, 'creator_id' => $creator_id]);
->>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
 
         if ($new_topic_id) {
             $this->json_respond(['success' => true, 'topic_id' => $new_topic_id, 'name' => $name]);
@@ -84,21 +65,7 @@ class TopicController extends Controller
             return;
         }
 
-<<<<<<< HEAD
-        $topics_model = new Topics();
-        $is_available = $topics_model->is_name_available($name); // This returns true if EXISTS, so wait.
-        // Checking Model logic: "return $topic !== false;" means it returns TRUE if found (NOT available).
-        // Let's re-read the model.
-        // Model: is_name_available($name) { $topic = $this->first(...); return $topic !== false; }
-        // So if it returns true, it means it EXISTS.
-        
-        // The API expects 'available' => true if it DOES NOT exist.
-        // So if $topics_model->is_name_available($name) is true, then available is false.
-        
-        if (!$topics_model->is_name_available($name)) {
-=======
         if ($topics_model->is_name_available($name)) {
->>>>>>> 5955dc8c969b723fd7f9dc8366a604e8ca88f25d
             $this->json_respond(['available' => true, 'message' => 'Topic name is available.']);
         } else {
             $this->json_respond(['available' => false, 'message' => 'Topic name already exists.']);

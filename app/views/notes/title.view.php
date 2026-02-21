@@ -4,6 +4,8 @@ $title = 'Topic browser';
 $filename = 'notes/title';
 
 include_once '../app/views/partials/header.view.php';
+// include_once '../app/views/partials/Rnavbar.view.php';
+include "../app/views/partials/focus_timer.php";
 
 
 ?>
@@ -12,6 +14,7 @@ include_once '../app/views/partials/header.view.php';
     <header>
         <h1 class="main-title">Topics</h1>
     </header>
+
     
         <div class="filter-bar">
             <input type="text" id="topic-filter-input" placeholder="enter a username/name">

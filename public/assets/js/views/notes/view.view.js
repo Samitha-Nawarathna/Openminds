@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerStartModalBtn = document.getElementById('timer-start-modal-btn'); // Renamed
     const unitLabel = document.querySelector('.unit-label');
 
+    const setTime = document.getElementById('timer-minutes-input').value; //save the set focut time
+    
     // --- New Fixed Timer Elements ---
     const focusButtonTrigger = document.getElementById('focus-button-trigger');
     const runningTimerState = document.getElementById('running-timer-state');
@@ -153,6 +155,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Save Target Time to Local Storage ---
+
+    if (setTime) {
+        const mins = parseInt(setTime);
+        const targetTime = Date.now() + mins*60000;
+        localStorage.setItem("targetTime", targetTime);
+    }
+
+    
 
     // --- Delete Button Confirmation ---
     const deleteBtn = document.querySelector('.btn-delete');
