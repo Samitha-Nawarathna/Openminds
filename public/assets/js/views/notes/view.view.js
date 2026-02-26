@@ -1,18 +1,59 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
+    const note_card = document.querySelector('.note-card');
+    // --- Timer DOM Elements (inside the modal) ---
     const timeInput = document.getElementById('timer-minutes-input');
-    const timerStartModalBtn = document.getElementById('timer-start-modal-btn');
+    const timerStartModalBtn = document.getElementById('timer-start-modal-btn'); // Renamed
+    const unitLabel = document.querySelector('.unit-label');
+
+    const setTime = document.getElementById('timer-minutes-input').value; //save the set focut time
+    
+    // --- New Fixed Timer Elements ---
     const focusButtonTrigger = document.getElementById('focus-button-trigger');
     const runningTimerState = document.getElementById('running-timer-state');
     const countdownDisplayFixed = document.getElementById('countdown-display-fixed');
     const cancelTimerBtn = document.getElementById('cancel-timer-btn');
+
+    // --- Modal Elements ---
     const timerModal = document.getElementById('timer-modal');
     const closeModalBtn = timerModal.querySelector('.close-btn');
 
+    // --- Collapsible Tags Elements ---
+    const tagsToggleBtn = document.querySelector('.tags-toggle-btn');
+    const tagsContent = document.getElementById('tags-content');
+
     // --- State Variables ---
     let timerInterval = null;
+    let isRunning = false;
+    let totalSeconds = 0;
 
-    // --- Core Functions ---
+        // auto resume if timer exists
+    if(localStorage.getItem("targetTime")){
+    formatTime();
+}
+
+    // --- Utility and Core Timer Functions ---
+    function open_note(id) {
+        note_card.style.transform = 'translateX(-100%)';
+        window.abstractNoteModalManager.openNote(id);
+    }
+
+    window.open_note = open_note;
+
+    function close_note() {
+        note_card.style.transform = 'translateX(-50%)';
+    }
+
+    window.close_note = close_note;
+
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        const displayMins = localStorage.getItem("targetTime") ? (parseInt(localStorage.getItem("targetTime")) - Date.now()) / 60000 : 0;
+        return displayMins;
+    }
 
     function updateCountdown() {
         const targetTime = localStorage.getItem("targetTime");
@@ -74,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Persistence Logic (The "Auto-Resume") ---
+// --- Persistence Logic (The "Auto-Resume") ---
     function checkExistingTimer() {
         const targetTime = localStorage.getItem("targetTime");
         if (targetTime) {
@@ -113,3 +154,21 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn.addEventListener('click', () => timerModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === timerModal) timerModal.style.display = 'none'; });
 });
+  
+
+    // --- Delete Button Confirmation ---
+    const deleteBtn = document.querySelector('.btn-delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm("Are you sure you want to delete this note?")) {
+                const deleteForm = document.getElementById('delete-note-form');
+                if (deleteForm) {
+                    deleteForm.submit();
+                } else {
+                    console.error("Delete form not found");
+                }
+            }
+        });
+    }
+;
