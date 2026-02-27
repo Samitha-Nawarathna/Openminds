@@ -5,8 +5,7 @@ include_once "../app/views/partials/note_modal.php";
 
 
 ?>
-
-<?php if (!empty($add_back)): ?>
+ <!-- <?php if (!empty($add_back)): ?>
     <a href="<?=ROOT?>/back" class="back-btn">← Back</a>
 <?php endif; ?>
 
@@ -43,7 +42,7 @@ include_once "../app/views/partials/note_modal.php";
     transform: translateY(0);
 }
 
-</style>
+</style> -->
 
 <script>
     window.showPopupError = function(message) {

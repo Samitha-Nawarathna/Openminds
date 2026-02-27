@@ -5,7 +5,8 @@
     $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
-    include_once "../app/views/partials/Rnavbar.view.php)";
+    include "../app/views/partials/focus_timer.php";
+    // include_once "../app/views/partials/Rnavbar.view.php)";
 
 ?>
 
@@ -16,6 +17,10 @@
             <input type="text" id="topic-name-input"  placeholder="e.g., Quantum Physics Basics">
             <p id="validation-result" class="validation-message"></p>
             <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()">Create Topic</button>
+
+            <button onclick="history.back()" class= "button" style="text-align: center; background-color: var(--color-surface); color: black; border: none;">
+                ← Back
+            </button>
         </section>
 
         </div>
