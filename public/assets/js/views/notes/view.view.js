@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const unitLabel = document.querySelector('.unit-label');
 
     const setTime = document.getElementById('timer-minutes-input').value; //save the set focut time
-    
+
     // --- New Fixed Timer Elements ---
     const focusButtonTrigger = document.getElementById('focus-button-trigger');
     const runningTimerState = document.getElementById('running-timer-state');
@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isRunning = false;
     let totalSeconds = 0;
 
-        // auto resume if timer exists
-    if(localStorage.getItem("targetTime")){
-    formatTime();
-}
+    // auto resume if timer exists
+    if (localStorage.getItem("targetTime")) {
+        formatTime();
+    }
 
     // --- Utility and Core Timer Functions ---
     function open_note(id) {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateCountdown() {
         const targetTime = localStorage.getItem("targetTime");
-        
+
         if (!targetTime) {
             stopTimer();
             return;
@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalSeconds = Math.floor(remainingMs / 1000);
         const mins = Math.floor(totalSeconds / 60);
         const secs = totalSeconds % 60;
-        
-        countdownDisplayFixed.textContent = 
+
+        countdownDisplayFixed.textContent =
             `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate and save the end timestamp
         const targetTimestamp = Date.now() + (minutes * 60 * 1000);
         localStorage.setItem("targetTime", targetTimestamp);
+        localStorage.setItem("focusStartTime", Date.now()); // Save start time for tracking
 
         // Update UI
         timerModal.style.display = 'none';
@@ -106,7 +107,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopTimer(completed = false) {
         clearInterval(timerInterval);
         localStorage.removeItem("targetTime");
-        
+
+        // Record elapsed time if a start time exists
+        const startTime = localStorage.getItem("focusStartTime");
+        if (startTime) {
+            const elapsedMs = Date.now() - parseInt(startTime);
+            const elapsedMins = Math.round(elapsedMs / 60000);
+
+            checkMidnightRollover(); // Ensure we are on the current day before saving
+
+            if (elapsedMins > 0) {
+                let todayTime = parseInt(localStorage.getItem("focusTime_today")) || 0;
+                todayTime += elapsedMins;
+                localStorage.setItem("focusTime_today", todayTime);
+            }
+            localStorage.removeItem("focusStartTime");
+        }
+
         runningTimerState.style.display = 'none';
         focusButtonTrigger.style.display = 'block';
 
@@ -115,8 +132,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-// --- Persistence Logic (The "Auto-Resume") ---
+    // --- Persistence Logic (The "Auto-Resume" & Rollover) ---
+    function checkMidnightRollover() {
+        const currentDate = new Date().toDateString();
+        const savedDate = localStorage.getItem("focusTime_date");
+
+        if (savedDate !== currentDate) {
+            if (savedDate) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Midnight today
+                const lastSaved = new Date(savedDate);
+                lastSaved.setHours(0, 0, 0, 0);
+
+                const diffDays = Math.round((today - lastSaved) / (1000 * 60 * 60 * 24));
+                const oldTodayTime = parseInt(localStorage.getItem("focusTime_today")) || 0;
+
+                if (diffDays === 1) {
+                    localStorage.setItem("focusTime_yesterday", oldTodayTime);
+                } else if (diffDays > 1) {
+                    localStorage.setItem("focusTime_yesterday", 0);
+                }
+            } else {
+                localStorage.setItem("focusTime_yesterday", 0);
+            }
+
+            localStorage.setItem("focusTime_today", 0);
+            localStorage.setItem("focusTime_date", currentDate);
+        }
+    }
+
     function checkExistingTimer() {
+        checkMidnightRollover();
+
         const targetTime = localStorage.getItem("targetTime");
         if (targetTime) {
             const remaining = targetTime - Date.now();
@@ -129,6 +176,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Timer expired while page was closed
                 localStorage.removeItem("targetTime");
+
+                const startTime = localStorage.getItem("focusStartTime");
+                if (startTime) {
+                    // Time spent is the interval between start and exactly targetTime
+                    const elapsedMs = parseInt(targetTime) - parseInt(startTime);
+                    const elapsedMins = Math.round(elapsedMs / 60000);
+
+                    if (elapsedMins > 0) {
+                        let todayTime = parseInt(localStorage.getItem("focusTime_today")) || 0;
+                        todayTime += elapsedMins;
+                        localStorage.setItem("focusTime_today", todayTime);
+                    }
+                    localStorage.removeItem("focusStartTime");
+                }
             }
         }
     }
@@ -154,21 +215,21 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn.addEventListener('click', () => timerModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === timerModal) timerModal.style.display = 'none'; });
 });
-  
 
-    // --- Delete Button Confirmation ---
-    const deleteBtn = document.querySelector('.btn-delete');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm("Are you sure you want to delete this note?")) {
-                const deleteForm = document.getElementById('delete-note-form');
-                if (deleteForm) {
-                    deleteForm.submit();
-                } else {
-                    console.error("Delete form not found");
-                }
+
+// --- Delete Button Confirmation ---
+const deleteBtn = document.querySelector('.btn-delete');
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm("Are you sure you want to delete this note?")) {
+            const deleteForm = document.getElementById('delete-note-form');
+            if (deleteForm) {
+                deleteForm.submit();
+            } else {
+                console.error("Delete form not found");
             }
-        });
-    }
+        }
+    });
+}
 ;

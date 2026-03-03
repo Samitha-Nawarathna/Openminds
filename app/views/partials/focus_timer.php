@@ -27,3 +27,11 @@
         </div>
     </div>
 </div>
+
+<div id="running-timer-state" class="timer-display-running" style="display: none;">
+    <div class="progress-container">
+        <div id="progress-bar-fill"></div>
+    </div>
+    <span id="countdown-display-fixed">00:00</span>
+    <button id="cancel-timer-btn" class="btn-cancel-fixed">&times;</button>
+</div>

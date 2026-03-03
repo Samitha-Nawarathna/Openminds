@@ -3,8 +3,9 @@
 $title = 'Topic browser';
 $filename = 'notes/title';
 
+
 include_once '../app/views/partials/header.view.php';
-// include_once '../app/views/partials/Rnavbar.view.php';
+include_once '../app/views/partials/Rnavbar.view.php';
 include "../app/views/partials/focus_timer.php";
 
 
@@ -14,6 +15,8 @@ include "../app/views/partials/focus_timer.php";
     <header>
         <h1 class="main-title">Topics</h1>
     </header>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     
         <div class="filter-bar">

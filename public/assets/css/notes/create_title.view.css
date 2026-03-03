@@ -158,23 +158,25 @@ label {
 }
 
 /* --- Section 2: Notes Management Styles --- */
+
 #notes-modal {
-    justify-self: center;
-    align-self: center;
-    position: absolute;
-    top: 0%;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
+    top: 30%;
+    left: 30%;
+    transform: translate(-30%, -30%);
+    z-index: 1000;
 }
 
+/* 
 .modal-content {
     margin: 0;
-}
+} */
 
-.panels-container {
+/* .panels-container {
     display: flex;
     gap: var(--space-md);
-}
+    align-items: flex-start; /* Prevents panels from stretching weirdly
+}*/
 
 .panel {
     /* Base panel style uses surface and shadow */
@@ -385,34 +387,55 @@ label {
 }
 
 /* MODAL STYLES */
+/* 1. The Overlay: Full screen, darkened, and centers its children */
 .modal {
     display: none;
-    /* Hidden by default */
+    /* Hidden by JS */
     position: fixed;
-    z-index: 1000;
-    /* Ensure it's on top of everything */
+    z-index: 2000;
+    /* Higher than navbars */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    /* Dark background overlay */
-    padding-top: 50px;
-    animation: fadeIn 0.3s;
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Slightly darker for focus */
+
+    /* Perfect Centering */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
 }
 
+/* 2. The Content Box: Defines the actual size */
 .modal-content {
     background-color: var(--color-surface);
-    margin: 10% auto;
-    /* Center it vertically and horizontally */
-    padding: var(--space-lg);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    width: 90%;
-    max-width: 1000px;
+    box-shadow: var(--shadow-lg);
     position: relative;
-    animation: slideIn 0.4s;
+
+    /* SIZE CONTROL */
+    width: 100%;
+    max-width: 1000px;
+    /* Gives room for the 2-panel layout */
+    min-height: 400px;
+    /* Prevents collapsing when empty */
+    max-height: 85vh;
+    /* Prevents going off-screen */
+
+    /* SCROLLING */
+    overflow-y: auto;
+    padding: var(--space-lg);
+    animation: slideIn 0.3s ease-out;
+}
+
+/* 3. Panel Fix: Ensure the search panels don't overflow */
+.panels-container {
+    display: flex;
+    gap: var(--space-lg);
+    width: 100%;
+    margin-top: var(--space-md);
 }
 
 .close-btn {
@@ -477,14 +500,15 @@ label {
         flex-direction: column;
     }
 
-    .left-panel,
-    .right-panel {
-        flex: 1;
+    .modal-content {
+        width: 95%;
+        margin: 20px auto;
+        padding: var(--space-md);
     }
 
-    .modal-content {
+    /* .modal-content {
         margin: 5% auto;
-    }
+    } */
 }
 
 /* NEW: Load More Container */

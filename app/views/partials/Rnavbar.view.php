@@ -3,6 +3,8 @@
                
                $nav_role = $_SESSION['role'] ?? null;
 
+            //    include "C:\xampp\htdocs\Openminds\public\assets\css\analysis\systemview.view.css";
+
                if ($nav_role && $nav_role === "admin"){
                     echo '<li class="dropdown">
                     Admin previlages
@@ -45,7 +47,7 @@
         </div>
     </div> -->
 </nav>
-<div class="nav-placeholder"></div> -->
+<div class="nav-placeholder"></div>
 
 <script type="module">
     const ROOT = "<?=ROOT?>";
@@ -480,14 +482,32 @@
     </div>   
             
             <div class="rnav-section">
-            <div class="rnav-header">YOUR PROGRESS</div>
+            <div class="rnav-header"><br>YOUR PROGRESS</div>
 
-                <div class="rsidebar-content">
-                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-                    <section class="overview-grid" id="overview-panel">
-                    </section>
+            <!-- kpi-cards -->
+            <div id="navbar-notes-kpi">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Notes</div>
+                    <div class="kpi-value" id="stat-notes">0</div>
+                    <div class="kpi-change" id="change-notes"></div>
                 </div>
-            </a> 
+                <div class="kpi-card">
+                    <div class="kpi-title">Questions Asked</div>
+                    <div class="kpi-value" id="stat-questions">0</div>
+                    <div class="kpi-change" id="change-questions"></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Exercises Attempted</div>
+                    <div class="kpi-value" id="stat-exercises">0</div>
+                    <div class="kpi-change" id="change-exercises"></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Consistency</div>
+                    <div class="kpi-value" id="stat-consistency">0/0</div>
+                    <div class="kpi-change" id="change-consistency"></div>
+                </div>
+            </div>
+            
             
             <?php if ($nav_role === "expert"): ?>
                 <div class="radmin-divider">
