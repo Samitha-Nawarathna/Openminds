@@ -468,6 +468,101 @@
     #navbar-notes-kpi .kpi-change {
         font-size: 0.75rem;
     }
+
+    /* Focus Timer Squares UI */
+    .focus-timer-squares {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 0 0.5rem;
+    }
+
+    .focus-square {
+        background-color: var(--color-blue-50);
+        border: 1px solid var(--color-blue-100);
+        border-radius: var(--radius-md);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* Big square for Today */
+    .focus-square.today {
+        width: 120px;
+        height: 120px;
+        background-color: var(--color-primary-accent);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    }
+    
+    .focus-square.today .focus-title {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .focus-square.today .focus-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+    
+    .focus-square.today .focus-unit {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+    }
+
+    /* Smaller square for Yesterday */
+    .focus-square.yesterday {
+        width: 90px;
+        height: 90px;
+    }
+    .focus-square.yesterday .focus-title {
+        font-size: 0.7rem;
+        color: var(--color-text-light);
+        margin-bottom: 0.25rem;
+    }
+
+    .focus-square.yesterday .focus-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text-dark);
+    }
+    
+    .focus-square.yesterday .focus-unit {
+        font-size: 0.7rem;
+        color: var(--color-text-light);
+    }
+
+        /* Smaller square for target */
+    .focus-square.target {
+        width: 90px;
+        height: 90px;
+    }
+    .focus-square.target .focus-title {
+        font-size: 0.7rem;
+        color: var(--color-text-light);
+        margin-bottom: 0.25rem;
+    }
+
+    .focus-square.target .focus-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text-dark);
+    }
+    
+    .focus-square.target .focus-unit {
+        font-size: 0.7rem;
+        color: var(--color-text-light);
+    }
 </style>
 
 
@@ -508,6 +603,46 @@
                 </div>
             </div>
             
+            <div class="rnav-header" style="margin-top: 2rem;">FOCUS TIMER</div>
+            <div class="focus-timer-squares">
+                <!-- Smaller square for Yesterday -->
+                <div class="focus-square yesterday">
+                    <div class="focus-title">Yesterday</div>
+                    <div class="focus-value" id="stat-focus-yesterday">0</div>
+                    <div class="focus-unit">min</div>
+                </div>
+
+                <!-- Big square for Today -->
+                <div class="focus-square today">
+                    <div class="focus-title">Today</div>
+                    <div class="focus-value" id="stat-focus-today">0</div>
+                    <div class="focus-unit">min</div>
+                </div>
+                
+                
+                <!-- Smaller square for target -->
+                <div class="focus-square target" onclick="setFocusTarget()" style="cursor: pointer;">
+                    <div class="focus-title">Target</div>
+                    <div class="focus-value" id="stat-focus-target">0</div>
+                    <div class="focus-unit">min</div>
+                </div>
+
+                <script>
+                function setFocusTarget() {
+                    const current = document.getElementById('stat-focus-target').innerText;
+                    const val = prompt("Set your daily focus target (minutes):", current);
+                    if (val !== null && val.trim() !== "" && !isNaN(val)) {
+                        document.getElementById('stat-focus-target').innerText = val;
+                        localStorage.setItem('focus_target_minutes', val);
+                    }
+                }
+                document.addEventListener('DOMContentLoaded', () => {
+                    const saved = localStorage.getItem('focus_target_minutes');
+                    if (saved) document.getElementById('stat-focus-target').innerText = saved;
+                });
+                </script>
+            </div>
+            
             
             <?php if ($nav_role === "expert"): ?>
                 <div class="radmin-divider">
@@ -538,7 +673,25 @@
 
 
 <script>
+    window.updateFocusTimeUI = function() {
+        const todayEl = document.getElementById('stat-focus-today');
+        const yesterdayEl = document.getElementById('stat-focus-yesterday');
+        if(todayEl) todayEl.textContent = (parseInt(localStorage.getItem('focusTime_today')) || 0);
+        if(yesterdayEl) yesterdayEl.textContent = (parseInt(localStorage.getItem('focusTime_yesterday')) || 0);
+    };
+    
+    // const targetEl = document.getElementById('stat-focus-target');
+    
+
+
+
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize focus timer UI
+        window.updateFocusTimeUI();
+        window.addEventListener('storage', function(e) {
+            if(e.key === 'focusTime_today' || e.key === 'focusTime_yesterday') window.updateFocusTimeUI();
+        });
+
         const rsidebar = document.getElementById('rsidebar');
         const rtoggleBtn = document.getElementById('rtoggleBtn');
         const rdropdownToggles = document.querySelectorAll('.rdropdown-toggle');

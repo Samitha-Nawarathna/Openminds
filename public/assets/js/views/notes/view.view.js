@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let todayTime = parseInt(localStorage.getItem("focusTime_today")) || 0;
                 todayTime += elapsedMins;
                 localStorage.setItem("focusTime_today", todayTime);
+                if (typeof window.updateFocusTimeUI === 'function') window.updateFocusTimeUI();
             }
             localStorage.removeItem("focusStartTime");
         }
@@ -158,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             localStorage.setItem("focusTime_today", 0);
             localStorage.setItem("focusTime_date", currentDate);
+            if (typeof window.updateFocusTimeUI === 'function') window.updateFocusTimeUI();
         }
     }
 
@@ -187,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         let todayTime = parseInt(localStorage.getItem("focusTime_today")) || 0;
                         todayTime += elapsedMins;
                         localStorage.setItem("focusTime_today", todayTime);
+                        if (typeof window.updateFocusTimeUI === 'function') window.updateFocusTimeUI();
                     }
                     localStorage.removeItem("focusStartTime");
                 }
