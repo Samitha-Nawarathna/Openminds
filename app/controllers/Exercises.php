@@ -75,8 +75,8 @@ class Exercises extends Controller
         }
 
         $data = $this->json_request();
-        $current_user = $_SESSION['user_id'] ?? null;
-        // $current_user = $_SESSION['user_id'] ?? 2;
+        // $current_user = $_SESSION['user_id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? 2;
 
         // Require authentication
         if (!$current_user) {
@@ -294,7 +294,7 @@ class Exercises extends Controller
         $tags_list = [];
 
         foreach ($tag_in_exercise as $key => $tag) {
-            // $tag_info = $subject->first(['id' => $tag->tag_id]);
+             $tag_info = $subject->first(['id' => $tag->tag_id]);
             $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
         }
 
@@ -350,9 +350,9 @@ class Exercises extends Controller
         };
 
         //remember to fetch review data too
-        $review_data = [
-            'average_score' => 0.8,
-        ];
+        // $review_data = [
+        //     'average_score' => 0.8,
+        // ];
 
 
         // --- MOCK DATA SETUP ---
@@ -846,11 +846,11 @@ class Exercises extends Controller
 
             $params = [];
 
-            // Optional: Filter by subject
-            if ($subject_id > 0) {
-                $query .= " AND e.subject_id = :subject_id";
-                $params[':subject_id'] = $subject_id;
-            }
+            // // Optional: Filter by subject
+            // if ($subject_id > 0) {
+            //     $query .= " AND e.subject_id = :subject_id";
+            //     $params[':subject_id'] = $subject_id;
+            // }
 
             // Exclude creator's own exercises
             $query .= " AND e.creator_id != :current_user_id";
@@ -956,7 +956,9 @@ class Exercises extends Controller
                 'id' => (int)$bundle['exercise']['id'],
                 'title' => $bundle['exercise']['title'],
                 'subject' => $bundle['exercise']['subject_name'],
+                'tags' => $bundle['exercise']['tags'] ?? [],
                 'creator_name' => $exercise['creator_name'],
+                'creator_role' => $bundle['exercise']['creator_role'] ?? 'Unknown',
                 'created_at' => $bundle['exercise']['created_at'],
                 'creator_id' => (int)$bundle['exercise']['creator_id'],
                 'questions' => $bundle['questions']
@@ -1019,7 +1021,10 @@ class Exercises extends Controller
                 'id' => (int)$bundle['exercise']['id'],
                 'title' => $bundle['exercise']['title'],
                 'subject' => $bundle['exercise']['subject_name'],
+                'tags' => $bundle['exercise']['tags'] ?? [],
                 'created_at' => $bundle['exercise']['created_at'],
+                'creator_name' => $bundle['exercise']['creator_name'] ?? 'Unknown',
+                'creator_role' => $bundle['exercise']['creator_role'] ?? 'Unknown',
                 'creator_id' => (int)$bundle['exercise']['creator_id'],
                 'questions' => $bundle['questions'],
             ]);
@@ -1561,13 +1566,19 @@ class Exercises extends Controller
      */
     private function fetchExerciseBundle(PDO $pdo, int $exercise_id)
     {
-        $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.id = :id LIMIT 1");
+        $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name, u.username AS creator_name, r.name AS creator_role FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id LEFT JOIN user u ON u.id = e.creator_id LEFT JOIN roles r ON r.role_id = u.role WHERE e.id = :id LIMIT 1");
         $exerciseStmt->execute([':id' => $exercise_id]);
         $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$exercise) {
             return null;
         }
+
+        $tagStmt = $pdo->prepare("SELECT t.name FROM exercisetag et JOIN tags t ON t.id = et.tag_id WHERE et.exercise_id = :exercise_id ORDER BY t.name ASC");
+        $tagStmt->execute([':exercise_id' => $exercise_id]);
+        $exercise['tags'] = array_values(array_map(function ($row) {
+            return $row['name'];
+        }, $tagStmt->fetchAll(PDO::FETCH_ASSOC)));
 
         $questionStmt = $pdo->prepare("SELECT id, question_text, explanation, weight FROM exercisequestion WHERE exercise_id = :exercise_id ORDER BY display_order ASC, id ASC");
         $questionStmt->execute([':exercise_id' => $exercise_id]);

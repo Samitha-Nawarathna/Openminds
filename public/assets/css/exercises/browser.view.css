@@ -1,7 +1,7 @@
 /* General Body Styles */
 body {
     font-family: var(--font-body, sans-serif);
-    background-color: var(--color-background, #f9f9f9);
+    background-color: var(--color-background, #d6e4ff);
     margin: 0;
     padding-bottom: 50px;
 }
@@ -23,7 +23,7 @@ body {
     font-size: 3em;
     font-weight: 600;
     margin: 0;
-    color: #333;
+    color: #000;
 }
 
 /* --- Filter Bar --- */
@@ -47,7 +47,7 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #ffffff;
-    color: #555;
+    color: #000;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
@@ -141,7 +141,7 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: white;
-    color: #555;
+    color: #000;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
 }
@@ -178,7 +178,7 @@ body {
 .exercise-title-list {
     flex-grow: 1;
     font-size: 1.1em;
-    color: #333;
+    color: #000;
 }
 
 .subject-pill {

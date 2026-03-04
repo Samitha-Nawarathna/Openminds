@@ -318,12 +318,13 @@ body {
     background: #ffffff;
     border: 1px solid #e3e7ef;
     border-radius: 14px;
-    padding: 28px 26px;
+    padding: 0 26px;
     box-shadow: 0 8px 20px rgba(17, 24, 39, 0.06);
 }
 
 .question-prompt-block {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    margin-top: 1px;
 }
 
 .question-title {
@@ -370,6 +371,7 @@ body {
     color: #6b7280;
     margin: 18px 0 0;
     font-weight: 600;
+    padding-bottom: 2px;
 }
 
 .answer-options-list {
@@ -379,12 +381,13 @@ body {
     margin-top: 18px;
 }
 
+
 .option-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 16px;
+    padding: 8px 10px;
     background: #fff;
     border: 1px solid #e2e6f0;
     border-radius: 12px;
@@ -824,6 +827,7 @@ h1 {
     font-weight: bold;
     font-size: 1.1em;
     color: #333;
+    padding-left: 60px;
 }
 
 .feedback-area {
