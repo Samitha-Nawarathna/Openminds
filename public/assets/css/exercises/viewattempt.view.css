@@ -175,67 +175,154 @@ h1 {
 /* -----------------------------
  *      QUESTION STYLING
  * ------------------------------ */
-.question-block {
-    margin-bottom: var(--space-lg);
+
+.question-shell {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
-.question-prompt {
-    font-size: var(--font-size-lg);
+.title-stack {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.page-subtitle {
+    color: #6b7280;
+    margin-top: 6px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: #edf0f5;
+    border-radius: 999px;
+    margin-top: 14px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0;
+    background: var(--color-primary);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+}
+
+.question-card {
+    background: #ffffff;
+    border: 1px solid #e3e7ef;
+    border-radius: 14px;
+    padding: 28px 26px;
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.06);
+}
+
+.question-prompt-block {
+    margin-bottom: 12px;
+}
+
+.question-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+}
+
+.question-subtext {
+    text-align: center;
+    color: #6b7280;
+    margin: 18px 0 0;
     font-weight: 600;
-    margin-bottom: var(--space-md);
-    padding-bottom: var(--space-xs);
-    border-bottom: 1px solid var(--color-border-light);
-    min-height: 80px;
 }
 
 .answer-options-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 14px;
+    margin-top: 18px;
 }
 
-/* Unified Option Styling */
-.option-label {
+.option-card {
     display: flex;
     align-items: center;
-    padding: var(--space-xs) var(--space-sm);
-    margin-bottom: var(--space-xs);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    cursor: default;
-    transition: all 0.2s;
-    user-select: none;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #e2e6f0;
+    border-radius: 12px;
+    transition: all 0.18s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-.option-label input[type="checkbox"],
-.option-label input[type="radio"] {
-    margin-right: 10px;
+.option-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Results Styling - Correct Answer State */
-.option-label.is-correct {
+.option-left input[type="checkbox"],
+.option-left input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.option-text {
+    font-size: 1rem;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.option-badge {
+    margin-left: auto;
+    font-size: 0.85rem;
+    letter-spacing: 1.2px;
+    color: #111827;
+    border: 1px solid #dfe3ef;
+    background: #f7f9fe;
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.option-card.is-correct {
     border-color: var(--color-success);
-    background-color: var(--color-green-50);
-    font-weight: 600;
+    background-color: #f0fff4;
 }
 
-/* User's Selected Answer States */
-.option-label.was-selected.is-correct {
-    background-color: var(--color-green-100);
-    border-width: 2px;
+.option-card.is-correct .option-text {
+    font-weight: 700;
 }
 
-.option-label.was-selected:not(.is-correct) {
-    background-color: var(--color-red-50);
-    border-color: var(--color-error);
-    border-width: 2px;
+.option-card.user-wrong {
+    border-color: #c084fc;
+    background-color: #f7efff;
 }
 
-.option-label.user-wrong {
-    background-color: var(--color-red-50);
-    border-color: var(--color-error);
-    border-width: 2px;
+.option-card.was-selected:not(.is-correct):not(.user-wrong) {
+    border-color: #9ab6ff;
+}
+
+.state-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #34c759;
+}
+
+.option-card.user-wrong .state-icon {
+    color: #a855f7;
 }
 
 /* Explanation Box */
@@ -275,17 +362,43 @@ h1 {
 .modal-content {
     background-color: var(--color-surface);
     margin: auto;
-    padding: 30px;
+    padding: 40px 30px;
     border: 1px solid var(--color-border);
     width: 90%;
     max-width: 500px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+.modal-content h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 10px;
+}
+
+.modal-content > p {
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+    font-weight: 600;
 }
 
 .modal-start-btn {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: 600;
     border: none;
 }
@@ -298,6 +411,7 @@ h1 {
     display: flex;
     justify-content: space-between;
     height: fit-content;
+    margin-bottom: 15px;
 }
 
 .meta-data p {
@@ -443,22 +557,27 @@ h1 {
  *      SCORE BADGE
  * ------------------------------ */
 .score-badge {
-    padding: var(--space-sm);
+    padding: 15px 30px;
     border-radius: var(--radius-md);
     font-weight: 700;
-    font-size: var(--font-size-base);
+    font-size: 2rem;
     min-width: 100px;
     text-align: center;
+    background-color: var(--color-gray-100);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
 }
 
 .score-badge.passed {
-    background-color: var(--color-green-100);
+    background-color: var(--color-green-50);
     color: var(--color-green-700);
+    border-color: var(--color-success);
 }
 
 .score-badge.failed {
-    background-color: var(--color-red-50);
-    color: var(--color-red-700);
+    background-color: var(--color-red-500);
+    color: var(--color-surface);
+    border-color: var(--color-error);
 }
 
 /* -----------------------------

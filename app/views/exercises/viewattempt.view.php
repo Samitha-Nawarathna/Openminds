@@ -20,6 +20,7 @@ function format_count($n) {
 <?php 
 // Assuming $data contains attempt_id passed from the Controller.
 $attempt_id = $data['attempt_id'] ?? 2001; // Default to mock ID
+// Use the actual attempt ID from the controller to avoid 404s on the results fetch
 $attempt_details_api_url = ROOT . '/exercises/api/history/' . $attempt_id;
 $exercise_id = $data['exercise_id'] ?? 101; // Needed for vote buttons
 $vote_status_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
@@ -35,17 +36,13 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 <!-- Summary Modal with Vote UI -->
 <div id="summary-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-content">
-        <div id="modal-details-meta" class="meta-data">
-            <p>Attempt ID: <strong><?= $attempt_id ?></strong></p>
-            <p>Attempted On: <span id="modal-date">N/A</span></p>
-        </div>
-
-        <h2 id="modal-title"></h2>
-        <p>You have completed the following exercise:</p>
+        <h2 id="modal-title">Quiz Complete!</h2>
+        <p style="color: var(--color-text-muted); margin-bottom: 20px;">
+            You scored <strong id="score-text">-- / --</strong>
+        </p>
         
         <div style="text-align:center; margin:20px 0; display:flex; justify-content:center; align-items:center; flex-direction:column; width:100%">
-            <p class="caption" style="color:var(--color-placeholder); padding:var(--space-xs)">Your Score:</p> 
-            <p id="final-score" class="score-badge" style="font-size: var(--font-size-xl); font-weight:700; width:fit-content">-- / --</p>
+            <p id="final-score" class="score-badge" style="font-size: 2.5rem; font-weight:700; width:fit-content; margin: 0;">-- / --</p>
         </div>
 
         <!-- Vote UI (Only in Modal) -->
@@ -56,8 +53,17 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
         </div>
         <p id="vote-message" style="text-align:center; color:var(--color-text-muted); font-size:var(--font-size-sm); margin-top:var(--space-xs);" aria-live="polite"></p>
 
-        <button id="start-review-btn" class="btn primary modal-start-btn" aria-label="Start reviewing answers">
-            Start Review
+        <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+            <button id="try-again-btn" class="btn secondary" style="flex: 1;" aria-label="Try this exercise again">
+                Try Again
+            </button>
+            <button id="finished-btn" class="btn primary" style="flex: 1;" aria-label="Return to exercise list">
+                Finished
+            </button>
+        </div>
+        
+        <button id="start-review-btn" class="btn secondary modal-start-btn" style="margin-top: 10px;" aria-label="Start reviewing answers">
+            Review Answers
         </button>
     </div>
 </div>
@@ -68,14 +74,25 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
         <p><span id="exercise-subject"></span></p>
     </header>
 
-    <div class="main-content">
-        <div id="question-container" role="main" aria-live="polite">
-            <!-- Questions will be dynamically rendered here -->
+    <div class="question-shell">
+        <div class="title-stack">
+            <h1 id="exercise-title-hero" class="page-title">Loading...</h1>
+            <p id="exercise-subject-hero" class="page-subtitle"></p>
+            <div class="progress-track" aria-hidden="true">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="explanation-box" class="explanation-box" role="region" aria-label="Answer explanation">
-        <!-- Explanation will be dynamically rendered here -->
+        <div class="main-content">
+            <div id="question-container" class="question-card" role="main" aria-live="polite">
+                <!-- Questions will be dynamically rendered here -->
+            </div>
+            <p id="question-subtext" class="question-subtext">Review your answers</p>
+        </div>
+
+        <div id="explanation-box" class="explanation-box" role="region" aria-label="Answer explanation">
+            <!-- Explanation will be dynamically rendered here -->
+        </div>
     </div>
 </div>
 
@@ -103,9 +120,9 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
 
 <script>
     // Constants for JS
-    const ATTEMPT_DETAILS_URL = '<?= $attempt_details_api_url ?>';
-    const VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
-    const VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
+    window.ATTEMPT_DETAILS_URL = '<?= $attempt_details_api_url ?>';
+    window.VOTE_STATUS_URL = '<?= $vote_status_api_url ?>';
+    window.VOTE_SUBMIT_URL = '<?= $vote_submit_api_url ?>';
 </script>
 
 <?php include_once "../app/views/partials/footer.view.php"; ?>

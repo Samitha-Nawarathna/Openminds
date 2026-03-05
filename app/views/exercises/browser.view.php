@@ -20,7 +20,7 @@
             <button class="btn-filter" id="toggle-advanced-btn">Advanced</button>
             
             <button class="btn-filter" id="filter-btn">Search</button>
-            <a href="<?=ROOT?>/exercises/create" class="btn-create">+ Create</a>
+            <a href="<?=ROOT?>/exercises/create" class="btn-create<?= !empty($data['can_create']) ? '' : ' is-disabled' ?>" <?= !empty($data['can_create']) ? '' : 'aria-disabled="true" tabindex="-1"' ?>>+ Create</a>
         </div>
 
         <!-- NEW: Advanced Filter Panel -->
@@ -50,9 +50,11 @@
 
         <div class="tabs-container" id="tabs-container">
             <button class="tab-button <?= $data['initial_tab'] == 'all' ? 'active' : '' ?>" data-tab="all" id="all-tab">All</button>
-            <button class="tab-button <?= $data['initial_tab'] == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">created by you</button>
-            <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">attempt by you</button>
+            <button class="tab-button <?= $data['initial_tab'] == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">Created by you</button>
+            <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">Attempt by you</button>
             <?php
+
+            //for testing
             if (isset($_SESSION['role']) && ($_SESSION['role'] === 'expert' || $_SESSION['role'] === 'admin')) {
                 echo '<button class="tab-button ' . ($data['initial_tab'] == 'pending' ? 'active' : '') . '" data-tab="pending" id="pending-tab">Pending</button>';
             }
@@ -88,7 +90,8 @@
 
     <script>
         // Pass essential state data to JavaScript
-        const INITIAL_OFFSET = <?= $data['initial_limit'] ?? 5 ?>; 
+        const INITIAL_OFFSET = <?= $data['initial_offset'] ?? 0 ?>;
+        const INITIAL_LIMIT = <?= $data['initial_limit'] ?? 5 ?>;
         const INITIAL_TAB = '<?= $data['initial_tab'] ?? 'all' ?>';
     </script>
 

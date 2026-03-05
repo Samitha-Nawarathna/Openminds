@@ -13,11 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedFilterPanel = document.getElementById('advanced-filter-panel');
     const subjectFilter = document.getElementById('subject-filter');
     const sortFilter = document.getElementById('sort-filter');
+    const createBtn = document.querySelector('.btn-create');
 
     // --- State ---
     let currentTab = INITIAL_TAB; 
     let offset = INITIAL_OFFSET; 
-    const limit = 5; 
+    const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5; 
 
     // --- Dynamic Color Generation ---
     function getRandomPastelColorPair(subject) {
@@ -56,6 +57,28 @@ document.addEventListener('DOMContentLoaded', () => {
         advancedFilterPanel.classList.toggle('hidden');
         toggleAdvancedBtn.textContent = advancedFilterPanel.classList.contains('hidden') ? 'Advanced' : 'Hide';
     });
+
+    function setCreateButtonState(canCreate) {
+        if (!createBtn) return;
+
+        const allowed = Boolean(canCreate);
+        if (allowed) {
+            if (createBtn.dataset.href) {
+                createBtn.setAttribute('href', createBtn.dataset.href);
+            }
+            createBtn.classList.remove('is-disabled');
+            createBtn.removeAttribute('aria-disabled');
+            createBtn.removeAttribute('tabindex');
+        } else {
+            if (!createBtn.dataset.href) {
+                createBtn.dataset.href = createBtn.getAttribute('href') || '';
+            }
+            createBtn.removeAttribute('href');
+            createBtn.classList.add('is-disabled');
+            createBtn.setAttribute('aria-disabled', 'true');
+            createBtn.setAttribute('tabindex', '-1');
+        }
+    }
 
     // --- Data Fetching Logic ---
 
@@ -133,6 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Backend should return { exercises: [], has_more: bool }
             renderExercises(data.exercises);
 
+            if (data.permissions && Object.prototype.hasOwnProperty.call(data.permissions, 'can_create')) {
+                setCreateButtonState(data.permissions.can_create);
+            }
+
             const hasMore = data.has_more;
             loadMoreBtn.textContent = hasMore ? 'Load More' : 'No More Exercises';
             loadMoreBtn.disabled = !hasMore;
@@ -178,4 +205,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialization ---
     applyDynamicPillColors();
+    loadData(true);
 });

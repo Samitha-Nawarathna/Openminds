@@ -20,13 +20,14 @@ function format_count($n) {
 
 <?php 
 // Assuming $data contains exercise_id passed from the Controller (e.g., from the pending review list).
-$exercise_id = $data['exercise_id'] ?? 105; // Default to mock ID
-// Use the same API as loading the attempt exercise content, but it will be read-only here.
-$review_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id; 
+$exercise_id = $data['exercise_id'] ?? null; 
+// Use the new expert review API endpoint for loading exercise data
+$review_api_url = ROOT . 'exercises/api/load_review_data/' . $exercise_id; 
 
-$edit_url = ROOT . '/exercises/edit?id=' . $exercise_id;
-$approve_url = ROOT . '/exercises/approve';
-$reject_url = ROOT . '/exercises/reject';
+$edit_url = ROOT . 'exercises/edit?id=' . $exercise_id;
+// Update URLs to new API endpoints
+$approve_url = ROOT . 'exercises/api/approve_exercise';
+$reject_url = ROOT . 'exercises/api/reject_exercise';
 ?>
 
 <style>
@@ -210,38 +211,43 @@ $reject_url = ROOT . '/exercises/reject';
         }
         // For 'approve', 'feedback' remains an empty string.
 
-        // Determine target URL and POST data
+        // Determine target URL based on action
         const targetUrl = action === 'approve' ? APPROVE_URL : REJECT_URL;
         
-        // Use FormData to prepare data for submission
-        const formData = new FormData();
-        formData.append('exercise_id', EXERCISE_ID);
-        // Submit the feedback text (will be empty for approve, required string for reject)
-        formData.append('feedback', feedback);
+        // Prepare JSON payload
+        const payload = {
+            exercise_id: EXERCISE_ID,
+            feedback: feedback
+        };
 
-        // Submit data using Fetch API
+        // Submit data using Fetch API with JSON
         fetch(targetUrl, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         })
         .then(response => {
-            // Check if response is JSON or successful redirect/status
-            if (response.ok) {
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
                 alert(`Successfully submitted ${action} for Exercise ID ${EXERCISE_ID}.`);
-                window.location.href = `${ROOT}/exercises/expertreview`; // Redirect to review list
+                // Redirect to pending exercises list
+                window.location.href = `${ROOT}exercises/expertreview`;
             } else {
-                response.json().then(data => {
-                    alert(`Failed to complete action: ${data.message || 'An unknown server error occurred.'}`);
-                    window.closeModal('confirmation-modal');
-                }).catch(() => {
-                    alert(`Failed to complete action (HTTP Status ${response.status}).`);
-                    window.closeModal('confirmation-modal');
-                });
+                alert(`Failed to complete action: ${data.message || 'An unknown server error occurred.'}`);
+                window.closeModal('confirmation-modal');
             }
         })
         .catch(error => {
             console.error('Submission Error:', error);
-            alert('A network error occurred during submission.');
+            alert('A network error occurred during submission: ' + error.message);
+            window.closeModal('confirmation-modal');
         });
     });
 
