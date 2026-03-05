@@ -18,31 +18,31 @@ let totalAvailableNotes = 0; // Track total for "Load More" logic
  * Updates the UI elements based on the topic creation state.
  */
 function updateTopicCreationUI() {
-    const topicInput = document.getElementById('topic-name-input');
-    const createBtn = document.getElementById('create-topic-btn');
+    const subjectInput = document.getElementById('subject-name-input');
+    const createBtn = document.getElementById('create-subject-btn');
 
     if (isTopicCreated) {
         // Topic created state
-        topicInput.disabled = true;
+        subjectInput.disabled = true;
         createBtn.className = 'button button-secondary';
         createBtn.textContent = 'Undo Topic Creation';
         createBtn.setAttribute('onclick', 'undoTopicCreation()');
     } else {
         // Pre-creation state
-        topicInput.disabled = false;
+        subjectInput.disabled = false;
         createBtn.className = 'button button-primary';
-        createBtn.textContent = 'Create Topic';
-        createBtn.setAttribute('onclick', 'createTopic()');
+        createBtn.textContent = 'Create Subject';
+        createBtn.setAttribute('onclick', 'createSubject()');
     }
 }
 
 /**
  * Validates the topic name input.
- * @param {string} topicName 
+ * @param {string} subjectName 
  */
-function validateTopicName(topicName) {
-    const trimmedName = topicName.trim();
-    const createBtn = document.getElementById('create-topic-btn');
+function validatesubjectName(subjectName) {
+    const trimmedName = subjectName.trim();
+    const createBtn = document.getElementById('create-subject-btn');
     const validationResult = document.getElementById('validation-result');
 
     if (trimmedName.length === 0) {
@@ -60,25 +60,25 @@ function validateTopicName(topicName) {
     }
 }
 
-window.validateTopicName = validateTopicName;
+window.validatesubjectName = validatesubjectName;
 
 /**
  * Creates a new topic via API and opens the modal.
  */
-async function createTopic() {
-    const topicName = document.getElementById('topic-name-input').value;
+async function createSubject() {
+    const subjectName = document.getElementById('subject-name-input').value;
 
-    if (!document.getElementById('create-topic-btn').disabled && !isTopicCreated) {
+    if (!document.getElementById('create-subject-btn').disabled && !isTopicCreated) {
 
         try {
             const formData = new FormData();
-            formData.append('name', topicName);
+            formData.append('name', subjectName);
 
             // Use absolute path with ROOT
             const root = window.ROOT || ''; // Fallback if ROOT undefined
             const response = await fetch(`${root}topics/api/create`, {
                 method: 'POST',
-                body: JSON.stringify({ name: topicName }),
+                body: JSON.stringify({ name: subjectName }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -106,7 +106,7 @@ async function createTopic() {
     }
 }
 
-window.createTopic = createTopic;
+window.createSubject = createSubject;
 
 /**
  * "Undoes" the creation (For now, just resets UI, does not delete from DB unless we add that API).
@@ -114,7 +114,7 @@ window.createTopic = createTopic;
  * Here we revert UI state.
  */
 function undoTopicCreation() {
-    if (confirm("This will reset the form. The topic '" + document.getElementById('topic-name-input').value + "' has already been created in the background. Continue?")) {
+    if (confirm("This will reset the form. The subject '" + document.getElementById('subject-name-input').value + "' has already been created in the background. Continue?")) {
         // Close the modal immediately
         closeNotesModal();
 
@@ -123,8 +123,8 @@ function undoTopicCreation() {
         selectedNotesToMove = [];
         updateNotesPanels();
 
-        document.getElementById('topic-name-input').value = '';
-        validateTopicName('');
+        document.getElementById('subject-name-input').value = '';
+        validatesubjectName('');
         updateTopicCreationUI();
     }
 }
@@ -382,7 +382,7 @@ async function moveNotesToNewTopic() {
                 selectedNotesToMove = [];
                 isTopicCreated = false;
                 currentTopicId = null;
-                document.getElementById('topic-name-input').value = '';
+                document.getElementById('subject-name-input').value = '';
                 updateTopicCreationUI();
 
                 // Maybe reload page to show new topic?
@@ -411,8 +411,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAddedNotes();
     updateTopicCreationUI();
 
-    document.getElementById('topic-name-input').addEventListener('input', (e) => {
-        validateTopicName(e.target.value);
+    document.getElementById('subject-name-input').addEventListener('input', (e) => {
+        validatesubjectName(e.target.value);
 
     });
 

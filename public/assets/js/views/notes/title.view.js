@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Elements ---
     const loadMoreBtn = document.getElementById('load-more-btn');
-    const listContainer = document.getElementById('topics-list');
+    const listContainer = document.getElementById('subjects-list');
     const filterInput = document.getElementById('topic-filter-input');
     const filterBtn = document.getElementById('filter-btn');
 
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /** Creates the HTML structure for a single topic item. */
-    function createTopicItem(topic) {
+    function createSubjectItem(topic) {
         // Structure: <div class="topic-item" data-id="ID"><a ...>NAME <span class="pin-icon">pin</span></a></div>
         const item = document.createElement('div');
         item.classList.add('topic-item');
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.topics.length === 0 && offset === 0) {
                 listContainer.innerHTML = '<div class="loading">No topics found.</div>';
             } else {
-                response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
+                response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
 
                 // Update offset
                 currentOffset = offset + response.topics.length;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await mockFetchTopics(currentOffset, filterName);
 
-            response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
+            response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
 
             // Update offset
             currentOffset += response.topics.length;

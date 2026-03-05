@@ -11,12 +11,12 @@
 ?>
 
 <div class="main-content-container"> 
-        <section id="create-topic-section">
-            <h2 class="title">Create Topic</h2>
-            <label for="topic-name-input" >Enter the topic name:</label>
-            <input type="text" id="topic-name-input"  placeholder="e.g., Quantum Physics Basics">
+        <section id="create-subject-section">
+            <h2 class="title">Add Subject</h2>
+            <label for="subject-name-input" >Enter the subject name:</label>
+            <input type="text" id="subject-name-input"  placeholder="e.g., Quantum Physics Basics">
             <p id="validation-result" class="validation-message"></p>
-            <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()">Create Topic</button>
+            <button id="create-subject-btn" class="button button-primary" onclick="window.createSubject()">Create Subject</button>
 
             <button onclick="history.back()" class= "button" style="text-align: center; background-color: var(--color-surface); color: black; border: none;">
                 ← Back
@@ -44,7 +44,7 @@
                         <ul id="available-notes-list" class="notes-list">
                             <li class="note-item empty-state">Search for notes to assign.</li>
                         </ul>
-                        <div id="load-more-container" class="text-center" style="padding-top: var(--space-sm);">
+                        <div id="load-more-container" class=  "text-center" style="padding-top: var(--space-sm);">
                             <button id="load-more-btn" class="button-secondary" onclick="window.loadMoreNotes()" style="width: 100%; display: none;">
                                 Load More Notes
                             </button>

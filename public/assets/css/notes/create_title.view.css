@@ -51,7 +51,7 @@ section {
 }
 
 /* --- Section 1: Create Topic Styles --- */
-#create-topic-section {
+#create-subject-section {
     width: 380px;
     /* Slightly wider than 350px for better alignment with tokens */
     margin: 0 auto var(--space-lg) auto;
@@ -73,7 +73,7 @@ label {
 }
 
 /* Use the input-group styling for the topic name input */
-#topic-name-input {
+#subject-name-input {
     width: 100%;
     /* The input itself is styled by the core input styles (borderless) */
     /* We'll wrap it in a div if needed, but for simplicity, we style the input directly 
@@ -87,14 +87,14 @@ label {
     transition: border-color 0.2s;
 }
 
-#topic-name-input:focus {
+#subject-name-input:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
     outline: none;
 }
 
 /* Use the general .button style from core.css */
-/* We rely on the core.css .button and .button-secondary styles now for #create-topic-btn */
+/* We rely on the core.css .button and .button-secondary styles now for #create-subject-btn */
 /* Custom style for the primary button when active/not disabled */
 .button-primary {
     background-color: var(--color-primary);
@@ -106,12 +106,12 @@ label {
 }
 
 
-#create-topic-btn {
+#create-subject-btn {
     /* Ensures margin top for the button is applied */
     margin-top: var(--space-sm);
 }
 
-#create-topic-btn:disabled {
+#create-subject-btn:disabled {
     background-color: var(--color-gray-400);
     /* Use a gray token for disabled state */
     cursor: not-allowed;

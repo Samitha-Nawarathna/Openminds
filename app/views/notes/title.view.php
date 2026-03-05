@@ -10,7 +10,7 @@ include "../app/views/partials/focus_timer.php";
 ?>
 <div class="main-content-container">
     <header>
-        <h1 class="main-title">Topics</h1>
+        <h1 class="main-title">Subjects</h1>
     </header>
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -25,8 +25,8 @@ include "../app/views/partials/focus_timer.php";
         <?php if (!empty($data['recent_topics'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
-                <div class="title"><h3>Pinned Topics</h3></div>
-                <div class="toggle"><p class="caption">Hide</p></div>
+                <div class="title"><h3>Pinned Subjects</h3></div>
+                <!-- <div class="toggle"><p class="caption">Hide</p></div> -->
             </div>
             <div class="card-swapper-container">
                 <div class="cards-wrapper" id="cardsWrapper">
@@ -64,13 +64,13 @@ include "../app/views/partials/focus_timer.php";
         </div>
         <?php endif; ?>
 
-        <div class="list-container" id="topics-list">
-            <h3>Available Topics</h3>
+        <div class="list-container" id="subjects-list">
+            <h3>Available Subjects</h3>
             <?php 
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {
                 // Added data-id for JS event listener
-                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '<span class="pin-icon">pin</span></a></div>';
+                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '</a><span class="pin-icon">pin</span></div>';
             }
             ?>
         </div>
