@@ -5,23 +5,72 @@
    GLOBAL & LAYOUT
 ------------------------------------------- */
 
-/* Body/Container adjustments based on user request */
+/* Body/Container adjustments - Split Screen Layout */
 body {
-    /* Use design system background */
-    background-color: var(--color-blue-100); 
-    padding: var(--space-md); /* Use MD spacing for outer padding */
-    display: flex;
-    justify-content: center; 
     margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
-/* Redefine the main content container to use design system styles */
+/* Split container - holds both left and right sections */
+.split-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Left section - Darker green with centered content */
+.left-section {
+    flex: 1;
+    background-color: var(--color-green-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    overflow-y: auto;
+}
+
+.left-content {
+    max-width: 400px;
+    text-align: center;
+}
+
+.feature-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-text {
+    color: var(--color-surface);
+}
+
+.feature-text h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-sm);
+    font-weight: 600;
+    color: var(--color-surface);
+}
+
+.feature-text p {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Right section contains the form */
 .main-content-container {
-    width: 95%; 
-    max-width: 1200px; 
-    margin-top: 50px; /* Push content down past where a fixed navbar might be */
-    justify-self: center;
-    align-self: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-blue-100);
+    padding: var(--space-md);
+    min-height: 100vh;
+    overflow-y: auto;
+    /* Allow scrolling if content is tall */
 }
 
 h2 {
@@ -33,8 +82,7 @@ h2 {
     font-weight: 600;
 }
 
-.title
-{
+.title {
     margin-top: 0;
     text-align: center;
     width: 100%;
@@ -42,7 +90,8 @@ h2 {
 
 /* Use the design system .container class for general sections */
 section {
-    padding: 0; /* Let the content inside define its padding */
+    padding: 0;
+    /* Let the content inside define its padding */
     margin-bottom: var(--space-lg);
     background-color: transparent;
     box-shadow: none;
@@ -50,11 +99,12 @@ section {
 
 /* --- Section 1: Create Topic Styles --- */
 #create-topic-section {
-    width: 380px; /* Slightly wider than 350px for better alignment with tokens */
-    margin: 0 auto var(--space-lg) auto; 
-    
+    width: 380px;
+    /* Fixed width for the form */
+    /* Parent (main-content-container) now handles centering */
+    margin: 0;
+
     /* Apply design system container style to the content inside the section */
-    /* .container class from core.css provides background, shadow, and padding */
     padding: var(--space-lg);
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -86,7 +136,7 @@ label {
 
 #topic-name-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2); 
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
     outline: none;
 }
 
@@ -97,6 +147,7 @@ label {
     background-color: var(--color-primary);
     color: var(--color-surface);
 }
+
 .button-primary:hover:not(:disabled) {
     background-color: color-mix(in srgb, var(--color-primary) 90%, black);
 }
@@ -108,10 +159,11 @@ label {
 }
 
 #create-topic-btn:disabled {
-    background-color: var(--color-gray-400); /* Use a gray token for disabled state */
+    background-color: var(--color-gray-400);
+    /* Use a gray token for disabled state */
     cursor: not-allowed;
     /* Ensure disabled state for the primary button is clear */
-    color: var(--color-gray-100); 
+    color: var(--color-gray-100);
 }
 
 /* NEW: Style for the "Undo Creation" button state */
@@ -121,6 +173,7 @@ label {
     color: var(--color-text);
     border: 1px solid var(--color-border);
 }
+
 .button-secondary:hover:not(:disabled) {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
@@ -130,7 +183,7 @@ label {
 .validation-message {
     margin-top: var(--space-xs);
     font-size: var(--font-size-sm);
-    height: 1.2em; 
+    height: 1.2em;
     text-align: left;
     /* display: none; */
 }
@@ -145,8 +198,7 @@ label {
 }
 
 /* --- Section 2: Notes Management Styles --- */
-#notes-modal
-{
+#notes-modal {
     justify-self: center;
     align-self: center;
     position: absolute;
@@ -155,10 +207,24 @@ label {
     transform: translateX(-50%);
 }
 
-.modal-content
-{
+.modal-content {
     margin: 0;
 }
+
+/* Modal header styles */
+.modal-title {
+    margin-bottom: var(--space-xxs);
+    /* Bring subtitle closer */
+}
+
+.modal-subtitle {
+    margin-top: 0;
+    color: var(--color-gray-500);
+    /* Grayer color */
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-md);
+}
+
 .panels-container {
     display: flex;
     gap: var(--space-md);
@@ -171,20 +237,20 @@ label {
     background-color: var(--color-surface);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--color-border);
-    flex: 1; /* Reset flex-grow initially */
+    flex: 1;
+    /* Reset flex-grow initially */
 }
 
 .left-panel {
-    flex: 2; 
+    flex: 2;
 }
 
-.left-panel h3
-{
+.left-panel h3 {
     padding-bottom: var(--space-sm);
 }
 
 .right-panel {
-    flex: 3; 
+    flex: 3;
 }
 
 .notes-list {
@@ -199,44 +265,94 @@ label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-xs) 0;
-    border-bottom: 1px solid var(--color-border-light); /* Use light border token */
+    padding: var(--space-xs) var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+    /* Use light border token */
+    transition: background-color 0.2s;
 }
+
+.note-item:hover:not(.empty-state) {
+    background-color: var(--color-gray-50);
+}
+
+.note-item:hover:not(.empty-state) .add-btn,
+.note-item:hover:not(.empty-state) .remove-btn {
+    opacity: 1;
+    /* Show buttons on hover */
+}
+
 .note-item:last-child {
     border-bottom: none;
 }
 
+/* Add note icon before text */
 .note-item span {
     font-weight: 500;
     color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
 }
 
-.add-btn, .remove-btn {
+.note-item span::before {
+    content: '📝';
+    font-size: var(--font-size-base);
+    opacity: 0.6;
+}
+
+/* Empty state styling */
+.note-item.empty-state span::before {
+    content: none;
+    /* Remove icon for empty states */
+}
+
+.empty-state-illustration {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) var(--space-md) !important;
+    border-bottom: none !important;
+    text-align: center;
+}
+
+.add-btn,
+.remove-btn {
     background: none;
     border: none;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-lg);
     cursor: pointer;
     line-height: 1;
-    transition: color 0.2s, transform 0.1s;
-    width: 30px;
-    height: 30px;
+    transition: all 0.2s;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
+    opacity: 0.3;
+    /* Make buttons less visible by default */
+    flex-shrink: 0;
+    /* Prevent buttons from shrinking */
 }
 
-.add-btn { 
-    color: var(--color-primary); /* Using primary color for positive action */
+.add-btn {
+    color: var(--color-primary);
+    /* Using primary color for positive action */
 }
-.remove-btn { 
-    color: var(--color-error); /* Using error color for removal action */
+
+.remove-btn {
+    color: var(--color-error);
+    /* Using error color for removal action */
 }
-.add-btn:hover { 
+
+.add-btn:hover {
     background-color: var(--color-blue-50);
 }
+
 .remove-btn:hover {
-    background-color: var(--color-red-50); /* Assuming a red-50 exists for hover */
+    background-color: var(--color-red-50);
+    /* Assuming a red-50 exists for hover */
 }
 
 /* --- Move Notes Button --- */
@@ -248,7 +364,8 @@ label {
 #move-notes-btn {
     /* Custom button style for Move */
     padding: var(--space-sm) var(--space-lg);
-    background-color: var(--color-success); /* Green for 'move' action */
+    background-color: var(--color-success);
+    /* Green for 'move' action */
     color: var(--color-surface);
     border: none;
     border-radius: var(--radius-md);
@@ -308,7 +425,7 @@ label {
 
 #tag-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2); 
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
     outline: none;
 }
 
@@ -322,12 +439,15 @@ label {
     /* Using the .tag-pill aesthetic from core.css */
     display: inline-flex;
     align-items: center;
-    background-color: var(--color-blue-100); /* Use a lighter blue background */
-    color: var(--color-blue-700); /* Use a darker blue for text */
+    background-color: var(--color-blue-100);
+    /* Use a lighter blue background */
+    color: var(--color-blue-700);
+    /* Use a darker blue for text */
     padding: 3px 6px 3px 8px;
     margin-right: var(--space-xs);
     margin-bottom: var(--space-xxs);
-    border-radius: 12px; /* Use core radius or the pill style */
+    border-radius: 12px;
+    /* Use core radius or the pill style */
     font-size: var(--font-size-sm);
 }
 
@@ -345,9 +465,11 @@ label {
     opacity: 0.8;
     transition: opacity 0.2s, color 0.2s;
 }
+
 .tag-remove:hover {
     opacity: 1;
-    color: var(--color-error); /* Use error color for removing a tag */
+    color: var(--color-error);
+    /* Use error color for removing a tag */
 }
 
 /* ... (Existing styles up to .tag-remove:hover) ... */
@@ -359,22 +481,26 @@ label {
 
 /* MODAL STYLES */
 .modal {
-    display: none; /* Hidden by default */
+    display: none;
+    /* Hidden by default */
     position: fixed;
-    z-index: 1000; /* Ensure it's on top of everything */
+    z-index: 1000;
+    /* Ensure it's on top of everything */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4); /* Dark background overlay */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Dark background overlay */
     padding-top: 50px;
     animation: fadeIn 0.3s;
 }
 
 .modal-content {
     background-color: var(--color-surface);
-    margin: 10% auto; /* Center it vertically and horizontally */
+    margin: 10% auto;
+    /* Center it vertically and horizontally */
     padding: var(--space-lg);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -408,13 +534,25 @@ label {
 
 /* Animations for better visual experience */
 @keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideIn {
-    from {transform: translateY(-50px); opacity: 0;}
-    to {transform: translateY(0); opacity: 1;}
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 /* Adjust the main section inside the modal for better context */
@@ -433,9 +571,12 @@ label {
     .panels-container {
         flex-direction: column;
     }
-    .left-panel, .right-panel {
+
+    .left-panel,
+    .right-panel {
         flex: 1;
     }
+
     .modal-content {
         margin: 5% auto;
     }

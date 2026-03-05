@@ -24,10 +24,18 @@ class Notes extends Controller
              }
         }
 
+
+        $topics_data = json_decode(json_encode($topics->filter_and_search($params)), true) ?: [];
+        $note_model = new NoteModel();
+        
+        foreach ($topics_data as &$t) {
+            $t['note_count'] = $note_model->count_by_topic($t['id']);
+        }
+
         $data = [
             'create_url' => 'topics/create/',
             'initial_load' => [
-                'topics' => json_decode(json_encode($topics->filter_and_search($params)), true) ?: [],
+                'topics' => $topics_data,
                 'has_more' => true // logic to check count? For now assume true or check count
             ],
             'recent_topics' => $pinned_topic_names,
@@ -586,6 +594,32 @@ class Notes extends Controller
             ]);
         } else {
              $this->json_respond(["success" => false, "message" => "Failed to unpin note."]);
+        }
+    }
+
+    public function api_pin_topic($id) {
+        $topic_model = new Topics();
+        if ($topic_model->pin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully pinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => true]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to pin topic."]);
+        }
+    }
+
+    public function api_unpin_topic($id) {
+        $topic_model = new Topics();
+        if ($topic_model->unpin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully unpinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => false]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to unpin topic."]);
         }
     }
 

@@ -415,6 +415,35 @@ class Expertrequest extends Controller
         exit;
     }
 
+    public function api_search_subjects()
+    {
+        $this->login_guard();
+
+        header('Content-Type: application/json');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if ($q === '') {
+            echo json_encode([]);
+            return;
+        }
+
+        $subjects_model = new Subjects();
+        $results = $subjects_model->search_by_name($q, 'name');
+
+        if (!$results) {
+            echo json_encode([]);
+            return;
+        }
+
+        // Return only id + name
+        $output = array_map(function($row) {
+            return ['id' => $row->id, 'name' => $row->name];
+        }, $results);
+
+        echo json_encode($output);
+    }
+
     public function retrive_user_expertrequests()
     {
         $this->login_guard();

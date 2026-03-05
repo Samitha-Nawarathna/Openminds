@@ -106,6 +106,78 @@
             </div>
         </div>
     </div>
+
+    <!-- ROLES SECTION -->
+    <div class="roles-section">
+        <div class="roles-header">
+            <h2 class="roles-title">Level up your learning journey</h2>
+            <p class="roles-subtitle">From curious student to subject authority. Your contributions fuel your growth.</p>
+        </div>
+
+        <div class="roles-grid">
+            <!-- Student -->
+            <div class="role-card role-student">
+                <div class="role-icon-wrapper">
+                    <div class="role-icon">🎓</div>
+                </div>
+                <div class="role-content">
+                    <h3 class="role-name">Student</h3>
+                    <div class="role-badge">Entry Level</div>
+                    <p class="role-description">
+                        Create and edit notes, Test questions, and attempt community exercises.
+                    </p>
+                </div>
+            </div>
+
+            <div class="role-connector"></div>
+
+            <!-- Mentor -->
+            <div class="role-card role-mentor">
+                 <div class="role-icon-wrapper">
+                    <div class="role-icon">💡</div>
+                </div>
+                <div class="role-content">
+                    <h3 class="role-name">Mentor</h3>
+                    <div class="role-badge">Reach 50 XP</div>
+                    <p class="role-description">
+                        All student features, plus ability to create, share, and delete exercises.
+                    </p>
+                </div>
+            </div>
+
+            <div class="role-connector"></div>
+
+            <!-- Expert -->
+            <div class="role-card role-expert">
+                 <div class="role-icon-wrapper">
+                    <div class="role-icon">👤</div>
+                </div>
+                <div class="role-content">
+                    <h3 class="role-name">Expert</h3>
+                    <div class="role-badge">Subject Proof</div>
+                    <p class="role-description">
+                        Approved by Admin. Browse and validate exercise requests in your field.
+                    </p>
+                </div>
+            </div>
+
+            <div class="role-connector"></div>
+
+            <!-- Admin -->
+            <div class="role-card role-admin">
+                 <div class="role-icon-wrapper">
+                    <div class="role-icon">⚙️</div>
+                </div>
+                <div class="role-content">
+                    <h3 class="role-name">Admin</h3>
+                    <div class="role-badge">System Guardian</div>
+                    <p class="role-description">
+                        Review expert requests, ban/unban accounts, and moderate all content.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="philosophy-section" id="how-it-works">
         <div class="text">
             <div class="title">Our philosophy</div>

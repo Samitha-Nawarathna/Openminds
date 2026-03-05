@@ -153,6 +153,9 @@ App::get('api/dashboard/exercises/attempt', 'Dashboard@getAttemptExercises'); //
 App::get('api/dashboard/exercises/pending', 'Dashboard@getPendingReviewRequests');
 
 
+//expert request api
+App::get('expertrequest/api/search_subjects', 'Expertrequest@api_search_subjects');
+
 //profile browser module
 App::get('profilebrowser', 'Profilebrowser@index');
 App::post('profilebrowser/api/search_and_filter', 'Profilebrowser@api_search_and_filter');

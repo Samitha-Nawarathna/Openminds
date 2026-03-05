@@ -8,9 +8,13 @@
 <div class="edit-wrapper">
     <form action="<?=ROOT?>expertrequest/create" id="detail_form" class="container" method="post" enctype="multipart/form-data">
     <h1 class="text-main">Create Request</h1>
-        <div class="input-group">
-            <input type="text" placeholder="Subject Name" name="subject" value="<?= htmlspecialchars($data['subject'] ?? '') ?>">
+        <div class="subject-autocomplete-wrapper">
+            <div class="input-group">
+                <input type="text" placeholder="Subject Name" name="subject" id="subjectInput" autocomplete="off" value="<?= htmlspecialchars($data['subject'] ?? '') ?>">
+            </div>
+            <ul id="subject-suggestions" class="subject-suggestions" style="display:none;"></ul>
         </div>
+        <p class="subject-hint">Start typing to see matching subjects from the database.</p>
         <div class="input-group">
             <textarea placeholder="Description" name="description" id="" cols="30" rows="10" value = "<?= htmlspecialchars($data['description'] ?? '') ?>"></textarea>
         </div>

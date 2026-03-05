@@ -222,16 +222,50 @@ class TopicController extends Controller
     }
 
     public function api_load_more() {
+        $data = $this->json_request();
+        $offset = $data['offset'] ?? $_GET['offset'] ?? 0;
+        $limit = $data['limit'] ?? $_GET['limit'] ?? 10;
+        $filter = $data['filter'] ?? $_GET['filter'] ?? '';
+
+        $topics_model = new Topics();
+        $note_model = new NoteModel();
+
+        $params = [
+            'limit' => $limit,
+            'offset' => $offset,
+            'order_by' => 'id',
+            'order_dir' => 'DESC'
+        ];
+
+        if (!empty($filter)) {
+            $params['like'] = ['name' => $filter];
+        }
+
+        $topics = $topics_model->filter_and_search($params);
+        $topics_data = [];
+
+        if ($topics) {
+            foreach ($topics as $row) {
+                $topics_data[] = [
+                    'id' => $row->id,
+                    'name' => $row->name,
+                    'note_count' => $note_model->count_by_topic($row->id)
+                ];
+            }
+        }
+
+        // Check if there are more
+        // Simple check: if we got 'limit' items, assume there might be more. 
+        // Or do a count query (better but extra query). 
+        // For now, let's assume if count == limit, has_more is likely true.
+        $has_more = count($topics_data) >= $limit;
+
         $this->json_respond([
             "success" => true,
-            "results_returned" => 3,
-            "next_offset" => 13,
-            "has_more" => false,
-            "topics" => [
-                ['id' => 11, 'name' => 'Advanced Thermodynamics'],
-                ['id' => 12, 'name' => 'Renaissance Art'],
-                ['id' => 13, 'name' => 'Data Structures in Python']
-            ]
+            "results_returned" => count($topics_data),
+            "next_offset" => $offset + count($topics_data),
+            "has_more" => $has_more,
+            "topics" => $topics_data
         ]);
     }
 }

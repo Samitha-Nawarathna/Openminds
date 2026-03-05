@@ -5,8 +5,12 @@ class Profileadmin extends Controller
     public function index()
     {
         $this->admin_guard();
+        $subjects_model = new Subjects;
+        $data['subjects'] = $subjects_model->findAll();
+        // show($data);
 
-        $this->view("profilebrowser");
+
+        $this->view("profilebrowser", $data);
     }
 
     public function admin_guard()

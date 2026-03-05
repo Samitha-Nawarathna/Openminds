@@ -1,4 +1,83 @@
+import { ROOT } from '../../core/config.js';
+// ── Subject Autocomplete ──────────────────────────────────────────────
+const subjectInput = document.getElementById('subjectInput');
+const subjectSuggestions = document.getElementById('subject-suggestions');
+
+let subjectDebounceTimer = null;
+
+subjectInput.addEventListener('input', function () {
+  clearTimeout(subjectDebounceTimer);
+  const query = this.value.trim();
+
+  if (query.length === 0) {
+    hideSuggestions();
+    return;
+  }
+
+  subjectDebounceTimer = setTimeout(() => {
+    fetchSubjects(query);
+  }, 250);
+});
+
+function fetchSubjects(query) {
+  const url = ROOT + 'expertrequest/api/search_subjects?q=' + encodeURIComponent(query);
+
+  fetch(url, { credentials: 'same-origin' })
+    .then(res => res.json())
+    .then(subjects => {
+      renderSuggestions(subjects, query);
+    })
+    .catch(() => hideSuggestions());
+}
+
+function renderSuggestions(subjects, query) {
+  subjectSuggestions.innerHTML = '';
+
+  const hasExactMatch = subjects.some(s => s.name.toLowerCase() === query.toLowerCase());
+
+  subjects.forEach(subject => {
+    const li = document.createElement('li');
+    li.textContent = subject.name;
+    li.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      subjectInput.value = subject.name;
+      hideSuggestions();
+    });
+    subjectSuggestions.appendChild(li);
+  });
+
+  if (!hasExactMatch) {
+    const li = document.createElement('li');
+    li.className = 'suggestion-new';
+    li.textContent = '+ Request under new subject: "' + query + '"';
+    li.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      hideSuggestions();
+    });
+    subjectSuggestions.appendChild(li);
+  }
+
+  subjectSuggestions.style.display = 'block';
+}
+
+function hideSuggestions() {
+  subjectSuggestions.style.display = 'none';
+  subjectSuggestions.innerHTML = '';
+}
+
+document.addEventListener('click', function (e) {
+  if (!subjectInput.contains(e.target) && !subjectSuggestions.contains(e.target)) {
+    hideSuggestions();
+  }
+});
+
+subjectInput.addEventListener('blur', function () {
+  setTimeout(hideSuggestions, 150);
+});
+// ─────────────────────────────────────────────────────────────────────
+
 const textarea = document.querySelector("form textarea");
+
 const message_content = document.querySelector(".message-wrapper .message");
 const message_wrapper = document.querySelector(".message-wrapper");
 

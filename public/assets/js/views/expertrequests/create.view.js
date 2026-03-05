@@ -1,4 +1,88 @@
+import { ROOT } from '../../core/config.js';
+// ── Subject Autocomplete ──────────────────────────────────────────────
+const subjectInput = document.getElementById('subjectInput');
+const subjectSuggestions = document.getElementById('subject-suggestions');
+
+let subjectDebounceTimer = null;
+
+subjectInput.addEventListener('input', function () {
+  clearTimeout(subjectDebounceTimer);
+  const query = this.value.trim();
+
+  if (query.length === 0) {
+    hideSuggestions();
+    return;
+  }
+
+  subjectDebounceTimer = setTimeout(() => {
+    fetchSubjects(query);
+  }, 250);
+});
+
+function fetchSubjects(query) {
+  const url = ROOT + 'expertrequest/api/search_subjects?q=' + encodeURIComponent(query);
+
+  fetch(url, { credentials: 'same-origin' })
+    .then(res => res.json())
+    .then(subjects => {
+      renderSuggestions(subjects, query);
+    })
+    .catch(() => hideSuggestions());
+}
+
+function renderSuggestions(subjects, query) {
+  subjectSuggestions.innerHTML = '';
+
+  // Check for exact match (case-insensitive)
+  const hasExactMatch = subjects.some(s => s.name.toLowerCase() === query.toLowerCase());
+
+  subjects.forEach(subject => {
+    const li = document.createElement('li');
+    li.textContent = subject.name;
+    li.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // prevent blur before click fires
+      subjectInput.value = subject.name;
+      hideSuggestions();
+    });
+    subjectSuggestions.appendChild(li);
+  });
+
+  // "Request under new subject" hint when no exact match or no results
+  if (!hasExactMatch) {
+    const li = document.createElement('li');
+    li.className = 'suggestion-new';
+    li.textContent = '+ Request under new subject: "' + query + '"';
+    li.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      // keep what user typed – it becomes a new subject
+      hideSuggestions();
+    });
+    subjectSuggestions.appendChild(li);
+  }
+
+  subjectSuggestions.style.display = 'block';
+}
+
+function hideSuggestions() {
+  subjectSuggestions.style.display = 'none';
+  subjectSuggestions.innerHTML = '';
+}
+
+// Close suggestions when clicking outside
+document.addEventListener('click', function (e) {
+  if (!subjectInput.contains(e.target) && !subjectSuggestions.contains(e.target)) {
+    hideSuggestions();
+  }
+});
+
+subjectInput.addEventListener('blur', function () {
+  // Small delay so mousedown on list item fires first
+  setTimeout(hideSuggestions, 150);
+});
+// ─────────────────────────────────────────────────────────────────────
+
 const textarea = document.querySelector("form textarea");
+
 const message_content = document.querySelector(".message-wrapper .message");
 const message_wrapper = document.querySelector(".message-wrapper");
 

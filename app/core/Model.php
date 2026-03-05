@@ -10,6 +10,12 @@ trait Model
         return $result;
     }
 
+    public function findAll()
+    {
+        $query = "SELECT * FROM $this->table";
+        return $this->query($query);
+    }
+
     public function where($data, $offset = 0, $limit = Null, $columns = [], $data_not = [])
     {
         //SELECT * FROM $table WHERE id = :id && id != :id;
