@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Main Content
     const titleEl = document.getElementById('exercise-title');
     const subjectEl = document.getElementById('exercise-subject');
-    const questionContainer = document.getElementById('question-container');
+    const questionPromptEl = document.getElementById('question-prompt');
+    const answerOptionsEl = document.getElementById('answer-options');
     const explanationBox = document.getElementById('explanation-box');
 
     // Control Bar
@@ -80,24 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
         titleEl.textContent = EXERCISE_DATA.title || 'Exercise Review';
         subjectEl.textContent = EXERCISE_DATA.subject || 'Expert Review Mode'; 
         
-        // Clear and rebuild question container
-        questionContainer.innerHTML = '';
+        // Clear and rebuild answer options
+        answerOptionsEl.innerHTML = '';
         
-        // Create Question Prompt using Quill Editor
-        const promptEditor = document.createElement('quill-editor');
-        promptEditor.id = 'question-prompt';
-        promptEditor.setAttribute('readonly', '');
-        promptEditor.setAttribute('height', 'fit-content');
-        promptEditor.className = 'question-prompt';
-        promptEditor.setAttribute('content', `${currentQIndex + 1}. ${qData.prompt}`);
-        questionContainer.appendChild(promptEditor);
-        
-        // Create options container
-        const answersDiv = document.createElement('div');
-        answersDiv.id = 'answer-options';
-        answersDiv.className = 'answer-options-list';
-        answersDiv.style.margin = "var(--space-sm)";
-        questionContainer.appendChild(answersDiv);
+        // Update question prompt
+        questionPromptEl.textContent = `${currentQIndex + 1}. ${qData.prompt}`;
         
         // Determine input type based on correct answer count
         const correctCount = qData.options.filter(opt => opt.is_correct).length;
@@ -135,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             answer.style.border = 'none';
             
             label.appendChild(answer);
-            answersDiv.appendChild(label);
+            answerOptionsEl.appendChild(label);
         });
         
         // Update Explanation using Quill Editor (Always shown)

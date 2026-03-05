@@ -499,6 +499,399 @@ CREATE TABLE IF NOT EXISTS `exercise_summary` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `announcements`
+--
+
+DROP TABLE IF EXISTS `announcements`;
+CREATE TABLE IF NOT EXISTS `announcements` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `creator_id` int DEFAULT NULL COMMENT 'The admin user who created this announcement',
+  `style` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'primary-accent' COMMENT 'Style for UI display (e.g., primary-accent, warning)',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 for hidden/archived, 1 for active/visible',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_announcement_creator` (`creator_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `announcements`
+--
+
+INSERT INTO `announcements` (`id`, `title`, `content`, `creator_id`, `style`, `is_active`, `created_at`, `updated_at`) VALUES
+(2, '[Admin] System Maintenance Scheduled', 'A critical database update is scheduled for Saturday at 2 AM UTC. Expect 1 hour of downtime. Please save your work.', 2, 'warning', 1, '2025-11-27 01:31:21', '2025-11-27 02:31:21'),
+(3, 'New Note Topics Added', 'Exciting news! We have added new topics for Notes in Historical Linguistics and Quantum Physics. Start exploring!', 1, 'info', 0, '2025-11-20 02:31:21', '2025-11-30 03:52:33'),
+(4, 'Old Announcement (Hidden)', 'This is an old test announcement that should be hidden from the public feeds.', 2, 'default', 0, '2025-10-27 02:31:21', '2025-11-30 03:52:18'),
+(5, 'title', 'contenteb', 102, 'warning', 1, '2025-11-30 06:49:57', '2025-11-30 07:25:55'),
+(6, 'new title', 'content', 102, 'info', 1, '2025-11-30 07:25:18', '2025-11-30 07:25:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `answer`
+--
+
+DROP TABLE IF EXISTS `answer`;
+CREATE TABLE IF NOT EXISTS `answer` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `content` text NOT NULL,
+  `creator_id` int DEFAULT NULL,
+  `q_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `chosen` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if this is the chosen or accepted answer, 0 otherwise',
+  PRIMARY KEY (`id`),
+  KEY `q_id` (`q_id`),
+  KEY `fk_answer_creator` (`creator_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `answer`
+--
+
+INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chosen`) VALUES
+(1, 'Machine learning uses algorithms that learn from data to make predictions.', 2, 1, '2025-10-16 06:18:32', 0),
+(2, 'INNER JOIN returns matching rows; LEFT JOIN keeps all left-side rows.', 3, 2, '2025-10-16 06:18:32', 0),
+(3, 'TCP is reliable but slower; UDP is faster but doesn’t guarantee delivery.', 4, 3, '2025-10-16 06:18:32', 0),
+(4, 'Use flexbox or grid to center elements both vertically and horizontally.', 42, 4, '2025-10-16 06:18:32', 0),
+(5, 'Action and reaction forces are equal and opposite.', 43, 5, '2025-10-16 06:18:32', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `attempt_answer`
+--
+
+DROP TABLE IF EXISTS `attempt_answer`;
+CREATE TABLE IF NOT EXISTS `attempt_answer` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `attempt_id` int NOT NULL COMMENT 'Foreign Key to exercise_attempt table',
+  `question_id` int NOT NULL COMMENT 'Foreign Key to question table',
+  `user_response` text NOT NULL COMMENT 'The user''s submitted answer, choice ID, or response text',
+  `is_correct` tinyint(1) DEFAULT NULL COMMENT '1 if the response was correct, 0 if incorrect',
+  `score_earned` decimal(5,2) DEFAULT NULL COMMENT 'Points earned for this specific question',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_attempt_question` (`attempt_id`,`question_id`),
+  KEY `fk_answer_question` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores the user''s response for each question within an exercise attempt';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+DROP TABLE IF EXISTS `events`;
+CREATE TABLE IF NOT EXISTS `events` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL COMMENT 'The ID of the user who initiated the event (FK to user.id)',
+  `event_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The exact time the event occurred',
+  `event_type` varchar(50) NOT NULL COMMENT 'e.g., note_created, question_asked, exercise_attempted, vote_given',
+  `entity_type` varchar(50) NOT NULL COMMENT 'The type of entity involved (e.g., Note, Question, Exercise, Answer)',
+  `entity_id` int DEFAULT NULL COMMENT 'The ID of the related entity in its respective table',
+  `data` json DEFAULT NULL COMMENT 'Flexible storage for metric-critical data (e.g., score, subject_id, vote_direction)',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_time_type` (`user_id`,`event_time`,`event_type`),
+  KEY `idx_entity` (`entity_type`,`entity_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`, `entity_id`, `data`) VALUES
+(1, 1, '2025-11-07 10:03:01', 'note_created', 'Note', 1, '{\"title\": \"My First Logged Note\", \"subject_id\": 5}'),
+(2, 1, '2025-11-08 10:03:01', 'exercise_attempted', 'Exercise', 1, '{\"score\": 85.5, \"subject_id\": 5}'),
+(3, 1, '2025-11-08 10:03:01', 'vote_given', 'Question', 2, '{\"direction\": \"upvote\"}'),
+(4, 2, '2025-11-09 10:03:01', 'question_asked', 'Question', 3, '{\"subject_id\": 8}'),
+(5, 2, '2025-11-09 10:03:01', 'note_created', 'Note', 2, '{\"title\": \"Second User Note\", \"subject_id\": 8}'),
+(6, 3, '2025-11-10 10:03:01', 'exercise_attempted', 'Exercise', 2, '{\"score\": 92.0, \"subject_id\": 5}'),
+(7, 3, '2025-11-10 10:03:01', 'note_updated', 'Note', 1, '{\"subject_id\": 5}'),
+(8, 1, '2025-11-10 10:03:01', 'exercise_attempted', 'Exercise', 3, '{\"score\": 78.0, \"subject_id\": 5}'),
+(9, 1, '2025-11-01 10:03:01', 'note_created', 'Note', 3, '{\"title\": \"Old Note 1\", \"subject_id\": 5}'),
+(10, 1, '2025-11-02 10:03:01', 'exercise_attempted', 'Exercise', 4, '{\"score\": 75.0, \"subject_id\": 5}'),
+(11, 2, '2025-11-03 10:03:01', 'note_created', 'Note', 4, '{\"title\": \"Old Note 2\", \"subject_id\": 8}'),
+(12, 3, '2025-11-04 10:03:01', 'exercise_attempted', 'Exercise', 5, '{\"score\": 88.0, \"subject_id\": 5}'),
+(13, 3, '2025-11-04 10:03:01', 'question_answered', 'Answer', 10, '{\"is_accepted\": true}'),
+(14, 1, '2025-10-21 10:03:01', 'note_created', 'Note', 5, '{\"subject_id\": 1}'),
+(15, 2, '2025-10-21 10:03:01', 'question_asked', 'Question', 5, '{\"subject_id\": 1}'),
+(16, 3, '2025-10-21 10:03:01', 'exercise_attempted', 'Exercise', 6, '{\"score\": 95.0, \"subject_id\": 1}'),
+(17, 1, '2025-10-14 10:03:01', 'note_created', 'Note', 6, '{\"subject_id\": 10}'),
+(18, 2, '2025-10-14 10:03:01', 'exercise_attempted', 'Exercise', 7, '{\"score\": 65.0, \"subject_id\": 10}'),
+(19, 3, '2025-10-14 10:03:01', 'note_deleted', 'Note', 4, '{}'),
+(20, 1, '2025-11-11 10:03:01', 'vote_given', 'Answer', 5, '{\"direction\": \"downvote\"}'),
+(21, 2, '2025-11-11 10:03:01', 'question_answered', 'Answer', 6, '{\"is_accepted\": false}'),
+(22, 3, '2025-11-11 10:03:01', 'exercise_attempted', 'Exercise', 8, '{\"score\": 80.0, \"subject_id\": 8}'),
+(23, 1, '2025-11-06 10:03:01', 'note_created', 'Note', 7, '{\"title\": \"Latest Note\", \"subject_id\": 2}'),
+(24, 2, '2025-11-05 10:03:01', 'exercise_attempted', 'Exercise', 9, '{\"score\": 70.0, \"subject_id\": 2}'),
+(25, 3, '2025-10-30 10:03:01', 'note_created', 'Note', 8, '{\"title\": \"Last Month Note\", \"subject_id\": 10}'),
+(26, 1, '2025-10-27 10:03:01', 'question_asked', 'Question', 6, '{\"subject_id\": 2}'),
+(27, 2, '2025-10-22 10:03:01', 'exercise_attempted', 'Exercise', 10, '{\"score\": 89.0, \"subject_id\": 1}'),
+(28, 1, '2025-11-25 00:07:24', 'note_refered', 'notes', 101, '{\"duration_seconds\": 125}'),
+(29, 2, '2025-11-25 00:07:24', 'note_refered', 'notes', 102, '{\"duration_seconds\": 305}'),
+(30, 3, '2025-11-25 00:07:24', 'note_refered', 'notes', 101, '{\"duration_seconds\": 45}');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `exerciseanswer`
+--
+
+DROP TABLE IF EXISTS `exerciseanswer`;
+CREATE TABLE IF NOT EXISTS `exerciseanswer` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `answer_text` varchar(1000) NOT NULL,
+  `is_correct` tinyint(1) DEFAULT '0',
+  `display_order` int NOT NULL,
+  `question_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `question_id` (`question_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `exerciseanswer`
+--
+
+INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`, `question_id`) VALUES
+(1, 'x = 2', 1, 0, 1),
+(2, 'x = 3', 0, 0, 1),
+(3, 'Newton’s Third Law', 1, 0, 2),
+(4, 'Newton’s First Law', 0, 0, 2),
+(7, 'for i in range(5):', 1, 0, 4),
+(8, 'loop i from 1 to 5', 0, 0, 4),
+(35, 'Option A', 0, 0, 18),
+(36, 'Option B', 0, 0, 18),
+(37, 'Option A', 0, 0, 19),
+(38, 'Option B', 0, 0, 19),
+(39, 'Option A', 0, 0, 20),
+(40, 'Option B', 0, 0, 20),
+(41, 'Option A', 0, 0, 21),
+(42, 'Option B', 0, 0, 21),
+(57, 'Option A', 0, 0, 27),
+(58, 'Option B', 1, 0, 27),
+(59, 'option c', 0, 0, 27),
+(60, 'Option A', 1, 0, 28),
+(61, 'Option B', 0, 0, 28),
+(75, 'Option A', 1, 0, 34),
+(76, 'Option B', 0, 0, 34),
+(79, 'Option A', 0, 0, 36),
+(80, 'Option B', 1, 0, 36),
+(81, 'oc', 0, 0, 36),
+(82, 'Option A', 1, 0, 37),
+(83, 'Option c', 0, 0, 37),
+(84, 'Option A', 1, 0, 38),
+(85, 'Option B', 0, 0, 38),
+(86, 'Option A', 0, 0, 39),
+(87, 'Option B', 1, 0, 39),
+(88, 'Option A', 0, 0, 40),
+(89, 'Option B', 1, 0, 40),
+(90, 'Option A', 0, 0, 41),
+(91, 'Option B', 1, 0, 41),
+(92, 'option C', 0, 0, 41),
+(93, 'Option A', 1, 0, 42),
+(94, 'Option B', 0, 0, 42),
+(95, 'Option A', 0, 0, 43),
+(96, 'Option B', 1, 0, 43),
+(97, 'option c', 1, 0, 43),
+(98, 'Option A', 0, 0, 44),
+(99, 'Option B', 1, 0, 44),
+(100, 'options c', 1, 0, 44),
+(101, 'Option A', 1, 0, 45),
+(102, 'Option B', 0, 0, 45),
+(103, 'Option A', 1, 0, 46),
+(104, 'Option B', 0, 0, 46),
+(105, 'Option C', 1, 0, 46),
+(106, 'Option A', 1, 0, 47),
+(107, 'Option B', 0, 0, 47),
+(108, 'Option A', 0, 0, 48),
+(109, 'Option B', 1, 0, 48),
+(110, 'Option A', 1, 0, 49),
+(111, 'Option B', 0, 0, 49);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `exercisequestion`
+--
+
+DROP TABLE IF EXISTS `exercisequestion`;
+CREATE TABLE IF NOT EXISTS `exercisequestion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `question_text` text NOT NULL,
+  `explanation` text NOT NULL,
+  `weight` int NOT NULL DEFAULT '1',
+  `exercise_id` int NOT NULL,
+  `display_order` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `exercise_id` (`exercise_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `exercisequestion`
+--
+
+INSERT INTO `exercisequestion` (`id`, `question_text`, `explanation`, `weight`, `exercise_id`, `display_order`) VALUES
+(1, 'What is the solution of 2x + 3 = 7?', '', 1, 1, 0),
+(2, 'Which law states that for every action, there is an equal and opposite reaction?', '', 1, 2, 0),
+(4, 'What is the correct Python syntax for a for loop?', '', 1, 4, 0),
+(18, 'question 2', '', 1, 14, 0),
+(19, 'question 1', '', 1, 14, 0),
+(20, 'question 2', '', 1, 15, 0),
+(21, 'question 1', '', 1, 15, 0),
+(27, 'q1', '', 1, 19, 0),
+(28, 'q1', '', 1, 20, 0),
+(34, 'q1', '', 1, 25, 0),
+(36, 'q2', '', 1, 27, 0),
+(37, 'q1', '', 1, 27, 0),
+(38, 'q1', '', 1, 28, 0),
+(39, 'q2', '', 1, 28, 0),
+(40, 'q1', '', 1, 29, 0),
+(41, 'q1', '', 1, 30, 0),
+(42, 'q2', '', 1, 31, 0),
+(43, 'q1', '', 1, 31, 0),
+(44, 'q1', '', 1, 32, 0),
+(45, 'q2', '', 1, 32, 0),
+(46, 'question 1', '', 1, 33, 0),
+(47, 'question 1', '', 1, 34, 0),
+(48, 'question 1', '', 1, 35, 0),
+(49, 'q1', '', 1, 36, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `exercises`
+--
+
+DROP TABLE IF EXISTS `exercises`;
+CREATE TABLE IF NOT EXISTS `exercises` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `subject_id` int NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creator_id` int NOT NULL,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `feedback` text,
+  `reviewed_by` int DEFAULT NULL,
+  `description` text,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `subject_id` (`subject_id`),
+  KEY `creator_id` (`creator_id`),
+  KEY `reviewed_by` (`reviewed_by`)
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `exercises`
+--
+
+INSERT INTO `exercises` (`id`, `subject_id`, `title`, `created_at`, `creator_id`, `status`, `feedback`, `reviewed_by`, `description`, `updated_at`) VALUES
+(1, 1, 'Basic Algebra Practice', '2025-10-17 22:06:22', 1, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
+(2, 2, 'Newton Laws Challenge', '2025-10-17 22:06:22', 5, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
+(4, 3, 'Python Loop Exercises', '2025-10-17 22:06:22', 40, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(14, 2, 'Test exercise', '2025-10-21 01:48:59', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(15, 2, 'Test exercise', '2025-10-21 01:51:23', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(19, 2, 'physics', '2025-10-22 03:40:02', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(20, 2, 'physics', '2025-10-22 03:46:26', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(25, 2, 'title', '2025-10-22 23:01:51', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(27, 2, 'title', '2025-10-23 00:23:14', 94, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(28, 2, 'title', '2025-10-23 00:34:56', 94, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(29, 2, 'title', '2025-10-23 00:55:56', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(30, 2, 'title', '2025-10-23 02:03:00', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(31, 2, 'title', '2025-10-23 02:37:15', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(32, 2, 'title', '2025-10-23 02:59:03', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(33, 2, 'title', '2025-11-06 19:41:38', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(34, 2, 'title', '2025-11-06 22:48:23', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(35, 2, 'title', '2025-11-07 07:17:16', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
+(36, 2, 'title', '2025-11-14 02:14:02', 101, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `exercisetag`
+--
+
+DROP TABLE IF EXISTS `exercisetag`;
+CREATE TABLE IF NOT EXISTS `exercisetag` (
+  `exercise_id` int NOT NULL,
+  `tag_id` int NOT NULL,
+  PRIMARY KEY (`exercise_id`,`tag_id`),
+  KEY `tag_id` (`tag_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `exercisetag`
+--
+
+INSERT INTO `exercisetag` (`exercise_id`, `tag_id`) VALUES
+(4, 8),
+(1, 9),
+(2, 9),
+(1, 10),
+(2, 10),
+(14, 18),
+(15, 18),
+(33, 18),
+(29, 24),
+(34, 25),
+(20, 27),
+(27, 27),
+(14, 28),
+(15, 28),
+(33, 28),
+(34, 28),
+(35, 28),
+(36, 28),
+(19, 32),
+(19, 33),
+(19, 34),
+(25, 39),
+(28, 43),
+(31, 43),
+(32, 43),
+(30, 46);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `exercise_attempt`
+--
+
+DROP TABLE IF EXISTS `exercise_attempt`;
+CREATE TABLE IF NOT EXISTS `exercise_attempt` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `exe_id` int NOT NULL COMMENT 'Foreign Key to exercises table',
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date and time of the attempt',
+  `u_id` int NOT NULL COMMENT 'Foreign Key to user table',
+  `score` decimal(5,2) DEFAULT NULL COMMENT 'Score achieved in this attempt',
+  `latest` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1 if this is the user''s latest attempt for the exercise',
+  PRIMARY KEY (`id`),
+  KEY `idx_exe_u_latest` (`exe_id`,`u_id`,`latest`),
+  KEY `fk_attempt_user` (`u_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores each attempt a user makes on an exercise';
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `exercise_summary`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `exercise_summary`;
+CREATE TABLE IF NOT EXISTS `exercise_summary` (
+`attempt_count` bigint
+,`created_at` timestamp
+,`creator_id` int
+,`exercise_id` int
+,`exercise_title` varchar(255)
+,`question_count` bigint
+,`subject_name` varchar(50)
+,`tag_id` int
+,`tag_name` varchar(255)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `experts`
 --
 
@@ -506,7 +899,7 @@ DROP TABLE IF EXISTS `experts`;
 CREATE TABLE IF NOT EXISTS `experts` (
   `user_id` int DEFAULT NULL,
   `subject_id` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `experts`
@@ -1217,7 +1610,7 @@ CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` int NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `roles`
@@ -1377,7 +1770,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
-  `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `email` varchar(75) NOT NULL,
   `role` int NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
