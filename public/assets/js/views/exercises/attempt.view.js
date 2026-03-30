@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const badge = document.createElement('span');
             badge.className = 'option-badge';
-            badge.textContent = `PRESS ${optIndex + 1}`;
+            
 
             left.appendChild(stateIcon);
             left.appendChild(input);

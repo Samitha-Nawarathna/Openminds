@@ -44,14 +44,17 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
         <div style="text-align:center; margin:20px 0; display:flex; justify-content:center; align-items:center; flex-direction:column; width:100%">
             <p id="final-score" class="score-badge" style="font-size: 2.5rem; font-weight:700; width:fit-content; margin: 0;">-- / --</p>
         </div>
-
+        <div>
+            <span>Vote Here</span>
+        </div>
         <!-- Vote UI (Only in Modal) -->
         <div class="vote-area" style="justify-content:center;" role="group" aria-label="Vote for this exercise">
+            
             <button id="upvote-btn" class="vote-btn btn-none" aria-label="Upvote this exercise">▲</button>
             <span class="vote-count-display" id="vote-count-display" aria-live="polite">0</span>
             <button id="downvote-btn" class="vote-btn btn-none" aria-label="Downvote this exercise">▼</button>
         </div>
-        <p id="vote-message" style="text-align:center; color:var(--color-text-muted); font-size:var(--font-size-sm); margin-top:var(--space-xs);" aria-live="polite"></p>
+        <span id="vote-message" style="text-align:center; color:var(--color-text-muted); font-size:var(--font-size-sm); margin-top:var(--space-xs);" aria-live="polite"></span>
 
         <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
             <button id="try-again-btn" class="btn secondary" style="flex: 1;" aria-label="Try this exercise again">
