@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const listContainer = document.getElementById('exercises-list');
     const tabsContainer = document.getElementById('tabs-container');
     const loadMoreBtn = document.getElementById('load-more-btn');
+    const roleHost = document.querySelector('.main-content-container');
     
     // Filter Elements
     const filterInput = document.getElementById('exercise-filter-input');
@@ -15,10 +16,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortFilter = document.getElementById('sort-filter');
     const createBtn = document.querySelector('.btn-create');
 
-    // --- State ---
-    let currentTab = INITIAL_TAB; 
-    let offset = INITIAL_OFFSET; 
-    const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5; 
+
+
+
+    // ...existing code...
+    const allTab = document.getElementById('all-tab');
+    const createdTab = document.getElementById('created-tab');
+    const pendingTab = document.getElementById('pending-tab');
+
+    function hideEl(el) {
+        if (el) el.classList.add('is-hidden-by-role');
+    }
+
+    function applyRoleVisibility(role) {
+        const r = (role || 'student').trim().toLowerCase();
+
+        // default: show all known controls first (if rendered)
+        [createdTab, pendingTab, createBtn].forEach(el => {
+            if (el) el.classList.remove('is-hidden-by-role');
+        });
+
+        if (r === 'student') {
+            hideEl(createdTab);
+            hideEl(pendingTab);
+            hideEl(createBtn);
+        } else if (r === 'mentor') {
+            hideEl(pendingTab);
+        } else if (r === 'expert') {
+            hideEl(createdTab);
+            hideEl(createBtn);
+        } else if (r === 'admin') {
+            hideEl(createdTab);
+            hideEl(createBtn);
+        }
+
+        // if active tab is hidden, switch to "all"
+        const active = document.querySelector('.tab-button.active');
+        if (active && active.classList.contains('is-hidden-by-role') && allTab) {
+            active.classList.remove('active');
+            allTab.classList.add('active');
+            currentTab = 'all';
+        }
+    }
+
+     // --- State ---
+    let currentTab = INITIAL_TAB;
+    let offset = INITIAL_OFFSET;
+    const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5;
+
+    const roleFromDom = (roleHost?.dataset?.userRole || USER_ROLE || 'student').trim().toLowerCase();
+    const canViewPending = roleFromDom === 'expert' || roleFromDom === 'admin';
+
+    if (!canViewPending && pendingTab) {
+        pendingTab.remove();
+    }
+
+    if (!canViewPending && currentTab === 'pending') {
+        currentTab = 'all';
+    }
+
+    applyRoleVisibility(roleFromDom);
+
+
+
+
+
+
+
+
 
     // --- Dynamic Color Generation ---
     function getRandomPastelColorPair(subject) {
@@ -182,10 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Tab Switching
     tabsContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('tab-button')) {
+            const nextTab = e.target.getAttribute('data-tab');
+            if (nextTab === 'pending' && !canViewPending) {
+                return;
+            }
+
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
             
-            currentTab = e.target.getAttribute('data-tab');
+            currentTab = nextTab;
             loadData(true); 
         }
     });

@@ -4,9 +4,13 @@ class Exercises extends Controller
 {
     public function index()
     {
-        $role = $_SESSION['role'] ?? 'student';
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
         $user_id = $_SESSION['user_id'] ?? 0;
-        $can_create = in_array($role, ['expert', 'admin'], true);
+
+        if (!in_array($role, ['student', 'mentor', 'expert', 'admin'], true)) {
+        $role = 'student';
+        }
+        $can_create = ($role === 'mentor');
         $can_edit = $can_create;
 
         // Initial load parameters
@@ -23,6 +27,7 @@ class Exercises extends Controller
             'offset' => $initial_offset,
             'limit' => $initial_limit,
             'expert_subject_ids' => $expert_subject_ids,
+            
         ]);
 
         $initial_exercises = array_map(function ($row) {
@@ -40,7 +45,7 @@ class Exercises extends Controller
             'initial_offset' => $initial_offset,
             'role' => $role,
             'can_create' => $can_create,
-            'can_edit' => $can_edit
+            'can_edit' => $can_edit,
         ];
         $this->view('exercises/browser', $data);
     }
@@ -48,6 +53,7 @@ class Exercises extends Controller
 
 
     public function create(){
+
         // GET: show the editor page
         if ($this->is_get()) {
             $this->view('exercises/create');
@@ -68,6 +74,7 @@ class Exercises extends Controller
      */
     public function api_create()
     {
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
@@ -349,10 +356,10 @@ class Exercises extends Controller
             
         };
 
-        //remember to fetch review data too
-        // $review_data = [
-        //     'average_score' => 0.8,
-        // ];
+        // remember to fetch review data too
+        $review_data = [
+            'average_score' => 0.8,
+        ];
 
 
         // --- MOCK DATA SETUP ---
@@ -1678,12 +1685,20 @@ class Exercises extends Controller
         $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
         $user_id = $_SESSION['user_id'] ?? 0; // Assuming session is active
-        $role = $_SESSION['role'] ?? 'student';
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if (!in_array($role, ['student', 'mentor', 'expert', 'admin'], true)) {
+            $role = 'student';
+        }
+
+        if ($tab === 'pending' && !in_array($role, ['expert', 'admin'], true)) {
+            $tab = 'all';
+        }
 
         $limit = ($limit > 0 && $limit <= 100) ? $limit : 5;
         $offset = $offset >= 0 ? $offset : 0;
 
-        $can_create = in_array($role, ['expert', 'admin'], true);
+        $can_create = ($role === 'mentor');
         $can_edit = $can_create;
 
         $expert_subject_ids = $this->get_expert_subject_ids($role, $user_id);

@@ -7,7 +7,7 @@
 
 ?>
 
-<div class="main-content-container">
+<div class="main-content-container" data-user-role="<?= htmlspecialchars($data['role'] ?? 'student') ?>">
         
         <header class="exercise-browser-header">
             <h1 class="main-title">Exercises</h1>
@@ -34,6 +34,8 @@
                     <option value="Psychology">Psychology</option>
                     <option value="Quantum Computing">Quantum Computing</option>
                     <option value="Chemistry">Chemistry</option>
+                    <option value="Chemistry">Electronics</option>
+
                 </select>
             </div>
             
@@ -48,18 +50,19 @@
             </div>
         </div>
 
-        <div class="tabs-container" id="tabs-container">
-            <button class="tab-button <?= $data['initial_tab'] == 'all' ? 'active' : '' ?>" data-tab="all" id="all-tab">All</button>
-            <button class="tab-button <?= $data['initial_tab'] == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">Created by you</button>
-            <button class="tab-button <?= $data['initial_tab'] == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">Attempt by you</button>
-            <?php
+        
 
-            //for testing
-            if (isset($_SESSION['role']) && ($_SESSION['role'] === 'expert' || $_SESSION['role'] === 'admin')) {
-                echo '<button class="tab-button ' . ($data['initial_tab'] == 'pending' ? 'active' : '') . '" data-tab="pending" id="pending-tab">Pending</button>';
-            }
-            ?>
-        </div>
+        <?php $role = strtolower(trim($data['role'] ?? 'student')); ?>
+
+<div class="tabs-container" id="tabs-container">
+    <button class="tab-button <?= ($data['initial_tab'] ?? 'all') == 'all' ? 'active' : '' ?>" data-tab="all" id="all-tab">All</button>
+    <button class="tab-button <?= ($data['initial_tab'] ?? 'all') == 'created' ? 'active' : '' ?>" data-tab="created" id="created-tab">Created by you</button>
+    <button class="tab-button <?= ($data['initial_tab'] ?? 'all') == 'attempted' ? 'active' : '' ?>" data-tab="attempted" id="attempted-tab">Attempt by you</button>
+    
+    <?php if (in_array($role, ['expert', 'admin'], true)): ?>
+        <button class="tab-button <?= ($data['initial_tab'] ?? 'all') == 'pending' ? 'active' : '' ?>" data-tab="pending" id="pending-tab">Pending</button>
+    <?php endif; ?>
+</div>
 
         <div class="list-container" id="exercises-list">
             <?php 
@@ -93,6 +96,7 @@
         const INITIAL_OFFSET = <?= $data['initial_offset'] ?? 0 ?>;
         const INITIAL_LIMIT = <?= $data['initial_limit'] ?? 5 ?>;
         const INITIAL_TAB = '<?= $data['initial_tab'] ?? 'all' ?>';
+        const USER_ROLE = '<?= htmlspecialchars($data['role'] ?? 'student') ?>';
     </script>
 
 
