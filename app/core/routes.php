@@ -101,6 +101,7 @@ App::post('exercises/api/reject_exercise', 'Exercises@api_reject_exercise');
 
 // Browsing and Filtering (R6)
 App::get('exercises/api/published', 'Exercises@api_get_published');
+App::get('exercises/api/subjects', 'Exercises@api_subjects');
 
 // API: Create Exercise (NEW)
 App::post('api/exercises/create', 'Exercises@api_create');

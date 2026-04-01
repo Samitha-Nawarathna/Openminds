@@ -34,8 +34,10 @@
                     <input type="text" id="exercise-title-input" placeholder="Required" required>
                 </div>
                 <div class="form-group">
-                    <label for="exercise-subject-input">Subject / Topic</label>
-                    <input type="text" id="exercise-subject-input" placeholder="e.g., Data Structures, PHP" required>
+                    <label for="exercise-subject-input">Subject</label>
+                    <select id="exercise-subject-input" required>
+                        <option value="">Select a subject</option>
+                    </select>
                 </div>
             </div>
 

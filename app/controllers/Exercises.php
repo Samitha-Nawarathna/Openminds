@@ -69,6 +69,49 @@ class Exercises extends Controller
     }
 
     /**
+     * API: GET /exercises/api/subjects
+     * Returns subject list for exercise create form dropdown.
+     */
+    public function api_subjects()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
+            return;
+        }
+
+        try {
+            $subjectsModel = new Subjects();
+            $rows = $subjectsModel->where([]) ?: [];
+
+            $subjects = array_map(function ($row) {
+                return [
+                    'id' => (int)($row->id ?? 0),
+                    'name' => trim((string)($row->name ?? '')),
+                ];
+            }, $rows);
+
+            $subjects = array_values(array_filter($subjects, function ($subject) {
+                return $subject['id'] > 0 && $subject['name'] !== '';
+            }));
+
+            usort($subjects, function ($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
+
+            $this->json_respond([
+                'success' => true,
+                'subjects' => $subjects,
+            ]);
+        } catch (Exception $e) {
+            error_log('api_subjects error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Failed to load subjects.']);
+            return;
+        }
+    }
+
+    /**
      * API: POST /api/exercises/create
      * Accepts JSON body and inserts exercise, questions, answers, and tags in a single transaction.
      */
@@ -95,9 +138,16 @@ class Exercises extends Controller
         $metadata = $data['metadata'] ?? null;
         $questions = $data['questions'] ?? null;
 
-        if (empty($metadata) || empty($metadata['title']) || empty($metadata['subject']) || !is_array($questions)) {
+        if (empty($metadata) || empty($metadata['title']) || !isset($metadata['subject']) || !is_array($questions)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid request: missing required metadata or questions.']);
+            return;
+        }
+
+        $subject_id = (int)$metadata['subject'];
+        if ($subject_id <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid subject selection.']);
             return;
         }
 
@@ -149,11 +199,14 @@ class Exercises extends Controller
             $pdo = new PDO("mysql:host=".DBHOST.";dbname=".DBNAME.";charset=utf8mb4", DBUSER, DBPASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
             $pdo->beginTransaction();
 
-            // Resolve or create subject
+            // Resolve selected subject from dropdown value
             $subjects = new Subjects();
-            $subject_name = trim($metadata['subject']);
-            // Use helper in Subjects model to add or find
-            $subject_id = $subjects->add_new_subject($subject_name);
+            $subject_exists = $subjects->first(['id' => $subject_id]);
+            if (!$subject_exists) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Selected subject does not exist.']);
+                return;
+            }
 
             // Insert exercise
             $stmt = $pdo->prepare("INSERT INTO exercises (subject_id, title, description, creator_id, status, created_at) VALUES (:subject_id, :title, :description, :creator_id, :status, :created_at)");

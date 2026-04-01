@@ -2,6 +2,7 @@ import {ROOT} from '../../core/config.js';
 
 const MOCK_API_SAVE_URL = ROOT + 'exercises/api/save_draft';
 const MOCK_API_SUBMIT_URL = ROOT + 'api/exercises/create';
+const API_SUBJECTS_URL = ROOT + 'exercises/api/subjects';
 
 // Convert Quill delta JSON string/object to plain text so UI stays readable.
 function quillJsonToPlainText(input) {
@@ -117,6 +118,42 @@ const optionsContainer = document.getElementById('options-container');
 const submitModal = document.getElementById('submit-modal');
 // NEW DOM ELEMENT REFERENCE
 const editMetadataBtn = document.getElementById('edit-metadata-btn');
+
+async function loadSubjectOptions() {
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    if (!subjectSelect) return;
+
+    // Keep placeholder and clear old dynamic options.
+    subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+
+    try {
+        const res = await fetch(API_SUBJECTS_URL, {headers: {'Accept': 'application/json'}});
+        const result = await res.json();
+
+        if (!res.ok || !result.success || !Array.isArray(result.subjects)) {
+            throw new Error(result.message || 'Failed to load subjects.');
+        }
+
+        result.subjects.forEach((subject) => {
+            const option = document.createElement('option');
+            option.value = String(subject.id);
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
+        });
+
+        // Restore previously selected value after reload when possible.
+        if (EXERCISE_METADATA.subject) {
+            subjectSelect.value = String(EXERCISE_METADATA.subject);
+        }
+    } catch (err) {
+        console.error('Could not load subjects', err);
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Unable to load subjects';
+        subjectSelect.appendChild(option);
+        subjectSelect.disabled = true;
+    }
+}
 
 // --- STEP 1: SETUP MODAL LOGIC ---
 
@@ -527,3 +564,4 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
 
 // Initial setup: Render options on load
 renderOptions();
+loadSubjectOptions();
