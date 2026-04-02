@@ -32,6 +32,22 @@ class ExercisesModel
             $bind[':attempt_user_id'] = $user_id;
         }
 
+        $add_status_clause = function (array $statuses, $prefix = 'status') use (&$bind, &$where) {
+            if (empty($statuses)) {
+                $where[] = '1 = 0';
+                return;
+            }
+
+            $status_placeholders = [];
+            foreach (array_values($statuses) as $idx => $status) {
+                $key = ':' . $prefix . '_' . $idx;
+                $status_placeholders[] = $key;
+                $bind[$key] = $status;
+            }
+
+            $where[] = 'e.status IN (' . implode(', ', $status_placeholders) . ')';
+        };
+
         $add_in_clause = function ($column, $values, $prefix) use (&$bind, &$where) {
             if (empty($values)) {
                 $where[] = '1 = 0';
@@ -48,7 +64,7 @@ class ExercisesModel
         };
 
         if ($role === 'student') {
-            if ($tab === 'created' || $tab === 'pending') {
+            if ($tab === 'created' || $tab === 'created_published' || $tab === 'created_draft' ) {
                 $where[] = '1 = 0';
             } else {
                 $where[] = "e.status = 'approved'";
@@ -59,6 +75,14 @@ class ExercisesModel
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
+            } elseif ($tab === 'created_published') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['approved'], 'created_published_status');
+            } elseif ($tab === 'created_draft') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['draft', 'pending', 'reject'], 'created_draft_status');
             } elseif ($tab === 'attempted') {
                 $where[] = "e.status = 'approved'";
             } else {
@@ -79,6 +103,14 @@ class ExercisesModel
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
+            } elseif ($tab === 'created_published') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['approved'], 'created_published_status');
+            } elseif ($tab === 'created_draft') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['draft', 'pending', 'reject'], 'created_draft_status');
             } elseif ($tab === 'attempted') {
                 $where[] = "e.status = 'approved'";
             } else {

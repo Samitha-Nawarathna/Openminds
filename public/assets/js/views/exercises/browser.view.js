@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ...existing code...
     const allTab = document.getElementById('all-tab');
     const createdTab = document.getElementById('created-tab');
+    const createdSubtabs = document.getElementById('created-subtabs');
     const pendingTab = document.getElementById('pending-tab');
+    const createdSubtabButtons = createdSubtabs ? Array.from(createdSubtabs.querySelectorAll('.created-subtab-btn')) : [];
 
     function hideEl(el) {
         if (el) el.classList.add('is-hidden-by-role');
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
      // --- State ---
     let currentTab = INITIAL_TAB;
+    let currentCreatedSubtab = 'created_published';
     let offset = INITIAL_OFFSET;
     const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5;
 
@@ -76,6 +79,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     applyRoleVisibility(roleFromDom);
+
+    function getEffectiveTab() {
+        return currentTab === 'created' ? currentCreatedSubtab : currentTab;
+    }
+
+    function toggleCreatedSubtabs() {
+        if (!createdSubtabs) return;
+
+        const shouldShow = currentTab === 'created' && roleFromDom !== 'student';
+        createdSubtabs.classList.toggle('is-visible', shouldShow);
+        createdSubtabs.classList.toggle('is-hidden-by-role', !shouldShow);
+    }
+
+    function setActiveCreatedSubtab(tabName) {
+        currentCreatedSubtab = (tabName === 'created_draft') ? 'created_draft' : 'created_published';
+        createdSubtabButtons.forEach((btn) => {
+            const isActive = btn.getAttribute('data-created-subtab') === currentCreatedSubtab;
+            btn.classList.toggle('active', isActive);
+        });
+    }
 
 
 
@@ -147,9 +170,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Data Fetching Logic ---
 
+    function renderEmptyState() {
+        const canCreate = !createBtn?.classList.contains('is-disabled');
+        const createAction = canCreate
+            ? `<a class="empty-state-link" href="${ROOT}/exercises/create">Create your first exercise</a>`
+            : '';
+
+        listContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon" aria-hidden="true">&#128218;</div>
+                <p class="empty-state-message">No exercises found in this section</p>
+                ${createAction}
+            </div>
+        `;
+    }
+
     function renderExercises(exercises) {
+        if (!Array.isArray(exercises) || exercises.length === 0) {
+            if (offset === 0) {
+                renderEmptyState();
+            }
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
         exercises.forEach(exercise => {
-            const item = document.createElement('div');
             // Create link wrapper
             const link = document.createElement('a');
             link.className = "no-style-link";
@@ -157,8 +203,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Determine endpoint based on tab/logic
             let endpoint = "attempt";
             if (currentTab === 'pending') endpoint = "expertreview";
+            if (currentTab === 'created' || currentTab === 'attempted') endpoint = "show";
             
             link.href = `${ROOT}/exercises/${endpoint}?id=${exercise.id}`;
+
+            const statusText = String(exercise.status || '').toLowerCase();
+            const showStatusTag = currentTab === 'created' && currentCreatedSubtab === 'created_draft';
+            const statusTag = showStatusTag
+                ? `<span class="status-pill status-${statusText || 'draft'}">${statusText || 'draft'}</span>`
+                : '';
             
             link.innerHTML = `
                 <div class="exercise-item" data-id="${exercise.id}">
@@ -166,10 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="subject-pill" data-subject="${exercise.subject}">
                         ${exercise.subject}
                     </span>
+                    ${statusTag}
                 </div>
             `;
-            listContainer.appendChild(link);
+            fragment.appendChild(link);
         });
+
+        listContainer.appendChild(fragment);
         
         applyDynamicPillColors();
     }
@@ -207,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Collect all UI state
         const requestParams = {
-            tab: currentTab,
+            tab: getEffectiveTab(),
             offset: offset,
             limit: limit,
             q: filterInput.value.trim(),
@@ -233,6 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 offset += limit;
             }
 
+            if (isInitialLoad && (!Array.isArray(data.exercises) || data.exercises.length === 0)) {
+                loadMoreBtn.textContent = 'No More Exercises';
+                loadMoreBtn.disabled = true;
+            }
+
         } catch (error) {
             console.error("Failed to load exercises:", error);
             loadMoreBtn.textContent = 'Error';
@@ -256,8 +317,19 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.classList.add('active');
             
             currentTab = nextTab;
+            toggleCreatedSubtabs();
             loadData(true); 
         }
+    });
+
+    createdSubtabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const nextSubtab = btn.getAttribute('data-created-subtab');
+            setActiveCreatedSubtab(nextSubtab);
+            if (currentTab === 'created') {
+                loadData(true);
+            }
+        });
     });
 
     // 2. Load More
@@ -274,6 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sortFilter.addEventListener('change', () => loadData(true));
 
     // --- Initialization ---
+    setActiveCreatedSubtab(currentCreatedSubtab);
+    toggleCreatedSubtabs();
     applyDynamicPillColors();
     loadData(true);
 });

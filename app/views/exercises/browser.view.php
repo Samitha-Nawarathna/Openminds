@@ -64,6 +64,11 @@
     <?php endif; ?>
 </div>
 
+<div class="created-subtabs is-hidden-by-role" id="created-subtabs">
+    <button class="created-subtab-btn active" data-created-subtab="created_published" id="created-published-tab">Published</button>
+    <button class="created-subtab-btn" data-created-subtab="created_draft" id="created-draft-tab">Draft and pending</button>
+</div>
+
         <div class="list-container" id="exercises-list">
             <?php 
             if (!empty($data['initial_exercises'])) {
@@ -79,7 +84,11 @@
                     echo '</a>';
                 }
             } else {
-                echo '<p class="no-data-msg">No exercises found.</p>';
+                echo '<div class="empty-state">';
+                echo '  <div class="empty-state-icon" aria-hidden="true">&#128218;</div>';
+                echo '  <p class="empty-state-message">No exercises found in this section</p>';
+                echo '  <a class="empty-state-link" href="' . ROOT . '/exercises/create">Create your first exercise</a>';
+                echo '</div>';
             }
             ?>
         </div>

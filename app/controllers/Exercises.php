@@ -1744,7 +1744,16 @@ class Exercises extends Controller
             $role = 'student';
         }
 
+        $allowed_tabs = ['all', 'created', 'created_published', 'created_draft', 'attempted', 'pending'];
+        if (!in_array($tab, $allowed_tabs, true)) {
+            $tab = 'all';
+        }
+
         if ($tab === 'pending' && !in_array($role, ['expert', 'admin'], true)) {
+            $tab = 'all';
+        }
+
+        if (in_array($tab, ['created', 'created_published', 'created_draft'], true) && $role === 'student') {
             $tab = 'all';
         }
 
