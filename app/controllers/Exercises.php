@@ -111,6 +111,58 @@ class Exercises extends Controller
         }
     }
 
+    public function mentorview()
+    {
+        $exercise_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+            header('Location: ' . ROOT . '/exercises?message=Unauthorized access');
+            return;
+        }
+
+        try {
+            $pdo = $this->db();
+            $exerciseStmt = $pdo->prepare("SELECT id, title, description, status, subject_id, creator_id, created_at, updated_at, subject_id FROM exercises WHERE id = :id LIMIT 1");
+            $exerciseStmt->execute([':id' => $exercise_id]);
+            $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise || (int)$exercise['creator_id'] !== $current_user) {
+                header('Location: ' . ROOT . '/exercises?message=Exercise not found or access denied');
+                return;
+            }
+
+            $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+            if (!$bundle) {
+                header('Location: ' . ROOT . '/exercises?message=Exercise not found');
+                return;
+            }
+
+            $exerciseModel = new ExercisesModel();
+            $stats = $exerciseModel->get_exercise_attempt_stats($exercise_id);
+
+            $data = [
+                'exercise' => $bundle['exercise'],
+                'questions' => $bundle['questions'],
+                'stats' => [
+                    'attempt_count' => $stats['attempt_count'],
+                    'average_score' => $stats['average_score'],
+                    'question_count' => count($bundle['questions'] ?? []),
+                ],
+                'can_edit' => true,
+                'can_hide' => true,
+                'edit_url' => ROOT . '/exercises/edit?id=' . $exercise_id,
+                'hide_url' => ROOT . '/exercises/hide?id=' . $exercise_id,
+            ];
+
+            $this->view('exercises/mentorview', $data);
+        } catch (Exception $e) {
+            error_log('mentorview error: ' . $e->getMessage());
+            header('Location: ' . ROOT . '/exercises?message=Unable to load mentor view');
+        }
+    }
+
     /**
      * API: POST /api/exercises/create
      * Accepts JSON body and inserts exercise, questions, answers, and tags in a single transaction.
@@ -308,7 +360,7 @@ class Exercises extends Controller
         $exercises = new ExercisesModel;
         $exercise = $exercises->first(['id' => $exercise_id]);
 
-        if (!$exercise || $exercise->status !== 'approved') {
+        if (!$exercise || !$this->isExerciseVisibleForAttempt($exercise)) {
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
             return;
         }
@@ -334,8 +386,9 @@ class Exercises extends Controller
         $exercises = new ExercisesModel;
         $exercise_data = $exercises->first(['id' => $exercise_id]);
 
-        if(!$exercise_data->status === 'approved'){
+        if (!$exercise_data || !$this->isExerciseVisibleForAttempt($exercise_data)){
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
+            return;
         }
 
         $user = new User;
@@ -457,8 +510,6 @@ class Exercises extends Controller
             header('Location: '.ROOT.'/exercises/show?id='.$exercise_id);
         } else {
             // --- GET (Load Edit View Logic) ---
-            $this->view('exercises/edit', []);
-            
             $exercise_id = $_GET['id'] ?? null; // Changed default to null for proper check
     
             if (!$exercise_id) {
@@ -483,11 +534,12 @@ class Exercises extends Controller
                 return;
             }
     
-            // Note: The status check below seems intended to restrict editing of approved exercises. 
-            // We'll keep the original logic but be mindful it might need adjustment (e.g., status should be 'draft').
-            if($exercise_data->status === 'approved'){
-                 header('Location: '.ROOT.'/exercises?message=Exercise is approved and cannot be edited');
-                 return;
+            $current_user = (int)($_SESSION['user_id'] ?? 0);
+            $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+            if ($current_user <= 0 || $role !== 'mentor' || (int)$exercise_data->creator_id !== $current_user) {
+                header('Location: '.ROOT.'/exercises?message=Unauthorized access');
+                return;
             }
     
             // --- 2. Fetch Questions and Answers ---
@@ -536,33 +588,21 @@ class Exercises extends Controller
             $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
     
             $data = [
-                // This is the core data used to initialize the JS state (EXERCISE_METADATA and EXERCISE_QUESTIONS)
+                'is_edit_mode' => true,
                 'initial_data' => [
                     'metadata' => [
                         'id' => $exercise_data->id,
                         'title' => $exercise_data->title,
-                        'subjectId' => $exercise_data->subject_id, // Pass ID for potential future use
+                        'subjectId' => $exercise_data->subject_id,
                         'subject' => $subject_name,
-                        'description' => $exercise_data->description ?? '', // NEW FIELD
-                        'tags' => implode(', ', $tags_list), // Format as a comma-separated string for the input field
+                        'description' => $exercise_data->description ?? '',
+                        'tags' => implode(', ', $tags_list),
                     ],
                     'questions' => $question_list,
                 ],
-                
-                // Other data for the 'edit' view (like creator, votes, etc. from original code)
-                'exercise_details' => [
-                    'exercise_id' => $exercise_data->id,
-                    'title' => $exercise_data->title,
-                    'subject' => $subject_name,
-                    // ... (other fields for exercise summary)
-                ],
-                
-                // The view will need the formatted `initial_data` to inject into the front-end script.
-                // The original logic for votes and creator is retained but not necessary for the builder.
-                // ... (Votes and Review data)
             ];
     
-            $this->view('exercises/edit', $data); // Assuming you are reusing the 'create' view for editing
+            $this->view('exercises/create', $data);
         }
     }
     public function delete()
@@ -588,8 +628,41 @@ class Exercises extends Controller
 
     public function hide()
     {
-        $exercise_id = $_GET['id'] ?? null;
-        header('Location: '.ROOT.'/exercises/show?id='.$exercise_id.'&message=Hide exercise triggered');
+        $exercise_id = (int)($_GET['id'] ?? $_POST['exercise_id'] ?? 0);
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+            $this->json_error('Unauthorized request', 403);
+        }
+
+        try {
+            $pdo = $this->db();
+            $stmt = $pdo->prepare("SELECT id, creator_id, status FROM exercises WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => $exercise_id]);
+            $exercise = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise || (int)$exercise['creator_id'] !== $current_user) {
+                $this->json_error('Exercise not found or access denied', 403);
+            }
+
+            $update = $pdo->prepare("UPDATE exercises SET status = 'hidden', updated_at = NOW() WHERE id = :id");
+            $update->execute([':id' => $exercise_id]);
+
+            if ($this->is_post()) {
+                $this->json_respond([
+                    'success' => true,
+                    'message' => 'Exercise hidden from users for the next 5 minutes.',
+                    'exercise_id' => $exercise_id,
+                    'status' => 'hidden'
+                ]);
+            }
+
+            header('Location: ' . ROOT . '/exercises/mentorview?id=' . $exercise_id . '&message=Exercise hidden from users');
+        } catch (Exception $e) {
+            error_log('hide error: ' . $e->getMessage());
+            $this->json_error('Failed to hide exercise', 500);
+        }
     }
 
     public function expertreview()
@@ -999,7 +1072,7 @@ class Exercises extends Controller
             $exerciseStmt->execute([':id' => $exercise_id]);
             $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$exercise) {
+            if (!$exercise || $exercise['status'] !== 'pending') {
                 $this->json_error('Exercise not found or not pending', 404);
             }
 
@@ -1072,7 +1145,7 @@ class Exercises extends Controller
                 $this->json_error('Exercise not found', 404);
             }
 
-            if ($bundle['exercise']['status'] !== 'approved') {
+            if (!$this->isExerciseVisibleForAttempt((object)$bundle['exercise'])) {
                 $this->json_error('Exercise is not approved for attempts', 403);
             }
 
@@ -1105,17 +1178,21 @@ class Exercises extends Controller
         
         try {
             $exerciseModel = new ExercisesModel();
-            $exercises = $exerciseModel->filter_and_search([
-                'where' => ['status' => 'approved'],
-                'order_by' => 'created_at',
-                'order_dir' => 'DESC',
+            $result = $exerciseModel->get_browser_list([
+                'role' => 'student',
+                'user_id' => (int)($_SESSION['user_id'] ?? 0),
+                'tab' => 'all',
+                'offset' => $offset,
                 'limit' => $limit,
-                'offset' => $offset
+                'subject' => '',
+                'search' => '',
+                'sort' => 'created_at-DESC',
             ]);
 
             $this->json_respond([
                 'success' => true,
-                'exercises' => $exercises
+                'exercises' => $result['rows'] ?? [],
+                'total' => $result['total'] ?? 0
             ]);
         } catch (Exception $e) {
             error_log('api_get_published error: '.$e->getMessage());
@@ -1671,6 +1748,34 @@ class Exercises extends Controller
             'exercise' => $exercise,
             'questions' => $questionPayload,
         ];
+    }
+
+    private function isExerciseVisibleForAttempt($exercise): bool
+    {
+        if (!$exercise) {
+            return false;
+        }
+
+        $status = strtolower(trim((string)($exercise->status ?? $exercise['status'] ?? '')));
+        if ($status === 'approved') {
+            return true;
+        }
+
+        if ($status !== 'hidden') {
+            return false;
+        }
+
+        $updatedAt = (string)($exercise->updated_at ?? $exercise['updated_at'] ?? '');
+        if ($updatedAt === '') {
+            return false;
+        }
+
+        $updatedTs = strtotime($updatedAt);
+        if ($updatedTs === false) {
+            return false;
+        }
+
+        return $updatedTs >= (time() - (5 * 60));
     }
     
     // Helper to send JSON error responses

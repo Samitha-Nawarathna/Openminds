@@ -1,6 +1,7 @@
 <?php
     // create.view.php
-    $title = "Create Exercise | Openminds";
+    $is_edit_mode = !empty($data['is_edit_mode']);
+    $title = $is_edit_mode ? "Edit Exercise | Openminds" : "Create Exercise | Openminds";
     $filename = "exercises/create";
     $add_back = true;
 
@@ -111,12 +112,14 @@
         <div id="progress-area" style="font-weight: 600;">
             Status: <span id="draft-status" style="color:var(--color-text-muted);">Unsaved Draft</span>
         </div>
-        <button id="save-draft-btn" class="btn-none">Save Draft</button>
+        <!-- <button id="save-draft-btn" class="btn-none">Save Draft</button> -->
     </div>
     
     <div class="action-buttons">
-        <button id="prev-q-btn" class="btn-none" disabled>← Previous Question</button>
-        <button id="save-next-btn" class="btn-blue">Next Question →</button>
+        <button id="prev-q-btn" class="btn-none" disabled>< Previous Question</button>
+        <button id="save-draft-btn" class="btn-none">Save Draft</button>
+        <button id="save-next-btn" class="btn-blue">Next Question > </button>
+        
         <button id="finalize-btn" class="btn-blue" >Submit</button>
     </div>
 </div>
@@ -135,6 +138,8 @@
 
 
 <script>
+    window.EXERCISE_INITIAL_DATA = <?= json_encode($data['initial_data'] ?? new stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    window.EXERCISE_IS_EDIT_MODE = <?= $is_edit_mode ? 'true' : 'false' ?>;
 </script>
 
 <?php

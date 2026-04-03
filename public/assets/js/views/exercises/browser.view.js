@@ -203,7 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Determine endpoint based on tab/logic
             let endpoint = "attempt";
             if (currentTab === 'pending') endpoint = "expertreview";
-            if (currentTab === 'created' || currentTab === 'attempted') endpoint = "show";
+            if (currentTab === 'created') endpoint = "mentorview";
+            if (currentTab === 'attempted') endpoint = "show";
             
             link.href = `${ROOT}/exercises/${endpoint}?id=${exercise.id}`;
 

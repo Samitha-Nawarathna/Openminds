@@ -74,6 +74,7 @@ App::post('exercises/create', 'Exercises@create');
 App::post('exercises/attempt', 'Exercises@attempt'); // POST submission
 App::get('exercises/attempt', 'Exercises@attempt'); // GET view
 App::get('exercises/show', 'Exercises@show');
+App::get('exercises/mentorview', 'Exercises@mentorview');
 App::get('exercises/edit', 'Exercises@edit');
 App::post('exercises/edit', 'Exercises@edit');
 App::post('exercises/delete', 'Exercises@delete');

@@ -106,6 +106,8 @@ let EXERCISE_METADATA = {};
 let EXERCISE_QUESTIONS = [];
 let currentQIndex = -1; // -1 means no question is selected/being edited.
 let nextQId = 1;
+const INITIAL_DATA = window.EXERCISE_INITIAL_DATA || {};
+const IS_EDIT_MODE = Boolean(window.EXERCISE_IS_EDIT_MODE);
 
 // --- DOM Elements ---
 const setupModal = document.getElementById('setup-modal');
@@ -153,6 +155,64 @@ async function loadSubjectOptions() {
         subjectSelect.appendChild(option);
         subjectSelect.disabled = true;
     }
+}
+
+function normalizeInitialQuestion(question, index) {
+    const options = Array.isArray(question.options) ? question.options : [];
+
+    return {
+        id: question.id ? parseInt(question.id) : index + 1,
+        question_text: question.question_text || question.prompt || '',
+        explanation: question.explanation || '',
+        weight: question.weight ?? 1,
+        options: options.map((option) => ({
+            text: option.text ?? option.answer_text ?? '',
+            isCorrect: Boolean(option.isCorrect ?? option.is_correct),
+        })),
+    };
+}
+
+function hydrateInitialData() {
+    const metadata = INITIAL_DATA.metadata || {};
+    const questions = Array.isArray(INITIAL_DATA.questions) ? INITIAL_DATA.questions : [];
+
+    if (!metadata.title) {
+        return false;
+    }
+
+    EXERCISE_METADATA = {
+        id: metadata.id || '',
+        title: metadata.title || '',
+        subjectId: metadata.subjectId || '',
+        subject: metadata.subject || '',
+        description: metadata.description || '',
+        tags: metadata.tags || '',
+    };
+
+    EXERCISE_QUESTIONS = questions.map((question, index) => normalizeInitialQuestion(question, index));
+    nextQId = EXERCISE_QUESTIONS.reduce((maxId, question) => Math.max(maxId, question.id || 0), 0) + 1;
+
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    document.getElementById('exercise-title-input').value = EXERCISE_METADATA.title;
+    if (subjectSelect) {
+        subjectSelect.value = String(EXERCISE_METADATA.subjectId || '');
+    }
+    document.getElementById('exercise-description-input').value = EXERCISE_METADATA.description;
+    document.getElementById('exercise-tags-input').value = EXERCISE_METADATA.tags;
+
+    setupModal.style.display = 'none';
+    mainBuilderContent.style.display = 'flex';
+    controlBar.style.display = 'flex';
+
+    renderQuestionList();
+    if (EXERCISE_QUESTIONS.length > 0) {
+        loadQuestion(0);
+    } else {
+        addNewQuestion();
+    }
+
+    updateBuilderUI(true);
+    return true;
 }
 
 // --- STEP 1: SETUP MODAL LOGIC ---
@@ -563,5 +623,15 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
 
 
 // Initial setup: Render options on load
-renderOptions();
-loadSubjectOptions();
+async function initializeView() {
+    renderOptions();
+    await loadSubjectOptions();
+
+    if (IS_EDIT_MODE && hydrateInitialData()) {
+        return;
+    }
+
+    updateBuilderUI();
+}
+
+initializeView();
