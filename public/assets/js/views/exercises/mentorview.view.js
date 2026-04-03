@@ -1,4 +1,4 @@
-import { ROOT } from "../../core/config.js";
+ import { ROOT } from "../../core/config.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const shell = document.querySelector('.mentor-shell');

@@ -106,6 +106,7 @@ App::get('exercises/api/subjects', 'Exercises@api_subjects');
 
 // API: Create Exercise (NEW)
 App::post('api/exercises/create', 'Exercises@api_create');
+App::post('exercises/api/save_draft', 'Exercises@api_save_draft');
 
 // Attempting and Results (R7, R9)
 App::post('exercises/api/attempt/{exercise_id}', 'Exercises@api_submit_attempt');
