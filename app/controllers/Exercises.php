@@ -587,17 +587,16 @@ class Exercises extends Controller
 
     public function show()
     {
-        //only accessible to creator
-        $exercise_id = $_GET['id'] ?? 1;
-        if (!$exercise_id) {
-            // Handle missing exercise ID (e.g., redirect or show error)
-            header('Location: '.ROOT.'/exercises?message=Exercise ID is required to attempt an exercise');
+        $exercise_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($exercise_id <= 0) {
+            header('Location: '.ROOT.'/exercises?message=Exercise ID is required to review an exercise');
+            return;
         }
 
         $exercises = new ExercisesModel;
         $exercise_data = $exercises->first(['id' => $exercise_id]);
 
-        if (!$exercise_data || !$this->isExerciseVisibleForAttempt($exercise_data)){
+        if (!$exercise_data || !$this->isExerciseVisibleForAttempt($exercise_data)) {
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
             return;
         }
@@ -610,20 +609,17 @@ class Exercises extends Controller
         $exercisequestion = new Exercisequestion;
         $exerciseanswer = new Exerciseanswer;
 
-
         $creator = $user->first(['id' => $exercise_data->creator_id])->username ?? 'Unknown';
         $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
 
         $tag_in_exercise = $exercise_tag->where(['exercise_id' => $exercise_id]);
-        $tags_list = [];
+        $tag_list = [];
 
-        foreach ($tag_in_exercise as $key => $tag) {
-             $tag_info = $subject->first(['id' => $tag->tag_id]);
+        foreach ($tag_in_exercise as $tag) {
             $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
         }
 
         $votes = $user_vote_exercise->where(['exercise_id' => $exercise_id]);
-    
         $upvotes = 0;
         $downvotes = 0;
         $user_vote_status = 'none';
@@ -634,52 +630,109 @@ class Exercises extends Controller
             } elseif ($vote->votetype === 'downvote') {
                 $downvotes++;
             }
-
-            // if ($vote->user_id === $current_user->id) {
-            //     $user_vote_status = $vote->vote_type;
-            // }
-        }
-
-
-
-        if (!$exercise_data) {
-            // Handle case where exercise is not found
-            header('Location: '.ROOT.'/exercises?message=Exercise not found');
         }
 
         $questions = $exercisequestion->where(['exercise_id' => $exercise_id]);
-        
         if (empty($questions)) {
-            // Handle case where no questions are found for the exercise
             header('Location: '.ROOT.'/exercises/attempt?id='.$exercise_id.'&message=No questions found for this exercise');
+            return;
+        }
+
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $average_score = 0;
+        $user_answers = [];
+        $correct_answers = [];
+        $selected_by_question = [];
+
+        if ($current_user > 0) {
+            try {
+                $pdo = $this->db();
+
+                $attemptStmt = $pdo->prepare("SELECT id, score FROM exercise_attempt WHERE exe_id = :exercise_id AND u_id = :user_id ORDER BY latest DESC, date DESC, id DESC LIMIT 1");
+                $attemptStmt->execute([
+                    ':exercise_id' => $exercise_id,
+                    ':user_id' => $current_user,
+                ]);
+                $latestAttempt = $attemptStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($latestAttempt) {
+                    $average_score = (float)$latestAttempt['score'];
+
+                    $attemptAnswersStmt = $pdo->prepare("SELECT aa.question_id AS mapped_question_id, aa.user_response, q.title AS mapped_title FROM attempt_answer aa LEFT JOIN question q ON q.id = aa.question_id WHERE aa.attempt_id = :attempt_id");
+                    $attemptAnswersStmt->execute([':attempt_id' => (int)$latestAttempt['id']]);
+                    $attemptAnswers = $attemptAnswersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($attemptAnswers as $row) {
+                        $selected_ids = [];
+                        if (!empty($row['user_response'])) {
+                            $decoded = json_decode($row['user_response'], true);
+                            if (is_array($decoded)) {
+                                $selected_ids = array_map('intval', $decoded);
+                            }
+                        }
+
+                        $mapped_title = (string)($row['mapped_title'] ?? '');
+                        $mapped_exercise_question_id = 0;
+                        if ($mapped_title !== '' && preg_match('/^Exercise\\s+' . preg_quote((string)$exercise_id, '/') . '\\s+-\\s+Q(\\d+)$/', $mapped_title, $matches)) {
+                            $mapped_exercise_question_id = (int)($matches[1] ?? 0);
+                        }
+
+                        if ($mapped_exercise_question_id > 0) {
+                            $selected_by_question[$mapped_exercise_question_id] = $selected_ids;
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                error_log('show() attempt mapping error: ' . $e->getMessage());
+            }
         }
 
         $question_list = [];
 
-
         foreach ($questions as $question) {
             $answers = $exerciseanswer->where(['question_id' => $question->id]);
+            $selected_ids = $selected_by_question[(int)$question->id] ?? [];
             $answer_options = [];
+            $correct_ids = [];
 
             foreach ($answers as $ans) {
-                $answer_options[] = $ans->answer_text;
+                $option_id = (int)$ans->id;
+                $is_correct = (bool)$ans->is_correct;
+                $is_selected = in_array($option_id, $selected_ids, true);
+
+                if ($is_correct) {
+                    $correct_ids[] = $option_id;
+                }
+
+                $answer_options[] = [
+                    'option_id' => $option_id,
+                    'text' => (string)$ans->answer_text,
+                    'is_correct' => $is_correct,
+                    'was_selected' => $is_selected,
+                ];
             }
 
+            $question_id = (int)$question->id;
             $question_list[] = [
-                'id' => $question->id,
-                'question_text' => $question->question_text,
-                'options' => $answer_options
+                'id' => $question_id,
+                'question_text' => (string)$question->question_text,
+                'options' => $answer_options,
             ];
-            
-        };
 
-        // remember to fetch review data too
+            $user_answers[$question_id] = $selected_ids;
+            $correct_answers[$question_id] = $correct_ids;
+        }
+
+        error_log('show() user_answers: ' . json_encode($user_answers));
+        error_log('show() correct_answers: ' . json_encode($correct_answers));
+
         $review_data = [
-            'average_score' => 0.8,
+            'average_score' => $average_score,
+            'total_questions' => count($question_list),
+            'user_answers' => $user_answers,
+            'correct_answers' => $correct_answers,
         ];
 
-
-        // --- MOCK DATA SETUP ---
         $role = $_SESSION['role'] ?? 'student';
         $can_edit = in_array($role, ['expert', 'admin'], true);
 
@@ -693,16 +746,15 @@ class Exercises extends Controller
                 'tags' => $tag_list,
                 'upvotes' => $upvotes,
                 'downvotes' => $downvotes,
-                'user_vote_status' => 'upvote', // possible values: 'upvoted', 'downvoted', 'none'
-                
+                'user_vote_status' => $user_vote_status,
             ],
             'questions' => $question_list,
             'review_data' => $review_data,
-            'can_edit' => $can_edit
+            'can_edit' => $can_edit,
         ];
 
         $this->view('exercises/view', $data);
-        
+
     }
 
     public function edit()
@@ -1693,6 +1745,8 @@ class Exercises extends Controller
             $questionMapStmt = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
 
             $details = [];
+            $userAnswers = [];
+            $correctAnswers = [];
             $maxScore = 0;
 
             foreach ($questions as $q) {
@@ -1721,17 +1775,28 @@ class Exercises extends Controller
                 }
 
                 $options = [];
+                $correctIds = [];
                 foreach ($optionsRaw as $opt) {
+                    $optionId = (int)$opt['id'];
+                    $isCorrectOption = (bool)$opt['is_correct'];
+                    if ($isCorrectOption) {
+                        $correctIds[] = $optionId;
+                    }
+
                     $options[] = [
-                        'option_id' => (int)$opt['id'],
+                        'option_id' => $optionId,
                         'text' => $opt['answer_text'],
-                        'is_correct' => (bool)$opt['is_correct'],
-                        'was_selected' => in_array((int)$opt['id'], $selectedIds, true),
+                        'is_correct' => $isCorrectOption,
+                        'was_selected' => in_array($optionId, $selectedIds, true),
                     ];
                 }
 
+                $questionId = (int)$q['id'];
+                $userAnswers[$questionId] = array_map('intval', $selectedIds);
+                $correctAnswers[$questionId] = $correctIds;
+
                 $details[] = [
-                    'question_id' => (int)$q['id'],
+                    'question_id' => $questionId,
                     'prompt' => $q['question_text'],
                     'user_score' => (float)($attemptAnswer['score_earned'] ?? 0),
                     'max_weight' => (float)$q['weight'],
@@ -1744,20 +1809,48 @@ class Exercises extends Controller
                 ];
             }
 
+            error_log('api_get_attempt_details user_answers: ' . json_encode($userAnswers));
+            error_log('api_get_attempt_details correct_answers: ' . json_encode($correctAnswers));
+
             $this->json_respond([
                 'success' => true,
                 'attempt_id' => $attempt_id,
                 'exercise_id' => (int)$attempt['exe_id'],
                 'exercise_title' => $attempt['title'],
                 'subject' => $attempt['subject_name'],
+                'exercise' => [
+                    'id' => (int)$attempt['exe_id'],
+                    'title' => $attempt['title'],
+                ],
                 // Score response uses stored attempt score (no recalculation)
                 'raw_score' => (float)$attempt['score'],
+                'average_score' => (float)$attempt['score'],
                 'max_score' => $maxScore,
                 'percentage_score' => $maxScore > 0 ? round(((float)$attempt['score'] / $maxScore) * 100, 2) : 0,
                 // Keep existing keys for backward compatibility
                 'total_score' => (float)$attempt['score'],
                 'total_max_score' => $maxScore,
                 'attempted_at' => $attempt['date'],
+                'questions' => array_map(function ($detail) {
+                    return [
+                        'id' => $detail['question_id'],
+                        'question_text' => $detail['prompt'],
+                        'options' => array_map(function ($opt) {
+                            return [
+                                'option_id' => $opt['option_id'],
+                                'text' => $opt['text'],
+                                'is_correct' => $opt['is_correct'],
+                                'was_selected' => $opt['was_selected'],
+                            ];
+                        }, $detail['options'] ?? []),
+                    ];
+                }, $details),
+                'options' => array_map(function ($detail) {
+                    return $detail['options'] ?? [];
+                }, $details),
+                'user_answers' => $userAnswers,
+                'correct_answers' => $correctAnswers,
+                'total_questions' => count($details),
                 'details' => $details,
             ]);
 
