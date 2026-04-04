@@ -78,6 +78,7 @@
         --sidebar-width: 260px;
         --rsidebar-width: 350px;
         --sidebar-collapsed-width: 70px;
+        --rsidebar-collapsed-width: 100px;
         --space-xl: 2rem;
     }
 
@@ -110,7 +111,7 @@
     }
 
     .rsidebar-container.collapsed {
-        width: var(--sidebar-collapsed-width);
+        width: var(--rsidebar-collapsed-width);
     }
 
     .rsidebar-header {
@@ -486,13 +487,13 @@
 
     /* Collapsed state for KPI cards */
     .collapsed .overview-grid {
-        grid-template-columns: 1fr;
-        padding: 0.5rem;
-        gap: 0.5rem;
+        grid-template-columns: 2fr;
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .collapsed .kpi-card {
-        padding: 0.5rem;
+        padding: 1rem;
         margin-bottom: 0;
         text-align: center;
     }
@@ -503,7 +504,7 @@
     }
 
     .collapsed .kpi-value {
-        font-size: 1.1rem;
+        font-size: 1.5rem;
     }
 
     /* Focus Timer Squares UI */
@@ -618,12 +619,14 @@
     .collapsed .focus-square.today,
     .collapsed .focus-square.yesterday,
     .collapsed .focus-square.target {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         padding: 0.5rem;
     }
 
-    .collapsed .focus-square .focus-title,
+    .collapsed .focus-square .focus-title{
+        display: block;
+    }
     .collapsed .focus-square .focus-unit {
         display: none;
     }
@@ -632,7 +635,7 @@
     .collapsed .focus-square.today .focus-value,
     .collapsed .focus-square.yesterday .focus-value,
     .collapsed .focus-square.target .focus-value {
-        font-size: 1.1rem;
+        font-size: 1.5rem;
     }
 </style>
 
