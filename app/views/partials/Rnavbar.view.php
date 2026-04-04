@@ -47,7 +47,7 @@
         </div>
     </div> -->
 </nav>
-<div class="nav-placeholder"></div>
+<!-- <div class="nav-placeholder"></div> -->
 
 <script type="module">
     const ROOT = "<?=ROOT?>";
