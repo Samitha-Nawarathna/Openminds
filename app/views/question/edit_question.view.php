@@ -47,6 +47,34 @@ include_once '../app/views/partials/header.view.php';
         </form>
     </div>
 
+<script>
+document.getElementById('create-question-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    let formData = {
+        id: document.querySelector('input[name="id"]').value,
+        title: document.getElementById('title').value,
+        content: document.getElementById('content').value,
+        tags: document.getElementById('hidden-tags-input').value
+    };
+    
+    fetch('<?= ROOT ?>/question/api_edit_question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            window.location.href = '<?= ROOT ?>/question/show?id=' + formData.id;
+        } else {
+            alert('Error editing question: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+
 <?php
 
 include_once '../app/views/partials/footer.view.php';

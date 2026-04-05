@@ -53,52 +53,8 @@ class Question extends Controller
 
     public function create()
     {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $current_user = $_SESSION['user_id'] ?? null;
-
-            $title = $_POST['title'];
-            $content = $_POST['content'];
-            $tags_list = explode(',',$_POST['tags']);
-
-            // Save question to the database
-            $tags = new Tags;
-            $question = new QuestionModel;
-            $question_tag = new Questiontag;
-
-            $question_id = $question->insert([
-                'title' => $title,
-                'content' => $content,
-                'creator_id' => $current_user,
-                'created_at' => date('Y-m-d H:i:s')
-            ]);
-
-            foreach ($tags_list as $tag_name) {
-                $tag = $tags->first(['name' => trim($tag_name)]);
-                if (!$tag) {
-                    // If tag does not exist, create it
-                    $tag_id = $tags->insert(['name' => trim($tag_name)]);
-                } else {
-                    $tag_id = $tag->id;
-                }
-
-                // Associate tag with question
-                $question_tag->insert([
-                    'question_id' => $question_id,
-                    'tag_id' => $tag_id
-                ]);
-            }
-
-            // Redirect to the question view page
-            // Log Event
-            $event = new Event;
-            $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => 1]); // Assuming Subject ID 1 for now or fetch if available
-
-            header("Location: ".ROOT."/question/show?id=" . $question_id);
-
-        } else {
-            // Show the form
-            $this->view('question/question_creator');
-        }
+        // Show the form
+        $this->view('question/question_creator');
     }
 
     public function show()
@@ -241,41 +197,28 @@ class Question extends Controller
 
     public function edit()
     {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            //read question id
-            $q_id = $_POST['id'];
+        $id = $_GET['id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? null;
 
-            //read form data
+        if (!$id || !$current_user) {
+            redirect('question');
+            return;
+        }
 
-            //load relevent models
+        $questions = new QuestionModel;
+        $answers = new Answer;
+        $user_vote_question = new Uservotequestion;
+        $user_vote_answer = new Uservoteanswer;
+        $question_tag = new Questiontag;
+        $user = new User;
+        $tags = new Tags;
 
-            // retrive question from database
-
-            //validate data and ownership of question if not by creator then redirect to show page with error message
-
-            //if question has atleast one answer then cannot edit and redirect to show page with error message
-
-            // Update question in the database
-
-
-            header("Location: ".ROOT."/question/show?id=" . $q_id);
-        } else {
-            $id = $_GET['id'] ?? 2;
-            $id = $_GET['id'] ?? 1;
-            // Fetch question from the database using $id
-            $current_user = $_SESSION['user_id'] ?? 'user_2';
-    
-            $questions = new QuestionModel;
-            $answers = new Answer;
-            $user_vote_question = new Uservotequestion;
-            $user_vote_answer = new Uservoteanswer;
-            $question_tag = new Questiontag;
-            $user = new User;
-            $tags = new Tags;
-    
-    
-            $question_data = $questions->first(['id' => $id]);
-            $creator = $user->first(['id' => $question_data->creator_id])->username;
+        $question_data = $questions->first(['id' => $id]);
+        if (!$question_data || $question_data->creator_id != $current_user) {
+            redirect('question');
+            return;
+        }
+        $creator = $user->first(['id' => $question_data->creator_id])->username;
     
             $question_tags = $question_tag->where(['question_id' => $id]);
             $tag_names = [];
@@ -350,71 +293,98 @@ class Question extends Controller
             
             $this->view('question/edit_question', $data);
         }
-    }
+    
 
     public function delete()
     {
-        //read question id from post method
-        
-        //load relevant models
-
-        // retrive question from database
-
-        //validate data and ownership of question if not by creator then redirect to show page with error message
-
-        //cannot edit atleast one answer is given
-
-        // Delete question from the database using $id
-
-        //show success message or error
-        header("Location: ".ROOT."/question");
+        redirect('question');
     }
 
     public function answer()
     {
-        $q_id = $_GET['id'] ?? 1;
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Save answer to the database
-
-            header("Location: ".ROOT."/question/show?id=" . $_POST['question_id']);
-        } else {
-            // Show the answer form
-            $this->view('question/answer_creator', ['q_id' => $q_id]);
-        }
+        $q_id = $_GET['id'] ?? null;
+        if (!$q_id) { redirect('question'); return; }
+        $this->view('question/answer_creator', ['q_id' => $q_id]);
     }
 
     public function edit_answer()
     {
-        $a_id = 1;//$_GET['id'];
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Update answer in the database
-            header("Location: ".ROOT."/question/show?id=" . $_POST['question_id']);
-        } else {
-            // Fetch answer from the database using $a_id
-            // Show the edit form
-            $data = [
-                'question_id'     => 1,
-                'question_title'  => 'What are myelinated axons?',
-                'answer_id' => 'a_202',
-                'answer_content' => 'This is the existing content of the answer that is being edited.',
-                
-            ];
+        $a_id = $_GET['id'] ?? null;
+        if (!$a_id) { redirect('question'); return; }
 
-            $this->view('question/edit_answer', $data);
+        $answers = new Answer();
+        $answer = $answers->first(['id' => $a_id]);
+        if (!$answer || $answer->creator_id != ($_SESSION['user_id'] ?? null)) {
+            redirect('question');
+            return;
         }
+
+        $data = [
+            'question_id'     => $answer->q_id,
+            'question_title'  => 'Editing your answer',
+            'answer_id' => $answer->id,
+            'answer_content' => $answer->content,
+        ];
+
+        $this->view('question/edit_answer', $data);
     }
 
     public function delete_answer()
     {
-        $a_id = $_GET['id'];
-        // Delete answer from the database using $a_id
-        //show success message or error
-        header("Location: /question/view?id=" . $_GET['q_id']);
+        redirect('question');
     }
 
     //---------------------------------------------------------------//
     //-----------------------AJAX METHODS----------------------------//
     //---------------------------------------------------------------//
+
+    public function api_create_question()
+    {
+        $data = $this->json_request();
+        $current_user = $_SESSION['user_id'] ?? null;
+
+        if (!$current_user) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $title = $data['title'] ?? '';
+        $content = $data['content'] ?? '';
+        $tags_list = !empty($data['tags']) ? explode(',', $data['tags']) : [];
+
+        $tags = new Tags;
+        $question = new QuestionModel;
+        $question_tag = new Questiontag;
+
+        $question_id = $question->insert([
+            'title' => $title,
+            'content' => $content,
+            'creator_id' => $current_user,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        foreach ($tags_list as $tag_name) {
+            $tag_name = trim($tag_name);
+            if(empty($tag_name)) continue;
+
+            $tag = $tags->first(['name' => $tag_name]);
+            if (!$tag) {
+                $tag_id = $tags->insert(['name' => $tag_name]);
+            } else {
+                $tag_id = $tag->id;
+            }
+
+            $question_tag->insert([
+                'question_id' => $question_id,
+                'tag_id' => $tag_id
+            ]);
+        }
+
+        $event = new Event;
+        $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => 1]);
+
+        echo json_encode(['status' => 'success', 'question_id' => $question_id]);
+    }
 
     public function api_create_answer()
     {

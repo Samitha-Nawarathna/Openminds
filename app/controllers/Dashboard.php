@@ -16,10 +16,19 @@ class Dashboard extends Controller
     }
     
     // --- Utility Methods (Unchanged) ---
-
     public function index()
     {
-        return $this->view('dashboard/index');
+        $userId = $_SESSION['user_id'] ?? $this->userId;
+        $pointsQuery = "SELECT points FROM user WHERE id = :id";
+        try {
+            $points = $this->dashboardModel->executeQuery($pointsQuery, ['id' => $userId])[0]->points ?? 0;
+        } catch (Exception $e) {
+            $points = 0;
+        }
+        
+        return $this->view('dashboard/index', [
+            'total_points' => number_format((float)$points, 2)
+        ]);
     }
 
     private function getRequestParameter(string $key, $default)

@@ -1,0 +1,45 @@
+Point  Calculation  Model  
+ 
+𝑆
+𝑡
+ 
+=
+ 
+𝑖
+∑
+𝑗
+∑
+(
+𝑤
+𝑖
+×
+ 
+𝑓
+𝑖𝑗
+)
+×
+𝑒
+ − λ
+𝑖
+𝑡
+𝑗
+/30
+ 
+t  is  in  units  of  days.  t_j  is  days  difference  from  jth  day  to  current  day.  j  is  the  day  of  action  taken.  i  is  type  of  action.  f  stands  for  total  count     i  {Action}  w  {Weight  }  
+λ  (per  month)  
+Reasons  
+Answering  question  0.2  0.1115718  medium  significance  →  baseline  
+Asking  question  0.2  0.1115718  medium:  good  content  but  common  
+Giving  an  upvote  (as  actor)  0.2  0.1785148  low-cost  action  →  faster  decay  
+Giving  a  downvote  (as  actor)  0.1  0.1785148  low-cost  moderation  action  →  faster  decay  
+Attempting  an  exercise  0.1  0.1785148  low-value,  frequent  →  faster  decay  
+Sharing  a  note  0.2  0.1115718  medium:  content  contribution  
+Creating  an  exercise  0.5  0.0557859  high-impact  →  decays  slowly  (half  of  baseline)  
+Gain  an  Upvote  (received)  0.2  0.0892574  slightly  more  persistent  than  baseline  (0.8×λ ₀ )  
+An  Attempt  in  created  exercise  (someone  attempts  your  created  ex)  
+0.05  0.2231436  very  low  per-attempt  contribution  →  fast  decay  (2×λ ₀ )  
+An  exercise  get  approved  0.2  0.0781002  important  event  →  slower  decay  (0.7×λ ₀ )  
+Gain  a  downvote  (received)  −0.2  0.2231436  negative  —  decays  fast  so  users  can  recover  
+Rejection  of  an  exercise  −0.1  0.2231436  negative  —  fast  decay  
+Banning  a  content  shared  by  user  
+0.2  *  N  0.0200830  rare/related  to  spam  content-  very  slow  decay  (0.18×λ ₀ )   Λ  =  0.1115718  means  after  one  month  point  decay  is  20%  from  initial  points.  

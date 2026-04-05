@@ -42,7 +42,28 @@ include_once '../app/views/partials/header.view.php';
         </form>
     </div>
 
-    <script src="scripts_answer.js"></script>
+    <!-- <script src="scripts_answer.js"></script> -->
+    <script>
+    document.getElementById('answer-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = {
+            id: document.querySelector('input[name="answer_id"]').value,
+            content: document.getElementById('answer-content').value
+        };
+        
+        fetch('<?= ROOT ?>/question/api_edit_answer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                window.location.href = '<?= ROOT ?>/question/show?id=' + document.querySelector('input[name="question_id"]').value;
+            } else { alert('Error: ' + data.message); }
+        });
+    });
+    </script>
 
 </body>
 </html>

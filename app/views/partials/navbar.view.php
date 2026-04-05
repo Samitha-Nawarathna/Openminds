@@ -290,7 +290,7 @@
     .sidebar-content {
         padding: 1.5rem 1rem;
         overflow-y: auto;
-        height: calc(100vh - 65px);
+        height: calc(100vh - 65px - 70px);
     }
 
     .nav-section {
@@ -376,7 +376,8 @@
     }
 
     /* Tooltip for collapsed state */
-    .collapsed .nav-link::after {
+    .collapsed .nav-link::after,
+    .collapsed .sidebar-footer::after {
         content: attr(data-tooltip);
         position: absolute;
         left: 100%;
@@ -393,7 +394,8 @@
         z-index: 1001;
     }
 
-    .collapsed .nav-link:hover::after {
+    .collapsed .nav-link:hover::after,
+    .collapsed .sidebar-footer:hover::after {
         opacity: 1;
     }
 
@@ -565,6 +567,68 @@
     .collapsed .notification-dropdown {
         left: 100%; /* Keep it pushed out */
     }
+
+    /* ---------------------------------- */
+    /* Sidebar Footer (Profile Section)   */
+    /* ---------------------------------- */
+    .sidebar-footer {
+        padding: 1rem;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--color-text-dark);
+        transition: all 0.2s;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: white;
+        height: 70px;
+    }
+    
+    .sidebar-footer:hover {
+        background-color: var(--color-gray-100);
+    }
+    
+    .profile-avatar {
+        min-width: 36px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* For truncation */
+        white-space: nowrap;
+        opacity: 1;
+        transition: opacity 0.2s;
+    }
+    
+    .profile-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .profile-role {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        text-transform: capitalize;
+    }
+    
+    .collapsed .profile-info {
+        opacity: 0;
+        width: 0;
+        pointer-events: none;
+    }
+    
+    .collapsed .sidebar-footer {
+        justify-content: center;
+        padding: 1rem 0;
+    }
 </style>
 
 
@@ -691,6 +755,24 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <a href="<?=ROOT?>/profile" class="sidebar-footer" data-tooltip="Profile">
+        <?php 
+        $nav_user_id = $_SESSION['user_id'] ?? 0;
+        $nav_role_display = $_SESSION['role'] ?? 'User';
+        $nav_username = $_SESSION['user_data']['username'] ?? $_SESSION['user_name'] ?? 'My Profile'; 
+        
+        // Try .avif first, fallback to generic avatar
+        $profile_img_path = ROOT . "/uploads/" . $nav_user_id . "/profile.avif";
+        ?>
+        <img src="<?=$profile_img_path?>" 
+             onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('<?= htmlspecialchars($nav_username) ?>') + '&background=random';" 
+             alt="Profile" class="profile-avatar">
+        <div class="profile-info">
+            <span class="profile-name"><?= htmlspecialchars($nav_username) ?></span>
+            <span class="profile-role"><?= htmlspecialchars($nav_role_display) ?></span>
+        </div>
+    </a>
 </aside>
 
 

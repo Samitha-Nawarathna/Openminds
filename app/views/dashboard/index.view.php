@@ -85,7 +85,7 @@
                 <div class="stat-content">
                     <div>
                         <div class="kpi-title">Total Points</div>
-                        <div class="kpi-value" id="stat-points">0</div>
+                        <div class="kpi-value" id="stat-points"><?= isset($data['total_points']) ? $data['total_points'] : '0.00' ?></div>
                     </div>
                     <div class="progress-container">
                         <div class="progress-bar-bg">
