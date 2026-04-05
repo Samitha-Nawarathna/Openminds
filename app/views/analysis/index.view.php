@@ -12,11 +12,11 @@ include_once '../app/views/partials/header.view.php';
 
     <main class="main-content">
         
-        <h1 class="main-header">Wellcome Back!</h1>
-        
+        <h1 class="main-header">Welcome Back!</h1>
+            
 
         <section class="overview-grid" id="overview-panel">
-            </section>
+        </section>
 
         <div class="card">
             <div class="card-header">

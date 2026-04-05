@@ -5,6 +5,8 @@
     $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
+    include "../app/views/partials/focus_timer.php";
+    include_once '../app/views/partials/Rnavbar.view.php';
 
 ?>
 
@@ -28,7 +30,11 @@
             <label for="topic-name-input" >Enter the topic name:</label>
             <input type="text" id="topic-name-input"  placeholder="e.g., Quantum Physics Basics">
             <p id="validation-result" class="validation-message"></p>
-            <button id="create-topic-btn" class="button button-primary" onclick="window.createTopic()" disabled>Create Topic</button>
+            <button id="create-subject-btn" class="button button-primary" onclick="window.createSubject()">Create Subject</button>
+
+            <button onclick="history.back()" class= "button" style="text-align: center; background-color: var(--color-surface); color: black; border: none;">
+                ← Back
+            </button>
         </section>
     </div>
 </div>
@@ -53,7 +59,7 @@
                         <ul id="available-notes-list" class="notes-list">
                             <li class="note-item empty-state">Search for notes to assign.</li>
                         </ul>
-                        <div id="load-more-container" class="text-center" style="padding-top: var(--space-sm);">
+                        <div id="load-more-container" class=  "text-center" style="padding-top: var(--space-sm);">
                             <button id="load-more-btn" class="button-secondary" onclick="window.loadMoreNotes()" style="width: 100%; display: none;">
                                 Load More Notes
                             </button>

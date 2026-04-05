@@ -3,11 +3,11 @@
 $title = 'Topic browser';
 $filename = 'notes/title';
 
+
 include_once '../app/views/partials/header.view.php';
-
-
+include_once '../app/views/partials/Rnavbar.view.php';
+include "../app/views/partials/focus_timer.php";
 ?>
-
 <div class="main-content-container">
     <header class="page-header">
         <img src="<?=ROOT?>assets/images/title.png" alt="Topics" class="title-icon">
@@ -16,6 +16,9 @@ include_once '../app/views/partials/header.view.php';
             <p class="page-description">notes are organized under title.</p>
         </div>
     </header>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     
         <div class="filter-bar">
             <input type="text" id="topic-filter-input" placeholder="enter a username/name">
@@ -26,8 +29,8 @@ include_once '../app/views/partials/header.view.php';
         <?php if (!empty($data['recent_topics'])): ?>
         <div class="recent-topic-container">
             <div class="title-bar">
-                <div class="title"><h3>Pinned Topics</h3></div>
-                <div class="toggle"><p class="caption">Hide</p></div>
+                <div class="title"><h3>Pinned Subjects</h3></div>
+                <!-- <div class="toggle"><p class="caption">Hide</p></div> -->
             </div>
             <div class="card-swapper-container">
                 <div class="cards-wrapper" id="cardsWrapper">
@@ -65,8 +68,8 @@ include_once '../app/views/partials/header.view.php';
         </div>
         <?php endif; ?>
 
-        <div class="list-container" id="topics-list">
-            <h3>Available Topics</h3>
+        <div class="list-container" id="subjects-list">
+            <h3>Available Subjects</h3>
             <?php 
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {

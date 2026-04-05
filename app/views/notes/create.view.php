@@ -5,6 +5,8 @@
     $add_back = true;
 
     include_once "../app/views/partials/header.view.php";
+    include "../app/views/partials/focus_timer.php";
+    include_once "../app/views/partials/Rnavbar.view.php";
 
 ?>
 

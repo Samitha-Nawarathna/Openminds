@@ -22,7 +22,7 @@ body {
     /* FIX 1: UNCOMMENTED STYLES FOR CARD BACKGROUND AND BORDER */
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
-    
+
     overflow: hidden;
     padding: var(--space-lg);
     position: relative;
@@ -32,19 +32,24 @@ body {
     transition: transform 0.3s ease-out, visibility 0.3s ease-out;
 
     /* NEW FEATURE: SCROLLING SETUP (Card Container) */
-    max-height: 150vh; /* Limits the card height to 80% of the viewport */
-    display: flex; /* Enables Flexbox */
-    flex-direction: column; /* Stacks children vertically */
+    max-height: 150vh;
+    /* Limits the card height to 80% of the viewport */
+    display: flex;
+    /* Enables Flexbox */
+    flex-direction: column;
+    /* Stacks children vertically */
 }
 
 /* Apply flex properties to the inner content area */
 .main-content-area {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Make it take all available vertical space */
-    min-height: 0; /* Crucial for flex containers with max-height */
+    flex-grow: 1;
+    /* Make it take all available vertical space */
+    min-height: 0;
+    /* Crucial for flex containers with max-height */
     overflow: hidden;
-    
+
 }
 
 /* Fixed elements are prevented from growing or shrinking */
@@ -59,8 +64,9 @@ body {
 .tags-collapsible-container {
     margin-bottom: var(--space-md);
     border-radius: var(--radius-sm);
-    overflow: hidden; 
-    flex-shrink: 0; /* Ensure this fixed area doesn't shrink */
+    overflow: hidden;
+    flex-shrink: 0;
+    /* Ensure this fixed area doesn't shrink */
 }
 
 .tags-toggle-btn {
@@ -74,10 +80,11 @@ body {
 .note-title-input,
 .note-content-textarea {
     /* FIX 3: Remove default styles and use card's background */
-    border: none; 
+    border: none;
     background-color: transparent;
-    padding: 0; /* Remove internal padding if desired, otherwise adjust */
-    
+    padding: 0;
+    /* Remove internal padding if desired, otherwise adjust */
+
     width: 100%;
     font-size: var(--font-size-base);
     /* margin-bottom: var(--space-md); */
@@ -95,41 +102,48 @@ body {
 /* --- SCROLLABLE CONTENT AREA --- */
 .note-content-textarea {
     /* NEW FEATURE: Enable scrolling */
-    flex-grow: 1; /* Takes up the remaining vertical space */
-    overflow-y: auto; /* Enables scrolling for the content */
-    
-    height: auto; /* Overrides the fixed height for flex control */
+    flex-grow: 1;
+    /* Takes up the remaining vertical space */
+    overflow-y: auto;
+    /* Enables scrolling for the content */
+
+    height: auto;
+    /* Overrides the fixed height for flex control */
     line-height: 1.6;
-    margin-bottom: 0; /* Remove margin from the bottom of the scroll area */
+    margin-bottom: 0;
+    /* Remove margin from the bottom of the scroll area */
     margin-bottom: var(--space-xl);
 }
 
 /* Action Buttons */
 .action-buttons-bottom {
     display: flex;
-    gap: var(--space-sm); 
+    gap: var(--space-sm);
     justify-content: flex-end;
-    flex-shrink: 0; /* Ensure this fixed area doesn't shrink */
+    flex-shrink: 0;
+    /* Ensure this fixed area doesn't shrink */
 }
 
-.btn-share, .btn-delete, .action-buttons-bottom .btn-edit {
+.btn-share,
+.btn-delete,
+.action-buttons-bottom .btn-edit {
     width: fit-content;
-    padding: var(--space-sm) var(--space-md); 
+    padding: var(--space-sm) var(--space-md);
     border: none;
     border-radius: var(--radius-md);
     font-size: var(--font-size-base);
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s; 
+    transition: all 0.2s;
 }
 
 .btn-share {
-    background-color: var(--color-primary); 
+    background-color: var(--color-primary);
     color: var(--color-surface);
 }
 
 .btn-share:hover {
-    background-color: #0056b3; 
+    background-color: #0056b3;
 }
 
 .action-buttons-bottom .btn-share {
@@ -145,7 +159,7 @@ body {
 }
 
 .action-buttons-bottom .btn-edit:hover {
-    background-color: #ced4da; 
+    background-color: #ced4da;
     color: var(--color-primary);
 }
 
@@ -157,29 +171,51 @@ body {
 }
 
 .action-buttons-bottom .btn-delete:hover {
-    background-color: #c82333; 
+    background-color: #c82333;
 }
 
 
 /* --- Fixed Timer Container and States (UPDATED) --- */
 #fixed-timer-container {
     position: fixed;
-    bottom: var(--space-lg); 
-    left: var(--space-lg);   
-    z-index: 1000; 
+    bottom: var(--space-lg);
+    left: var(--space-lg);
+    z-index: 1000;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+#progress-bar-fill {
+    height: 100%;
+    width: 0%; /* Start at 0 */
+    background-color: #4CAF50; /* Green color */
+    transition: width 1s linear;
 }
 
 /* Style for the button that opens the modal (Focus Button) */
 #focus-button-trigger {
     padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-lg);
+    font-size: 1.3rem;
     font-weight: bold;
     cursor: pointer;
     border: none;
     background-color: var(--color-primary);
     color: var(--color-surface);
     box-shadow: var(--shadow-xl);
-    
+}
+
+.timer-icon {
+    font-size: 2rem;
+    vertical-align: middle;
 }
 
 /* Style for the running timer display */
@@ -188,10 +224,11 @@ body {
     align-items: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
-    background-color: var(--color-primary); /* Use a strong background to stand out */
+    background-color: var(--color-primary);
+    /* Use a strong background to stand out */
     color: var(--color-surface);
     border-radius: var(--radius-lg);
-    font-size: var(--font-size-lg);
+    font-size: 1.5rem;
     font-weight: bold;
     box-shadow: var(--shadow-xl);
 }
@@ -205,7 +242,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     padding: 0;
-    line-height: 1; 
+    line-height: 1;
     margin-left: var(--space-sm);
     opacity: 0.8;
     transition: opacity 0.2s;
@@ -218,23 +255,24 @@ body {
 
 /* --- Modal Styles (Unchanged) --- */
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
-    z-index: 2000; 
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.6); /* Backdrop */
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Backdrop */
 }
 
 .modal-content {
     background-color: var(--color-surface);
-    margin: 10% auto; 
+    margin: 10% auto;
     padding: var(--space-lg);
     border: 1px solid var(--color-border);
-    max-width: 350px; 
+    max-width: 350px;
     width: 90%;
     border-radius: var(--radius-lg);
     position: relative;
@@ -283,7 +321,8 @@ body {
     color: var(--color-placeholder);
 }
 
-#timer-start-modal-btn { /* Renamed from #timer-btn */
+#timer-start-modal-btn {
+    /* Renamed from #timer-btn */
     padding: var(--space-xs) var(--space-sm);
     border: none;
     border-radius: var(--radius-sm);

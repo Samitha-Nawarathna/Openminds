@@ -7,6 +7,15 @@
 
 /* Body/Container adjustments - Split Screen Layout */
 body {
+<<<<<<< HEAD
+    /* Use design system background */
+    background-color: var(--color-blue-100);
+    padding: var(--space-md);
+    /* Use MD spacing for outer padding */
+    display: flex;
+    justify-content: center;
+=======
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -62,6 +71,14 @@ body {
 
 /* Right section contains the form */
 .main-content-container {
+<<<<<<< HEAD
+    width: 95%;
+    max-width: 1200px;
+    margin-top: 50px;
+    /* Push content down past where a fixed navbar might be */
+    justify-self: center;
+    align-self: center;
+=======
     flex: 1;
     display: flex;
     align-items: center;
@@ -71,6 +88,7 @@ body {
     min-height: 100vh;
     overflow-y: auto;
     /* Allow scrolling if content is tall */
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
 h2 {
@@ -98,11 +116,18 @@ section {
 }
 
 /* --- Section 1: Create Topic Styles --- */
+<<<<<<< HEAD
+#create-subject-section {
+    width: 380px;
+    /* Slightly wider than 350px for better alignment with tokens */
+    margin: 0 auto var(--space-lg) auto;
+=======
 #create-topic-section {
     width: 380px;
     /* Fixed width for the form */
     /* Parent (main-content-container) now handles centering */
     margin: 0;
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 
     /* Apply design system container style to the content inside the section */
     padding: var(--space-lg);
@@ -120,7 +145,7 @@ label {
 }
 
 /* Use the input-group styling for the topic name input */
-#topic-name-input {
+#subject-name-input {
     width: 100%;
     /* The input itself is styled by the core input styles (borderless) */
     /* We'll wrap it in a div if needed, but for simplicity, we style the input directly 
@@ -134,14 +159,14 @@ label {
     transition: border-color 0.2s;
 }
 
-#topic-name-input:focus {
+#subject-name-input:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
     outline: none;
 }
 
 /* Use the general .button style from core.css */
-/* We rely on the core.css .button and .button-secondary styles now for #create-topic-btn */
+/* We rely on the core.css .button and .button-secondary styles now for #create-subject-btn */
 /* Custom style for the primary button when active/not disabled */
 .button-primary {
     background-color: var(--color-primary);
@@ -153,12 +178,16 @@ label {
 }
 
 
-#create-topic-btn {
+#create-subject-btn {
     /* Ensures margin top for the button is applied */
     margin-top: var(--space-sm);
 }
 
+<<<<<<< HEAD
+#create-subject-btn:disabled {
+=======
 #create-topic-btn:disabled {
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     background-color: var(--color-gray-400);
     /* Use a gray token for disabled state */
     cursor: not-allowed;
@@ -180,6 +209,13 @@ label {
     color: var(--color-surface);
 }
 
+.button-back {
+    /* This style comes from core.css but we ensure it works here */
+    background-color: transparent;
+    color: var(--color-text);
+    border: 5px;
+}
+
 .validation-message {
     margin-top: var(--space-xs);
     font-size: var(--font-size-sm);
@@ -198,6 +234,23 @@ label {
 }
 
 /* --- Section 2: Notes Management Styles --- */
+<<<<<<< HEAD
+
+#notes-modal {
+    position: fixed;
+    top: 30%;
+    left: 30%;
+    transform: translate(-30%, -30%);
+    z-index: 1000;
+}
+
+/* 
+.modal-content {
+    margin: 0;
+} */
+
+/* .panels-container {
+=======
 #notes-modal {
     justify-self: center;
     align-self: center;
@@ -226,9 +279,11 @@ label {
 }
 
 .panels-container {
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     display: flex;
     gap: var(--space-md);
-}
+    align-items: flex-start; /* Prevents panels from stretching weirdly
+}*/
 
 .panel {
     /* Base panel style uses surface and shadow */
@@ -265,6 +320,13 @@ label {
     display: flex;
     justify-content: space-between;
     align-items: center;
+<<<<<<< HEAD
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--color-border-light);
+    /* Use light border token */
+}
+
+=======
     padding: var(--space-xs) var(--space-sm);
     border-bottom: 1px solid var(--color-border-light);
     /* Use light border token */
@@ -281,6 +343,7 @@ label {
     /* Show buttons on hover */
 }
 
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .note-item:last-child {
     border-bottom: none;
 }
@@ -294,6 +357,8 @@ label {
     gap: var(--space-xs);
 }
 
+<<<<<<< HEAD
+=======
 .note-item span::before {
     content: '📝';
     font-size: var(--font-size-base);
@@ -316,6 +381,7 @@ label {
     text-align: center;
 }
 
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .add-btn,
 .remove-btn {
     background: none;
@@ -480,34 +546,76 @@ label {
 }
 
 /* MODAL STYLES */
+/* 1. The Overlay: Full screen, darkened, and centers its children */
 .modal {
     display: none;
+<<<<<<< HEAD
+    /* Hidden by JS */
+    position: fixed;
+    z-index: 2000;
+    /* Higher than navbars */
+=======
     /* Hidden by default */
     position: fixed;
     z-index: 1000;
     /* Ensure it's on top of everything */
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
+<<<<<<< HEAD
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Slightly darker for focus */
+
+    /* Perfect Centering */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+=======
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
     /* Dark background overlay */
     padding-top: 50px;
     animation: fadeIn 0.3s;
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
+/* 2. The Content Box: Defines the actual size */
 .modal-content {
     background-color: var(--color-surface);
+<<<<<<< HEAD
+=======
     margin: 10% auto;
     /* Center it vertically and horizontally */
     padding: var(--space-lg);
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    width: 90%;
-    max-width: 1000px;
+    box-shadow: var(--shadow-lg);
     position: relative;
-    animation: slideIn 0.4s;
+
+    /* SIZE CONTROL */
+    width: 100%;
+    max-width: 1000px;
+    /* Gives room for the 2-panel layout */
+    min-height: 400px;
+    /* Prevents collapsing when empty */
+    max-height: 85vh;
+    /* Prevents going off-screen */
+
+    /* SCROLLING */
+    overflow-y: auto;
+    padding: var(--space-lg);
+    animation: slideIn 0.3s ease-out;
+}
+
+/* 3. Panel Fix: Ensure the search panels don't overflow */
+.panels-container {
+    display: flex;
+    gap: var(--space-lg);
+    width: 100%;
+    margin-top: var(--space-md);
 }
 
 .close-btn {
@@ -572,14 +680,23 @@ label {
         flex-direction: column;
     }
 
+<<<<<<< HEAD
+=======
     .left-panel,
     .right-panel {
         flex: 1;
     }
 
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     .modal-content {
-        margin: 5% auto;
+        width: 95%;
+        margin: 20px auto;
+        padding: var(--space-md);
     }
+
+    /* .modal-content {
+        margin: 5% auto;
+    } */
 }
 
 /* NEW: Load More Container */
