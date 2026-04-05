@@ -18,6 +18,10 @@ body {
     display: none !important;
 }
 
+.hidden-exercise {
+    display: none !important;
+}
+
 /* --- Header Styles --- */
 .exercise-browser-header {
     margin-bottom: 30px;

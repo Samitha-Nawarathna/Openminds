@@ -174,7 +174,7 @@ class ExercisesModel
             $where_sql = ' WHERE ' . implode(' AND ', $where);
         }
 
-        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, s.name AS subject, u.username AS creator_name";
+        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name";
         $from_sql = " FROM exercises e" . $attempt_join . $joins;
         $order_sql = " ORDER BY {$order_by} {$order_dir}";
 

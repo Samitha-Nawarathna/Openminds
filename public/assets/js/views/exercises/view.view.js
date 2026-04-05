@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	try {
 		const payload = await resolvePayload();
-		console.log(payload?.user_answers || {}, payload?.correct_answers || {});
 		const viewModel = normalizePayload(payload);
 		renderReview(viewModel, els);
 	} catch (error) {
@@ -56,6 +55,14 @@ async function resolvePayload() {
 			const latestAttemptData = await fetchOptionalJson(`${ROOT}/exercises/api/history/${latestAttemptId}`);
 			if (hasRenderableQuestions(latestAttemptData)) {
 				return latestAttemptData;
+			}
+		}
+
+		const fallbackAttemptId = pickLatestAttemptId(attemptHistory);
+		if (fallbackAttemptId > 0) {
+			const fallbackAttemptData = await fetchOptionalJson(`${ROOT}/exercises/api/history/${fallbackAttemptId}`);
+			if (hasRenderableQuestions(fallbackAttemptData) && isAttemptCompatibleWithInitial(fallbackAttemptData, initial)) {
+				return fallbackAttemptData;
 			}
 		}
 
@@ -103,6 +110,59 @@ function pickLatestAttemptIdForExercise(historyPayload, exerciseId) {
 	}
 
 	return 0;
+}
+
+function pickLatestAttemptId(historyPayload) {
+	if (!historyPayload || typeof historyPayload !== "object") {
+		return 0;
+	}
+
+	const attempts = Array.isArray(historyPayload.attempts) ? historyPayload.attempts : [];
+	for (const attempt of attempts) {
+		if (!attempt || typeof attempt !== "object") {
+			continue;
+		}
+
+		const resolvedAttemptId = Number(attempt.id ?? attempt.attempt_id ?? attempt.attemptId ?? 0);
+		if (resolvedAttemptId > 0) {
+			return resolvedAttemptId;
+		}
+	}
+
+	return 0;
+}
+
+function isAttemptCompatibleWithInitial(attemptPayload, initialPayload) {
+	if (!attemptPayload || !Array.isArray(attemptPayload.details)) {
+		return false;
+	}
+
+	if (!initialPayload || !Array.isArray(initialPayload.questions) || initialPayload.questions.length === 0) {
+		return true;
+	}
+
+	const initialQuestions = initialPayload.questions;
+	const attemptQuestions = attemptPayload.details;
+
+	if (attemptQuestions.length !== initialQuestions.length) {
+		return false;
+	}
+
+	let matchedCount = 0;
+	for (let i = 0; i < initialQuestions.length; i += 1) {
+		const initialText = canonicalize(initialQuestions[i]?.question_text ?? initialQuestions[i]?.prompt ?? initialQuestions[i]?.text ?? "");
+		const attemptText = canonicalize(attemptQuestions[i]?.prompt ?? attemptQuestions[i]?.question_text ?? attemptQuestions[i]?.text ?? "");
+
+		if (!initialText || !attemptText) {
+			continue;
+		}
+
+		if (initialText === attemptText) {
+			matchedCount += 1;
+		}
+	}
+
+	return matchedCount >= Math.ceil(initialQuestions.length * 0.6);
 }
 
 function hasRenderableQuestions(payload) {

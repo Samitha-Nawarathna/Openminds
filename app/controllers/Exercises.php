@@ -33,6 +33,7 @@ class Exercises extends Controller
         $initial_exercises = array_map(function ($row) {
             return (array)$row;
         }, $initial_load_result['rows'] ?? []);
+        $initial_exercises = $this->apply_hidden_exercise_visibility($initial_exercises, (int)$user_id);
 
         $data = [
             'current_user_id' => $user_id,
@@ -229,6 +230,7 @@ class Exercises extends Controller
                 'can_hide' => true,
                 'edit_url' => ROOT . '/exercises/edit?id=' . $exercise_id,
                 'hide_url' => ROOT . '/exercises/hide?id=' . $exercise_id,
+                'visibility' => $this->get_exercise_visibility_state($exercise_id, (int)$exercise['creator_id'], $current_user),
             ];
 
             $this->view('exercises/mentorview', $data);
@@ -891,7 +893,13 @@ class Exercises extends Controller
 
     public function hide()
     {
-        $exercise_id = (int)($_GET['id'] ?? $_POST['exercise_id'] ?? 0);
+        $this->toggleVisibility();
+    }
+
+    public function toggleVisibility()
+    {
+        $input = $this->json_request();
+        $exercise_id = (int)($_POST['exercise_id'] ?? $_POST['id'] ?? ($_GET['id'] ?? ($input['exercise_id'] ?? $input['id'] ?? 0)));
         $current_user = (int)($_SESSION['user_id'] ?? 0);
         $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
@@ -901,7 +909,7 @@ class Exercises extends Controller
 
         try {
             $pdo = $this->db();
-            $stmt = $pdo->prepare("SELECT id, creator_id, status FROM exercises WHERE id = :id LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, creator_id FROM exercises WHERE id = :id LIMIT 1");
             $stmt->execute([':id' => $exercise_id]);
             $exercise = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -909,22 +917,30 @@ class Exercises extends Controller
                 $this->json_error('Exercise not found or access denied', 403);
             }
 
-            $update = $pdo->prepare("UPDATE exercises SET status = 'hidden', updated_at = NOW() WHERE id = :id");
-            $update->execute([':id' => $exercise_id]);
+            $current_visibility = $this->get_exercise_visibility_state($exercise_id, (int)$exercise['creator_id'], $current_user);
+            $next_visibility = ($current_visibility === 'hidden') ? 'visible' : 'hidden';
+            $this->set_exercise_visibility_state($exercise_id, $next_visibility, (int)$exercise['creator_id'], $current_user);
 
-            if ($this->is_post()) {
-                $this->json_respond([
-                    'success' => true,
-                    'message' => 'Exercise hidden from users for the next 5 minutes.',
-                    'exercise_id' => $exercise_id,
-                    'status' => 'hidden'
-                ]);
+            $payload = [
+                'success' => true,
+                'status' => 'success',
+                'exercise_id' => $exercise_id,
+                'visibility' => $next_visibility,
+            ];
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($input)) {
+                $this->json_respond($payload);
             }
 
-            header('Location: ' . ROOT . '/exercises/mentorview?id=' . $exercise_id . '&message=Exercise hidden from users');
+            $message = $next_visibility === 'hidden'
+                ? 'Exercise hidden from other users for this session.'
+                : 'Exercise shown to other users.';
+
+            header('Location: ' . ROOT . '/exercises/mentorview?id=' . $exercise_id . '&message=' . urlencode($message));
+            exit;
         } catch (Exception $e) {
-            error_log('hide error: ' . $e->getMessage());
-            $this->json_error('Failed to hide exercise', 500);
+            error_log('toggleVisibility error: ' . $e->getMessage());
+            $this->json_error('Failed to update exercise visibility', 500);
         }
     }
 
@@ -1377,7 +1393,8 @@ class Exercises extends Controller
         if ($exercise_id === 'all' || $exercise_id === 'list') {
             try {
                 $pdo = $this->db();
-                $rows = $pdo->query("SELECT e.id, e.title, s.name AS subject, e.created_at FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.status = 'approved' ORDER BY e.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+                $rows = $pdo->query("SELECT e.id, e.title, e.creator_id, s.name AS subject, e.created_at FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.status = 'approved' ORDER BY e.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+                $rows = $this->apply_hidden_exercise_visibility($rows, (int)($_SESSION['user_id'] ?? 0));
 
                 $this->json_respond([
                     'success' => true,
@@ -1452,9 +1469,14 @@ class Exercises extends Controller
                 'sort' => 'created_at-DESC',
             ]);
 
+            $rows = array_map(function ($row) {
+                return (array)$row;
+            }, $result['rows'] ?? []);
+            $rows = $this->apply_hidden_exercise_visibility($rows, (int)($_SESSION['user_id'] ?? 0));
+
             $this->json_respond([
                 'success' => true,
-                'exercises' => $result['rows'] ?? [],
+                'exercises' => $rows,
                 'total' => $result['total'] ?? 0
             ]);
         } catch (Exception $e) {
@@ -2060,26 +2082,178 @@ class Exercises extends Controller
             return false;
         }
 
+        $exercise_id = (int)($exercise->id ?? $exercise['id'] ?? 0);
+        $creator_id = (int)($exercise->creator_id ?? $exercise['creator_id'] ?? 0);
+        $current_user_id = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($exercise_id > 0 && $this->is_exercise_hidden_for_viewer($exercise_id, $creator_id, $current_user_id)) {
+            return false;
+        }
+
         $status = strtolower(trim((string)($exercise->status ?? $exercise['status'] ?? '')));
-        if ($status === 'approved') {
-            return true;
+        return $status === 'approved';
+    }
+
+    private function get_exercise_visibility_state(int $exercise_id, int $creator_id = 0, int $viewer_id = 0): string
+    {
+        if ($exercise_id <= 0) {
+            return 'visible';
         }
 
-        if ($status !== 'hidden') {
+        if (!isset($_SESSION['exercise_visibility']) || !is_array($_SESSION['exercise_visibility'])) {
+            $_SESSION['exercise_visibility'] = [];
+        }
+
+        $exercise_key = (string)$exercise_id;
+        $session_state = $_SESSION['exercise_visibility'][$exercise_key] ?? null;
+        if (is_string($session_state) && $session_state !== '') {
+            return $session_state === 'hidden' ? 'hidden' : 'visible';
+        }
+
+        if ($creator_id > 0 && $viewer_id > 0 && $viewer_id === $creator_id) {
+            return 'visible';
+        }
+
+        $store = $this->read_hidden_exercise_store();
+        $entry = $store[$exercise_key] ?? null;
+        if (!is_array($entry)) {
+            return 'visible';
+        }
+
+        $expires_at = (int)($entry['expires_at'] ?? 0);
+        if ($expires_at > 0 && $expires_at <= time()) {
+            unset($store[$exercise_key]);
+            $this->write_hidden_exercise_store($store);
+            return 'visible';
+        }
+
+        return ((string)($entry['visibility'] ?? 'hidden')) === 'hidden' ? 'hidden' : 'visible';
+    }
+
+    private function set_exercise_visibility_state(int $exercise_id, string $visibility, int $creator_id = 0, int $viewer_id = 0): void
+    {
+        if ($exercise_id <= 0) {
+            return;
+        }
+
+        if (!isset($_SESSION['exercise_visibility']) || !is_array($_SESSION['exercise_visibility'])) {
+            $_SESSION['exercise_visibility'] = [];
+        }
+
+        $exercise_key = (string)$exercise_id;
+        $normalized_visibility = ($visibility === 'hidden') ? 'hidden' : 'visible';
+        $_SESSION['exercise_visibility'][$exercise_key] = $normalized_visibility;
+
+        $store = $this->read_hidden_exercise_store();
+        if ($normalized_visibility === 'hidden') {
+            $store[$exercise_key] = [
+                'creator_id' => $creator_id > 0 ? $creator_id : $viewer_id,
+                'hidden_by' => $viewer_id > 0 ? $viewer_id : (int)($_SESSION['user_id'] ?? 0),
+                'hidden_at' => time(),
+                'expires_at' => time() + $this->get_hide_ttl_seconds(),
+                'visibility' => 'hidden',
+            ];
+        } else {
+            unset($store[$exercise_key]);
+        }
+
+        $this->write_hidden_exercise_store($store);
+    }
+
+    private function is_exercise_hidden_for_viewer(int $exercise_id, int $creator_id, int $viewer_id): bool
+    {
+        if ($exercise_id <= 0) {
             return false;
         }
 
-        $updatedAt = (string)($exercise->updated_at ?? $exercise['updated_at'] ?? '');
-        if ($updatedAt === '') {
+        if ($creator_id > 0 && $viewer_id === $creator_id) {
             return false;
         }
 
-        $updatedTs = strtotime($updatedAt);
-        if ($updatedTs === false) {
-            return false;
+        $visibility = $this->get_exercise_visibility_state($exercise_id, $creator_id, $viewer_id);
+        return $visibility === 'hidden';
+    }
+
+    private function apply_hidden_exercise_visibility(array $rows, int $viewer_id): array
+    {
+        if (empty($rows)) {
+            return [];
         }
 
-        return $updatedTs >= (time() - (5 * 60));
+        $filtered = [];
+        foreach ($rows as $row) {
+            $normalized = (array)$row;
+            $exercise_id = (int)($normalized['id'] ?? 0);
+            $creator_id = (int)($normalized['creator_id'] ?? $normalized['created_by'] ?? 0);
+
+            if ($this->is_exercise_hidden_for_viewer($exercise_id, $creator_id, $viewer_id)) {
+                continue;
+            }
+
+            $filtered[] = $normalized;
+        }
+
+        return $filtered;
+    }
+
+    private function get_hidden_exercise_store_path(): string
+    {
+        $basePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'cache';
+        if (!is_dir($basePath)) {
+            @mkdir($basePath, 0775, true);
+        }
+
+        return $basePath . DIRECTORY_SEPARATOR . 'hidden_exercises.json';
+    }
+
+    private function read_hidden_exercise_store(): array
+    {
+        $path = $this->get_hidden_exercise_store_path();
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $raw = @file_get_contents($path);
+        if ($raw === false || $raw === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $now = time();
+        $dirty = false;
+        foreach ($decoded as $exerciseId => $entry) {
+            $expiresAt = (int)($entry['expires_at'] ?? 0);
+            if ($expiresAt > 0 && $expiresAt <= $now) {
+                unset($decoded[$exerciseId]);
+                $dirty = true;
+            }
+        }
+
+        if ($dirty) {
+            $this->write_hidden_exercise_store($decoded);
+        }
+
+        return $decoded;
+    }
+
+    private function write_hidden_exercise_store(array $store): void
+    {
+        $path = $this->get_hidden_exercise_store_path();
+        @file_put_contents($path, json_encode($store, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    }
+
+    private function get_hide_ttl_seconds(): int
+    {
+        $sessionTtl = (int)ini_get('session.gc_maxlifetime');
+        if ($sessionTtl <= 0) {
+            return 1800;
+        }
+
+        return $sessionTtl;
     }
     
     // Helper to send JSON error responses
@@ -2149,12 +2323,19 @@ class Exercises extends Controller
             'expert_subject_ids' => $expert_subject_ids,
         ]);
 
+        $filtered_rows = $this->apply_hidden_exercise_visibility(
+            array_map(function ($row) {
+                return (array)$row;
+            }, $result['rows'] ?? []),
+            (int)$user_id
+        );
+
         $total = $result['total'] ?? 0;
         $has_more = ($offset + $limit) < $total;
 
         // 4. Return JSON
         $this->json_respond([
-            'exercises' => $result['rows'] ?? [],
+            'exercises' => $filtered_rows,
             'has_more' => $has_more,
             'role' => $role,
             'permissions' => [

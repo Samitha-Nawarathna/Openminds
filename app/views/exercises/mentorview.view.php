@@ -11,11 +11,15 @@
     $stats = $data['stats'] ?? [];
     $edit_url = $data['edit_url'] ?? (ROOT . '/exercises/edit?id=' . ($exercise['id'] ?? 0));
     $hide_url = $data['hide_url'] ?? (ROOT . '/exercises/hide?id=' . ($exercise['id'] ?? 0));
+    $toggle_url = $data['toggle_url'] ?? (ROOT . '/exercises/toggleVisibility');
     $status = strtolower(trim((string)($exercise['status'] ?? 'draft')));
     $status_label = $status === 'approved' ? 'Published' : 'Draft';
+    $exercise_id = (int)($exercise['id'] ?? 0);
+    $visibility = ($data['visibility'] ?? 'visible') === 'hidden' ? 'hidden' : 'visible';
+    $toggle_label = $visibility === 'hidden' ? 'Show to Users' : 'Hide from Users';
 ?>
 
-<div class="mentor-shell" data-exercise-id="<?= (int)($exercise['id'] ?? 0) ?>" data-edit-url="<?= htmlspecialchars($edit_url) ?>" data-hide-url="<?= htmlspecialchars($hide_url) ?>">
+<div class="mentor-shell" data-exercise-id="<?= $exercise_id ?>" data-visibility="<?= htmlspecialchars($visibility) ?>" data-edit-url="<?= htmlspecialchars($edit_url) ?>" data-hide-url="<?= htmlspecialchars($hide_url) ?>" data-toggle-url="<?= htmlspecialchars($toggle_url) ?>">
     <header class="mentor-topbar">
         <div class="mentor-topbar__left">
             <p class="eyebrow"><?= htmlspecialchars($exercise['subject_name'] ?? 'Subject') ?></p>
@@ -25,7 +29,7 @@
         <div class="mentor-topbar__right">
             <span class="status-badge status-<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status_label) ?></span>
             <div class="mentor-actions">
-                <button id="hide-btn" class="btn-none">Hide from Users</button>
+                <button id="hide-btn" class="btn-none" data-visibility="<?= htmlspecialchars($visibility) ?>"><?= htmlspecialchars($toggle_label) ?></button>
                 <button id="edit-btn" class="btn-blue">Edit Exercise</button>
             </div>
         </div>
@@ -99,6 +103,7 @@
                     </article>
                 <?php endforeach; ?>
             </div>
+            
         <?php endif; ?>
     </section>
 </div>
@@ -106,6 +111,8 @@
 <script>
     window.EXERCISE_MENTOR_EDIT_URL = <?= json_encode($edit_url, JSON_UNESCAPED_SLASHES) ?>;
     window.EXERCISE_MENTOR_HIDE_URL = <?= json_encode($hide_url, JSON_UNESCAPED_SLASHES) ?>;
+    window.EXERCISE_MENTOR_TOGGLE_URL = <?= json_encode($toggle_url, JSON_UNESCAPED_SLASHES) ?>;
+    window.EXERCISE_MENTOR_VISIBILITY = <?= json_encode($visibility, JSON_UNESCAPED_SLASHES) ?>;
 </script>
 
 <?php include_once "../app/views/partials/footer.view.php"; ?>

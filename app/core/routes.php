@@ -77,6 +77,7 @@ App::get('exercises/show', 'Exercises@show');
 App::get('exercises/mentorview', 'Exercises@mentorview');
 App::get('exercises/edit', 'Exercises@edit');
 App::post('exercises/edit', 'Exercises@edit');
+App::post('exercises/toggleVisibility', 'Exercises@toggleVisibility');
 App::post('exercises/delete', 'Exercises@delete');
 App::get('exercises/hide', 'Exercises@hide');
 App::get('exercises/expertreview', 'Exercises@expertreview');
