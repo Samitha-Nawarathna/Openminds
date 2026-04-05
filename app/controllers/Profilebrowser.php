@@ -6,7 +6,11 @@ class Profilebrowser extends Controller
     {
         $this->guard_admin();
 
-        $this->view("profilebrowser");
+        $subjects_model = new Subjects();
+        $data['subjects'] = $subjects_model->findAll();
+        // show($data);
+
+        $this->view("profilebrowser", $data);
     }
 
     public function guard_admin()

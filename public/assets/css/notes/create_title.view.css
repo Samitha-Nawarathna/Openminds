@@ -5,25 +5,90 @@
    GLOBAL & LAYOUT
 ------------------------------------------- */
 
-/* Body/Container adjustments based on user request */
+/* Body/Container adjustments - Split Screen Layout */
 body {
+<<<<<<< HEAD
     /* Use design system background */
     background-color: var(--color-blue-100);
     padding: var(--space-md);
     /* Use MD spacing for outer padding */
     display: flex;
     justify-content: center;
+=======
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
-/* Redefine the main content container to use design system styles */
+/* Split container - holds both left and right sections */
+.split-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Left section - Darker green with centered content */
+.left-section {
+    flex: 1;
+    background-color: var(--color-green-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    overflow-y: auto;
+}
+
+.left-content {
+    max-width: 400px;
+    text-align: center;
+}
+
+.feature-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-text {
+    color: var(--color-surface);
+}
+
+.feature-text h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-sm);
+    font-weight: 600;
+    color: var(--color-surface);
+}
+
+.feature-text p {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Right section contains the form */
 .main-content-container {
+<<<<<<< HEAD
     width: 95%;
     max-width: 1200px;
     margin-top: 50px;
     /* Push content down past where a fixed navbar might be */
     justify-self: center;
     align-self: center;
+=======
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-blue-100);
+    padding: var(--space-md);
+    min-height: 100vh;
+    overflow-y: auto;
+    /* Allow scrolling if content is tall */
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
 h2 {
@@ -51,13 +116,20 @@ section {
 }
 
 /* --- Section 1: Create Topic Styles --- */
+<<<<<<< HEAD
 #create-subject-section {
     width: 380px;
     /* Slightly wider than 350px for better alignment with tokens */
     margin: 0 auto var(--space-lg) auto;
+=======
+#create-topic-section {
+    width: 380px;
+    /* Fixed width for the form */
+    /* Parent (main-content-container) now handles centering */
+    margin: 0;
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 
     /* Apply design system container style to the content inside the section */
-    /* .container class from core.css provides background, shadow, and padding */
     padding: var(--space-lg);
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -111,7 +183,11 @@ label {
     margin-top: var(--space-sm);
 }
 
+<<<<<<< HEAD
 #create-subject-btn:disabled {
+=======
+#create-topic-btn:disabled {
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     background-color: var(--color-gray-400);
     /* Use a gray token for disabled state */
     cursor: not-allowed;
@@ -158,6 +234,7 @@ label {
 }
 
 /* --- Section 2: Notes Management Styles --- */
+<<<<<<< HEAD
 
 #notes-modal {
     position: fixed;
@@ -173,6 +250,36 @@ label {
 } */
 
 /* .panels-container {
+=======
+#notes-modal {
+    justify-self: center;
+    align-self: center;
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.modal-content {
+    margin: 0;
+}
+
+/* Modal header styles */
+.modal-title {
+    margin-bottom: var(--space-xxs);
+    /* Bring subtitle closer */
+}
+
+.modal-subtitle {
+    margin-top: 0;
+    color: var(--color-gray-500);
+    /* Grayer color */
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-md);
+}
+
+.panels-container {
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     display: flex;
     gap: var(--space-md);
     align-items: flex-start; /* Prevents panels from stretching weirdly
@@ -213,34 +320,86 @@ label {
     display: flex;
     justify-content: space-between;
     align-items: center;
+<<<<<<< HEAD
     padding: var(--space-xs) 0;
     border-bottom: 1px solid var(--color-border-light);
     /* Use light border token */
 }
 
+=======
+    padding: var(--space-xs) var(--space-sm);
+    border-bottom: 1px solid var(--color-border-light);
+    /* Use light border token */
+    transition: background-color 0.2s;
+}
+
+.note-item:hover:not(.empty-state) {
+    background-color: var(--color-gray-50);
+}
+
+.note-item:hover:not(.empty-state) .add-btn,
+.note-item:hover:not(.empty-state) .remove-btn {
+    opacity: 1;
+    /* Show buttons on hover */
+}
+
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .note-item:last-child {
     border-bottom: none;
 }
 
+/* Add note icon before text */
 .note-item span {
     font-weight: 500;
     color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
 }
 
+<<<<<<< HEAD
+=======
+.note-item span::before {
+    content: '📝';
+    font-size: var(--font-size-base);
+    opacity: 0.6;
+}
+
+/* Empty state styling */
+.note-item.empty-state span::before {
+    content: none;
+    /* Remove icon for empty states */
+}
+
+.empty-state-illustration {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) var(--space-md) !important;
+    border-bottom: none !important;
+    text-align: center;
+}
+
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .add-btn,
 .remove-btn {
     background: none;
     border: none;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-lg);
     cursor: pointer;
     line-height: 1;
-    transition: color 0.2s, transform 0.1s;
-    width: 30px;
-    height: 30px;
+    transition: all 0.2s;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
+    opacity: 0.3;
+    /* Make buttons less visible by default */
+    flex-shrink: 0;
+    /* Prevent buttons from shrinking */
 }
 
 .add-btn {
@@ -390,14 +549,22 @@ label {
 /* 1. The Overlay: Full screen, darkened, and centers its children */
 .modal {
     display: none;
+<<<<<<< HEAD
     /* Hidden by JS */
     position: fixed;
     z-index: 2000;
     /* Higher than navbars */
+=======
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    /* Ensure it's on top of everything */
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
+<<<<<<< HEAD
     background-color: rgba(0, 0, 0, 0.6);
     /* Slightly darker for focus */
 
@@ -406,11 +573,24 @@ label {
     align-items: center;
     justify-content: center;
     padding: var(--space-md);
+=======
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Dark background overlay */
+    padding-top: 50px;
+    animation: fadeIn 0.3s;
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
 /* 2. The Content Box: Defines the actual size */
 .modal-content {
     background-color: var(--color-surface);
+<<<<<<< HEAD
+=======
+    margin: 10% auto;
+    /* Center it vertically and horizontally */
+    padding: var(--space-lg);
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     position: relative;
@@ -500,6 +680,14 @@ label {
         flex-direction: column;
     }
 
+<<<<<<< HEAD
+=======
+    .left-panel,
+    .right-panel {
+        flex: 1;
+    }
+
+>>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     .modal-content {
         width: 95%;
         margin: 20px auto;

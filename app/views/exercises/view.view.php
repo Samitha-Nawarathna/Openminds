@@ -27,6 +27,9 @@ $review_api_url = ROOT . '/exercises/api/load_attempt_data/' . $exercise_id;
 $edit_url = ROOT . '/exercises/edit?id=' . $exercise_id;
 $approve_url = ROOT . '/exercises/approve'; // Used for 'Hide' action
 $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
+$can_edit = $data['can_edit'] ?? false;
+$edit_class = $can_edit ? '' : ' is-disabled';
+$edit_attrs = $can_edit ? '' : ' aria-disabled="true" tabindex="-1"';
 ?>
 
 <style>
@@ -61,6 +64,12 @@ $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
     #confirmation-modal .action-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
 </style>
 
 
@@ -80,7 +89,7 @@ $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
         
 
         <div class="action-grid">
-            <a id="edit-modal-btn" href="<?= $edit_url ?>" class="btn-blue btn primary btn-full-row btn-full-width">Edit Exercise Details</a>
+            <a id="edit-modal-btn" href="<?= $edit_url ?>" class="btn-blue btn primary btn-full-row btn-full-width<?= $edit_class ?>"<?= $edit_attrs ?>>Edit Exercise Details</a>
             
             <button id="approve-modal-btn" class="btn secondary btn-full-width" data-action="approve">Hide</button>
             <button id="reject-modal-btn" class="btn-red btn-full-width" data-action="reject">Delete</button>
@@ -136,7 +145,7 @@ $reject_url = ROOT . '/exercises/reject'; // Used for 'Delete' action
     </div>
     
     <div id="review-action-buttons" class="action-buttons" style="gap: var(--space-xs);">
-        <a id="edit-btn" href="<?= $edit_url ?>" class="btn-none btn primary">Edit</a>
+        <a id="edit-btn" href="<?= $edit_url ?>" class="btn-none btn primary<?= $edit_class ?>"<?= $edit_attrs ?>>Edit</a>
         <button id="approve-btn" class="btn-blue btn secondary" data-action="approve">Hide</button>
         <button id="reject-btn" class="btn-red" data-action="reject">Delete</button>
     </div>

@@ -1,7 +1,104 @@
 import { ROOT } from '../../core/config.js';
 
-const MOCK_API_SAVE_URL = ROOT + 'exercises/save';
-const MOCK_API_SUBMIT_URL = ROOT + 'exercises/create';
+const MOCK_API_SAVE_URL = ROOT + 'exercises/api/save_draft';
+const MOCK_API_SUBMIT_URL = ROOT + 'api/exercises/create';
+
+// Convert Quill delta JSON string/object to plain text so UI stays readable.
+function quillJsonToPlainText(input) {
+    try {
+        const data = typeof input === 'string' ? JSON.parse(input) : input;
+        if (!data || !Array.isArray(data.ops)) return typeof input === 'string' ? input : '';
+        return data.ops.map(op => {
+            if (typeof op.insert === 'string') return op.insert;
+            if (typeof op.insert === 'object') return '[embedded content]';
+            return '';
+        }).join('');
+    } catch (err) {
+        return typeof input === 'string' ? input : '';
+    }
+}
+
+// Helper to safely read content from Quill-editor-like elements, normalizing JSON to text.
+function getEditorContent(id) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+
+    let content = '';
+
+    // Check if this is a quill-editor web component
+    if (el.tagName.toLowerCase() === 'quill-editor') {
+        // Try to get text content from Quill instance
+        if (el.quill && el.quill.getText) {
+            content = el.quill.getText().trim();
+        } else if (el.editor && el.editor.getText) {
+            content = el.editor.getText().trim();
+        } else if (el.value !== undefined) {
+            content = el.value;
+        } else {
+            content = '';
+        }
+    } else {
+        // For regular inputs
+        if (el.value !== undefined) {
+            content = el.value;
+        } else if (el.getAttribute && el.getAttribute('content') !== null) {
+            content = el.getAttribute('content');
+        } else {
+            content = el.innerText || '';
+        }
+    }
+
+    // Detect Quill JSON and convert for readability.
+    if (typeof content === 'string' && content.includes('{"ops":')) {
+        content = quillJsonToPlainText(content);
+    }
+    return content;
+}
+
+// Helper to set content on Quill-like editors or inputs, normalizing JSON before display.
+// Supports both standard inputs and quill-editor web components with multiple fallback approaches.
+function setEditorContent(id, content) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // Normalize content: convert Quill JSON to plain text if detected
+    if (typeof content === 'string' && content.includes('{"ops":')) {
+        content = quillJsonToPlainText(content);
+    }
+
+    // Ensure content is not null/undefined (use empty string as default)
+    const safeContent = content || '';
+
+    // Check if this is a quill-editor web component
+    if (el.tagName.toLowerCase() === 'quill-editor') {
+        // Use the Quill component's clear() method and setText() for text content
+        if (el.clear && typeof el.clear === 'function') {
+            el.clear(); // Clear any existing content
+        }
+        if (el.quill && el.quill.setText) {
+            el.quill.setText(safeContent); // Set as plain text
+        } else if (el.editor && el.editor.setText) {
+            el.editor.setText(safeContent);
+        } else {
+            // Fallback: try value property
+            el.value = safeContent;
+        }
+    } else {
+        // For regular inputs, use standard approaches
+        if (el.value !== undefined) {
+            el.value = safeContent;
+        }
+        if (el.setAttribute) {
+            el.setAttribute('content', safeContent);
+        }
+        if (el.innerText !== undefined) {
+            el.innerText = safeContent;
+        }
+        if (el.textContent !== undefined) {
+            el.textContent = safeContent;
+        }
+    }
+} 
 
 // --- GLOBAL STATE ---
 let EXERCISE_METADATA = {};
@@ -75,24 +172,34 @@ editMetadataBtn.addEventListener('click', () => {
 
 // --- STEP 2 & 3: BUILDER/EDITOR LOGIC ---
 
+function letterForIndex(index) {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    return letters[index] || `#${index + 1}`;
+}
+
 function generateOptionHtml(index, text = '', isCorrect = false) {
-    const type = 'radio'; // Assuming single-choice for simplicity
+    const type = 'checkbox'; // single-choice
+    const safeText = (text || '').replace(/"/g, '&quot;');
     return `
-        <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
-            <input type="${type}" name="correct-option" id="option-correct-${index}" value="${index}" ${isCorrect ? 'checked' : ''} style="width:auto; margin:0;">
+        <div class="option-item">
+            <div class="option-label">
+                <div>${letterForIndex(index)}</div>
+                <input type="${type}" name="correct-option" id="option-correct-${index}" value="${index}" ${isCorrect ? 'checked' : ''}>
+            </div>
             <quill-editor 
                 id="option-text-${index}"
                 name="content"
-                content="${text}"
+                content="${safeText}"
                 placeholder="Option ${index + 1} text"
                 storage-key="demo-editor-2"
-                height="250px">
-            </quill-editor> 
-            <button type="button" onclick="removeOption(this, ${index})" class="btn-red" style="padding: 8px;">🗑️</button>
+                height="90px">
+            </quill-editor>
+            <button type="button" onclick="removeOption(this, ${index})" class="btn-red">🗑️</button>
         </div>
     `;
 }
 
+<<<<<<< HEAD
 function renderOptions(options = [{ text: '', isCorrect: true }, { text: '', isCorrect: false }]) {
     optionsContainer.innerHTML = options.map((opt, index) => generateOptionHtml(index, opt.text, opt.isCorrect)).join('');
 }
@@ -102,7 +209,29 @@ window.removeOption = function (el, index) {
         el.parentElement.remove();
     } else {
         alert('An exercise must have at least two options.');
+=======
+// Render at least 4 options (A-D) so all are visible without extra scrolling.
+function renderOptions(options = []) {
+    const padded = [...options];
+    while (padded.length < 4) {
+        padded.push({text: '', is_correct: padded.length === 0});
     }
+
+    optionsContainer.innerHTML = padded.map((opt, index) => {
+        const text = opt.text ?? opt.answer_text ?? '';
+        const isCorrect = opt.isCorrect ?? opt.is_correct ?? false;
+        return generateOptionHtml(index, text, isCorrect);
+    }).join('');
+} 
+
+window.removeOption = function(el, index) {
+    // Keep a minimum of 4 options visible per requirements.
+    if (optionsContainer.children.length <= 4) {
+        alert('An exercise must keep at least four options.');
+        return;
+>>>>>>> navodya
+    }
+    el.parentElement.remove();
 }
 
 document.getElementById('add-option-btn').addEventListener('click', () => {
@@ -111,85 +240,160 @@ document.getElementById('add-option-btn').addEventListener('click', () => {
 });
 
 function saveCurrentQuestion() {
+    // UI-only validation: read current form state from DOM
     const qId = document.getElementById('current-q-id').value;
-    const prompt = document.getElementById('q-prompt-input').value.trim();
-    const explanation = document.getElementById('q-explanation-input').value.trim();
+    const prompt = getEditorContent('q-prompt-input').trim();
+    const explanation = getEditorContent('q-explanation-input').trim();
     const weight = parseInt(document.getElementById('q-weight-input').value);
+<<<<<<< HEAD
 
     if (!prompt || !explanation || isNaN(weight)) {
         alert('Please fill out the prompt, explanation, and weight.');
         return false;
+=======
+    
+    // VALIDATE: prompt, explanation, weight >= 1
+    if (!prompt  || isNaN(weight) || weight < 1) {
+        alert('Please fill out the prompt, explanation, and weight (>=1).');
+        return false; // Validation failed, do not save
+>>>>>>> navodya
     }
 
+    // Collect options from DOM (minimum 4 required)
     const options = Array.from(optionsContainer.children).map((div, index) => ({
-        text: div.querySelector(`#option-text-${index}`).value,
-        isCorrect: div.querySelector(`input[name="correct-option"]`).checked, // Assumes radio for simplicity
+        answer_text: (div.querySelector(`#option-text-${index}`) ? getEditorContent(`option-text-${index}`) : '').trim(),
+        is_correct: !!div.querySelector(`input[name="correct-option"]`).checked,
     }));
+<<<<<<< HEAD
 
     if (options.filter(o => o.isCorrect).length === 0) {
+=======
+    
+    // VALIDATE: at least one correct option selected
+    if (options.filter(o => o.is_correct).length === 0) {
+>>>>>>> navodya
         alert('Please select at least one correct answer.');
-        return false;
+        return false; // Validation failed, do not save
     }
 
+    // Create question object with ID tracking
     const newQ = {
         id: qId ? parseInt(qId) : nextQId++,
-        prompt,
+        question_text: prompt,
         explanation,
         weight,
         options,
     };
 
+    // Update or Insert logic: qId field determines operation
     if (qId) {
-        // Update existing question
+        // CASE UPDATE: qId exists = this question was previously saved
+        // Update the existing question in place at its current index
         EXERCISE_QUESTIONS[currentQIndex] = newQ;
     } else {
-        // Add new question
+        // CASE INSERT: no qId = new question being created
+        // Add to array, update currentQIndex to track this new position
         EXERCISE_QUESTIONS.push(newQ);
         currentQIndex = EXERCISE_QUESTIONS.length - 1;
+<<<<<<< HEAD
         document.getElementById('current-q-id').value = newQ.id;
     }
 
+=======
+        // CRITICAL: Set qId field immediately so NEXT save is UPDATE not INSERT
+        // This prevents duplicates when user re-saves the same question
+        document.getElementById('current-q-id').value = newQ.id;
+    }
+    
+    // Refresh UI to reflect saved state
+>>>>>>> navodya
     renderQuestionList();
     updateBuilderUI(true);
-    return true;
+    return true; // Save succeeded
 }
 
 function loadQuestion(index) {
+    // UI State: Load a saved question from EXERCISE_QUESTIONS into the editor
+    // Called when user clicks a question from left panel
+    // After loading, all editor inputs remain fully editable
+    
     currentQIndex = index;
-    const q = EXERCISE_QUESTIONS[index];
 
+    renderQuestionList();
+
+    const q = EXERCISE_QUESTIONS[index];
+<<<<<<< HEAD
+
+=======
+    
+    // Set hidden qId field so next save is UPDATE not INSERT
+>>>>>>> navodya
     document.getElementById('current-q-id').value = q.id;
-    document.getElementById('q-prompt-input').value = q.prompt;
-    document.getElementById('q-explanation-input').value = q.explanation;
-    document.getElementById('q-weight-input').value = q.weight;
+    
+    // Load question data into editor fields
+    // setEditorContent() handles JSON normalization automatically
+    setEditorContent('q-prompt-input', q.question_text ?? q.prompt ?? '');
+    setEditorContent('q-explanation-input', q.explanation ?? '');
+    document.getElementById('q-weight-input').value = q.weight ?? 1;
     document.getElementById('current-q-title').textContent = `Question Editor: Q${index + 1}`;
+<<<<<<< HEAD
 
     renderOptions(q.options);
+=======
+    
+    // Re-render option editors with this question's option data
+    renderOptions(q.options ?? []);
+>>>>>>> navodya
     updateBuilderUI();
-}
+} 
 
 window.loadQuestion = loadQuestion;
 
 function addNewQuestion() {
+<<<<<<< HEAD
     if (!saveCurrentQuestion()) {
         return; // Don't proceed if save fails
     }
 
     currentQIndex = -1; // Mark as new question mode
+=======
+    // UI State: Create a fresh new question editor
+    // First, save current question if one exists
+    if (currentQIndex !== -1 && !saveCurrentQuestion()) {
+         return; // Don't proceed if save fails (user stays on current question)
+    }
+    
+    // Mark as new question mode (empty qId = INSERT on next save, not UPDATE)
+    currentQIndex = -1;
+>>>>>>> navodya
     document.getElementById('current-q-id').value = '';
     document.getElementById('current-q-title').textContent = `Question Editor: New`;
+    
+    // Reset form to clear all HTML inputs
     qEditorForm.reset();
-    renderOptions(); // Render two blank options
+    
+    // IMPORTANT: Explicitly clear Quill editor content via setEditorContent()
+    // form.reset() alone does NOT clear quill-editor web components
+    // Without this, old question text persists visually in editor
+    setEditorContent('q-prompt-input', '');
+    setEditorContent('q-explanation-input', '');
+    
+    // Render 4 blank options (minimum required by system)
+    renderOptions();
     updateBuilderUI();
 }
 
 function renderQuestionList() {
-    qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => `
+    qListContainer.innerHTML = EXERCISE_QUESTIONS.map((q, index) => {
+        const preview = (q.question_text ?? q.prompt ?? '').replace(/\s+/g, ' ');
+        const short = preview.length > 30 ? preview.substring(0, 30) + '...' : preview;
+        return `
         <div class="question-item ${index === currentQIndex ? 'active' : ''}" onclick="window.loadQuestion(${index})">
-            <span>Q${index + 1}: ${q.prompt.substring(0, 30)}...</span>
+            <span>Q${index + 1}: ${short}</span>
             <button type="button" class="btn-none" onclick="event.stopPropagation(); deleteQuestion(${index})">🗑️</button>
         </div>
-    `).join('');
+    `;
+    }).join('');
     document.getElementById('q-count-status').textContent = `(${EXERCISE_QUESTIONS.length})`;
 }
 
@@ -209,29 +413,62 @@ function updateBuilderUI(isSaved = false) {
 
 
 document.getElementById('save-next-btn').addEventListener('click', () => {
-    if (saveCurrentQuestion()) {
-        if (currentQIndex < EXERCISE_QUESTIONS.length - 1) {
-            loadQuestion(currentQIndex + 1);
-        } else {
-            addNewQuestion();
-        }
+    // Save & Add New button: UI-only behavior
+    // 1. Validate and save current question
+    // 2. If save fails, show error and do NOT proceed
+    // 3. If save succeeds, immediately open fresh blank editor
+    // Previous questions stay in memory, fully editable (never locked)
+    
+    if (!saveCurrentQuestion()) {
+        return; // Validation failed, user stays on current question for correction
     }
+    
+    // Save succeeded, now create fresh blank question editor
+    addNewQuestion();
 });
 
 document.getElementById('prev-q-btn').addEventListener('click', () => {
+<<<<<<< HEAD
     // Ensure the current question is saved when navigating backward
     if (saveCurrentQuestion() && currentQIndex > 0) {
+=======
+    // Previous button: Save-before-navigate pattern
+    // 1. Save current question (return if validation fails)
+    // 2. If currentQIndex > 0, load previous question for editing
+    // Previous questions remain fully editable—no data locked
+    
+    if (!saveCurrentQuestion()) {
+        return; // Validation failed, stay on current question
+    }
+    
+    if (currentQIndex > 0) {
+>>>>>>> navodya
         loadQuestion(currentQIndex - 1);
     }
 });
 
 document.getElementById('save-draft-btn').addEventListener('click', () => {
-    if (saveCurrentQuestion()) {
-        // Mock API call
-        window.showPopupError('save draft not implemented!');
-        document.getElementById('draft-status').textContent = 'Draft Saved to Server!';
-        document.getElementById('draft-status').style.color = 'var(--color-primary)';
+    // Save Current Question button: UI-only save (no backend call)
+    // 1. Validate and save current question
+    // 2. Temporarily disable button for "Saving..." feedback
+    // 3. RE-ENABLE button after 500ms
+    // Editors stay fully active—user can immediately re-save or continue editing
+    
+    if (!saveCurrentQuestion()) {
+        return; // Validation failed, user stays on question
     }
+
+    const saveBtn = document.getElementById('save-draft-btn');
+    const original = saveBtn.textContent;
+    saveBtn.disabled = true; // Briefly disable button for UX feedback
+    saveBtn.textContent = 'Saving...';
+
+    setTimeout(() => {
+        document.getElementById('draft-status').textContent = 'Draft Saved!';
+        document.getElementById('draft-status').style.color = 'var(--color-success)';
+        saveBtn.disabled = false; // RE-ENABLE—editors stay active
+        saveBtn.textContent = original;
+    }, 500);
 });
 
 window.deleteQuestion = function (index) {
@@ -278,6 +515,7 @@ document.getElementById('cancel-submit-btn').addEventListener('click', () => {
     submitModal.style.display = 'none';
 });
 
+<<<<<<< HEAD
 document.getElementById('confirm-submit-btn').addEventListener('click', () => {
     console.log('API: Submitting FINAL exercise for review...', { metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS });
     fetch(MOCK_API_SUBMIT_URL, {
@@ -288,6 +526,67 @@ document.getElementById('confirm-submit-btn').addEventListener('click', () => {
     alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
     // In a real app: Redirect to the dashboard or a success page.
     // window.location.href = '<?= $ROOT ?>/dashboard';
+=======
+document.getElementById('confirm-submit-btn').addEventListener('click', async () => {
+    if (!EXERCISE_METADATA.title) {
+        alert('Please provide exercise details before submitting.');
+        return;
+    }
+
+    const submitBtn = document.getElementById('confirm-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    // Frontend-only cleanup: ensure plain text is sent (no raw Quill JSON).
+    const cleanedQuestions = EXERCISE_QUESTIONS.map(q => ({
+        id: q.id,
+        question_text: quillJsonToPlainText(q.question_text),
+        explanation: quillJsonToPlainText(q.explanation),
+        weight: q.weight,
+        options: (q.options || []).map(opt => ({
+            answer_text: quillJsonToPlainText(opt.answer_text),
+            is_correct: opt.is_correct
+        }))
+    }));
+
+    const payload = {
+        metadata: {
+            title: EXERCISE_METADATA.title,
+            subject: EXERCISE_METADATA.subject,
+            description: EXERCISE_METADATA.description || null,
+            tags: EXERCISE_METADATA.tags || ''
+        },
+        questions: cleanedQuestions
+    };
+
+    try {
+        const res = await fetch(MOCK_API_SUBMIT_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        //redirecting
+        if (res.status === 201 || (result && result.success)) {
+            alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${cleanedQuestions.length} questions.`);
+            setTimeout(() => {
+                window.location.href = ROOT + 'exercises';
+                }, 800);
+
+        } else {
+            alert('Error: ' + (result.message || 'Unknown error from server.'));
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit for Review';
+        }
+    } catch (err) {
+        console.error('Submission error', err);
+        alert('Submission failed due to a network error.');
+        const submitBtn = document.getElementById('confirm-submit-btn');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Review';
+    }
+>>>>>>> navodya
 });
 
 

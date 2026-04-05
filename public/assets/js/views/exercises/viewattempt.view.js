@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Global Variables (Loaded from PHP view) ---
     // ATTEMPT_DETAILS_URL, VOTE_STATUS_URL, VOTE_SUBMIT_URL are defined in the PHP view
-    
+    const ATTEMPT_DETAILS_URL = window.ATTEMPT_DETAILS_URL || '';
+    const VOTE_STATUS_URL = window.VOTE_STATUS_URL || '';
+    const VOTE_SUBMIT_URL = window.VOTE_SUBMIT_URL || '';
+
     let RESULTS_DATA = {}; // Holds the full results structure (details array)
     let currentQIndex = 0;
     let currentVoteStatus = 'None'; // Store user's current vote
@@ -19,9 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryModal = document.getElementById('summary-modal');
 
     // Main Content
-    const titleEl = document.getElementById('exercise-title');
-    const subjectEl = document.getElementById('exercise-subject');
+    const titleEl = document.getElementById('exercise-title-hero') || document.getElementById('exercise-title');
+    const subjectEl = document.getElementById('exercise-subject-hero') || document.getElementById('exercise-subject');
     const questionContainer = document.getElementById('question-container');
+    const questionSubtextEl = document.getElementById('question-subtext');
+    const progressFill = document.getElementById('progress-fill');
     const explanationBox = document.getElementById('explanation-box');
 
     // Control Bar
@@ -35,8 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal
     const modalTitleEl = document.getElementById('modal-title');
     const finalScoreEl = document.getElementById('final-score');
-    const modalDateEl = document.getElementById('modal-date');
     const startReviewBtn = document.getElementById('start-review-btn');
+    const tryAgainBtn = document.getElementById('try-again-btn');
+    const finishedBtn = document.getElementById('finished-btn');
     
     // Vote Area
     const upvoteBtn = document.getElementById('upvote-btn');
@@ -67,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Fetches and stores the full attempt details from the API. */
     async function loadAttemptDetails() {
         try {
+            if (!ATTEMPT_DETAILS_URL) {
+                throw new Error('Attempt details endpoint is missing.');
+            }
             showLoading('Loading your results...');
             
             const response = await fetch(ATTEMPT_DETAILS_URL);
@@ -74,6 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Failed to fetch attempt details.');
             }
             RESULTS_DATA = await response.json();
+
+            if (RESULTS_DATA.success === false || !RESULTS_DATA.details) {
+                const msg = RESULTS_DATA.message || 'Results unavailable.';
+                throw new Error(msg);
+            }
             
             hideLoading();
             
@@ -101,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Loads and updates the user's vote status for the exercise. */
     async function loadVoteStatus() {
         try {
+            if (!VOTE_STATUS_URL) return;
             const response = await fetch(VOTE_STATUS_URL);
             const data = await response.json();
             currentVoteStatus = data.current_vote_status || 'None';
@@ -120,6 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
     /** NEW: Submits a vote to the API */
     async function submitVote(voteType) {
         try {
+            if (!VOTE_SUBMIT_URL) {
+                voteMessageEl.textContent = 'Voting is not available for this exercise.';
+                return;
+            }
             // Prevent duplicate votes
             if (currentVoteStatus === voteType) {
                 voteMessageEl.textContent = `You have already ${voteType.toLowerCase()} this exercise.`;
@@ -208,59 +227,57 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update Header
         titleEl.textContent = RESULTS_DATA.exercise_title || 'Exercise Results';
         subjectEl.textContent = RESULTS_DATA.subject || 'Review Mode'; 
+        if (questionSubtextEl) {
+            const difficultyLabel = qData.difficulty ?? qData.max_weight ?? 0;
+            const resultLabel = qData.is_correct ? 'Correct' : 'Incorrect';
+            questionSubtextEl.textContent = `Difficulty: ${difficultyLabel} • Result: ${resultLabel}`;
+        }
+
+        const progressPercent = Math.min(100, Math.round((currentQIndex / totalQCount) * 100));
+        if (progressFill) {
+            progressFill.style.width = `${progressPercent}%`;
+        }
         
         // Clear and rebuild question container
-        questionContainer.innerHTML = '';
-        
-        // Create Question Prompt using Quill Editor
-        const promptEditor = document.createElement('quill-editor');
-        promptEditor.id = 'question-prompt';
-        promptEditor.setAttribute('readonly', '');
-        promptEditor.setAttribute('height', 'fit-content');
-        promptEditor.className = 'question-prompt';
-        promptEditor.setAttribute('content', `${currentQIndex + 1}. ${qData.prompt}`);
-        // NEW: ARIA label for screen readers
-        promptEditor.setAttribute('role', 'heading');
-        promptEditor.setAttribute('aria-level', '2');
-        questionContainer.appendChild(promptEditor);
-        
-        // Create options container
-        const answersDiv = document.createElement('div');
-        answersDiv.id = 'answer-options';
-        answersDiv.className = 'answer-options-list';
-        answersDiv.style.margin = "var(--space-sm)";
-        // NEW: ARIA attributes
-        answersDiv.setAttribute('role', 'group');
-        answersDiv.setAttribute('aria-label', `Review of question ${currentQIndex + 1} answers`);
-        questionContainer.appendChild(answersDiv);
-        
+        questionContainer.innerHTML = `
+            <div class="question-prompt-block">
+                <h2 id="question-prompt" class="question-title" role="heading" aria-level="2">${qData.prompt}</h2>
+            </div>
+            <div id="answer-options" class="answer-options-list" role="group" aria-label="Review of question ${currentQIndex + 1} answers"></div>
+        `;
+
         // Determine input type based on correct answer count
         const correctCount = qData.options.filter(opt => opt.is_correct).length;
         const inputType = correctCount > 1 ? 'checkbox' : 'radio';
+        const answersDiv = questionContainer.querySelector('#answer-options');
         
-        // Build option elements with Quill editors
+        // Build option elements with the new card UI
         qData.options.forEach((option, optIndex) => {
             const label = document.createElement('label');
-            label.className = 'option-label';
-            label.style.display = 'flex';
+            label.className = 'option-card';
+            label.dataset.optionId = option.option_id;
             
             // Apply correctness classes
             if (option.is_correct) {
                 label.classList.add('is-correct');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Correct answer: Option ${String.fromCharCode(65 + optIndex)}`);
             }
             if (option.was_selected && !option.is_correct) {
                 label.classList.add('user-wrong');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Incorrectly selected: Option ${String.fromCharCode(65 + optIndex)}`);
-            } else if (option.was_selected) {
+            }
+            if (option.was_selected) {
                 label.classList.add('was-selected');
-                // NEW: ARIA label
-                label.setAttribute('aria-label', `Correctly selected: Option ${String.fromCharCode(65 + optIndex)}`);
             }
             
-            // Create input element
+            const left = document.createElement('div');
+            left.className = 'option-left';
+
+            const stateIcon = document.createElement('span');
+            stateIcon.className = 'state-icon';
+            stateIcon.setAttribute('aria-hidden', 'true');
+            if (option.is_correct) {
+                stateIcon.textContent = '✓';
+            }
+
             const input = document.createElement('input');
             input.type = inputType;
             input.name = `q_${qData.question_id}`;
@@ -268,21 +285,21 @@ document.addEventListener('DOMContentLoaded', () => {
             input.dataset.optionId = option.option_id;
             input.disabled = true;
             input.checked = option.was_selected || false;
-            // NEW: ARIA label
-            input.setAttribute('aria-label', `Option ${String.fromCharCode(65 + optIndex)}`);
+            input.setAttribute('aria-label', `Option ${optIndex + 1}`);
             
-            label.appendChild(input);
+            const text = document.createElement('span');
+            text.className = 'option-text';
+            text.textContent = option.text;
             
-            // Create answer text using Quill Editor
-            const answer = document.createElement('quill-editor');
-            answer.id = `answer-prompt-${option.option_id}`;
-            answer.setAttribute('readonly', '');
-            answer.setAttribute('height', 'fit-content');
-            answer.className = 'answer-prompt';
-            answer.setAttribute('content', option.text);
-            answer.style.border = 'none';
+            const badge = document.createElement('span');
+            badge.className = 'option-badge';
+            badge.textContent = `PRESS ${optIndex + 1}`;
             
-            label.appendChild(answer);
+            left.appendChild(stateIcon);
+            left.appendChild(input);
+            left.appendChild(text);
+            label.appendChild(left);
+            label.appendChild(badge);
             answersDiv.appendChild(label);
         });
         
@@ -302,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationEditor.setAttribute('content', qData.explanation || 'No explanation provided.');
         explanationBox.appendChild(explanationEditor);
         
-        explanationBox.style.display = 'block'; // Always show explanation in review mode
+        explanationBox.style.display = 'block';
 
         // Update Control Bar
         progressEl.textContent = currentQIndex + 1;
@@ -314,39 +331,41 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (qData.user_score >= qData.max_weight) {
             scoreFeedbackEl.classList.add('feedback-correct');
-            // NEW: ARIA announcement
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Correct answer</span>';
         } else if (qData.user_score > 0) {
-            scoreFeedbackEl.style.color = 'var(--color-warning)'; // Partial credit
-            // NEW: ARIA announcement
+            scoreFeedbackEl.style.color = 'var(--color-warning)';
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Partial credit</span>';
         } else {
             scoreFeedbackEl.classList.add('feedback-wrong');
-            // NEW: ARIA announcement
             scoreFeedbackEl.innerHTML += '<span class="sr-only">Incorrect answer</span>';
         }
 
         updateNavigationButtons();
         
-        // NEW: Scroll to top for better UX
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     /** Shows the initial score summary modal. */
     function showResultsSummaryModal() {
-        modalTitleEl.textContent = RESULTS_DATA.exercise_title || 'Review Results';
+        modalTitleEl.textContent = 'Quiz Complete!';
+        
+        // Update the score text in paragraph
+        const scoreTextEl = document.getElementById('score-text');
+        const rawScore = RESULTS_DATA.raw_score ?? RESULTS_DATA.total_score ?? 0;
+        const maxScore = RESULTS_DATA.max_score ?? RESULTS_DATA.total_max_score ?? 0;
+        const percentageScore = RESULTS_DATA.percentage_score ?? (maxScore ? (rawScore / maxScore) * 100 : 0);
+
+        if (scoreTextEl) {
+            scoreTextEl.textContent = `${rawScore} out of ${maxScore}`;
+        }
         
         // Update score badge color based on overall result (e.g., > 50% score)
-        const scorePercentage = (RESULTS_DATA.total_score / RESULTS_DATA.total_max_score);
-        const scoreClass = scorePercentage >= 0.5 ? 'passed' : 'failed';
-        finalScoreEl.innerHTML = `${RESULTS_DATA.total_score || 0} / ${RESULTS_DATA.total_max_score || 0}`;
-        finalScoreEl.classList.add('score-badge', scoreClass);
+        const scoreClass = percentageScore >= 50 ? 'passed' : 'failed';
+        finalScoreEl.textContent = `${rawScore} / ${maxScore}`;
         
-        // Attempt Date - use from data if available, otherwise use today
-        const attemptDate = RESULTS_DATA.attempted_at 
-            ? new Date(RESULTS_DATA.attempted_at).toLocaleDateString() 
-            : new Date().toLocaleDateString();
-        modalDateEl.textContent = attemptDate;
+        // Clear existing classes and add new ones
+        finalScoreEl.className = 'score-badge';
+        finalScoreEl.classList.add(scoreClass);
 
         summaryModal.classList.remove('hidden');
         summaryModal.style.display = 'flex';
@@ -363,6 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentQIndex < RESULTS_DATA.details.length - 1) {
             currentQIndex++;
             renderQuestion();
+        } else {
+            // On last question, show the summary modal
+            showResultsSummaryModal();
+            mainContentEl.classList.add('hidden');
         }
     }
     
@@ -382,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Next Button
         if (currentQIndex === totalQCount - 1) {
             nextBtn.textContent = 'End Review ✓';
-            nextBtn.disabled = true;
+            nextBtn.disabled = false; // Keep enabled so user can click to show modal
         } else {
             nextBtn.textContent = 'Next Question →';
             nextBtn.disabled = false;
@@ -403,6 +426,19 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryModal.classList.add('hidden');
         // NEW: Focus management
         questionContainer.focus();
+    });
+    
+    // NEW: Try Again button - redirects to attempt page for same exercise
+    tryAgainBtn.addEventListener('click', () => {
+        const exerciseId = RESULTS_DATA.exercise_id;
+        if (exerciseId) {
+            window.location.href = ROOT + 'exercises/attempt?id=' + exerciseId;
+        }
+    });
+    
+    // NEW: Finished button - redirects to exercises list
+    finishedBtn.addEventListener('click', () => {
+        window.location.href = ROOT + 'exercises';
     });
 
     // Vote Actions

@@ -1,4 +1,4 @@
-import {ROOT} from "../../core/config.js"
+import { ROOT } from "../../core/config.js"
 
 // =========================================================
 // 1. API CONFIGURATION & CORE FETCH FUNCTION
@@ -10,19 +10,19 @@ import {ROOT} from "../../core/config.js"
  */
 var ENDPOINT_MAP = {
     // Static Endpoints
-    'user-summary': ROOT + '/api/dashboard/user-summary',
-    'impact-metrics': ROOT + '/api/dashboard/impact-metrics',
-    'community-banner': ROOT + '/api/dashboard/community-banner', // NOTE: This will no longer be used for the list
-    'notifications': ROOT + '/api/dashboard/notifications',
-    
+    'user-summary': ROOT + '/dashboard/api_user_summary',
+    'impact-metrics': ROOT + '/dashboard/api_impact_metrics',
+    'community-banner': ROOT + '/dashboard/api_community_banner', // NOTE: This will no longer be used for the list
+    'notifications': ROOT + '/dashboard/api_notifications',
+
     // Tab Endpoints (data-tab IDs mapped to API routes)
-    'pinned-notes': {'endpoint':ROOT + '/api/dashboard/notes/pinned', 'viewer_endpoint': ROOT + 'notes/view/'},
-    'asked-questions': {'endpoint':ROOT + '/api/dashboard/questions/asked', 'viewer_endpoint': ROOT + 'question/show/'},
-    'created-exercises': {'endpoint':ROOT + '/api/dashboard/exercises/created', 'viewer_endpoint': ROOT + 'exercises/show/'},
-    'answered-exercises': {'endpoint': ROOT + '/api/dashboard/exercises/answered', 'viewer_endpoint': ROOT + 'exercises/show/'},
-    'attempt-exercises': {'endpoint':ROOT + '/api/dashboard/exercises/attempt', 'viewer_endpoint': ROOT + 'exercises/show/'},
-    'expert-requests': {'endpoint':ROOT + '/api/dashboard/exercises/pending', 'viewer_endpoint': ROOT + 'exercises/attempt/'},
-    'announcements': {'endpoint':ROOT + '/announcements/api/load_latest', viewer_endpoint: ROOT + 'announcements/view/'} 
+    'pinned-notes': { 'endpoint': ROOT + '/dashboard/api_pinned_notes', 'viewer_endpoint': ROOT + 'notes/view/' },
+    'asked-questions': { 'endpoint': ROOT + '/dashboard/api_asked_questions', 'viewer_endpoint': ROOT + 'question/show/' },
+    'created-exercises': { 'endpoint': ROOT + '/dashboard/api_created_exercises', 'viewer_endpoint': ROOT + 'exercises/show/' },
+    'answered-exercises': { 'endpoint': ROOT + '/dashboard/api_answered_exercises', 'viewer_endpoint': ROOT + 'exercises/show/' },
+    'attempt-exercises': { 'endpoint': ROOT + '/dashboard/api_attempt_exercises', 'viewer_endpoint': ROOT + 'exercises/show/' },
+    'expert-requests': { 'endpoint': ROOT + '/dashboard/api_expert_requests', 'viewer_endpoint': ROOT + 'exercises/attempt/' },
+    'announcements': { 'endpoint': ROOT + '/dashboard/api_announcements', viewer_endpoint: ROOT + 'announcements/view/' }
 };
 
 // ENDPOINT_MAP = Object.fromEntries(
@@ -52,9 +52,7 @@ async function fetchApiData(endpoint) {
     }
 }
 
-// =========================================================
-// 2. RENDERING HELPERS (No change needed here)
-// =========================================================
+
 
 function createBadge(badgeData) {
     if (!badgeData) return '';
@@ -74,12 +72,12 @@ function createMeta(metaList) {
     }).join('');
 }
 
-function createContentCard(item, url = ROOT+"notes/view") {
+function createContentCard(item, url = ROOT + "notes/view") {
     const badgeHtml = createBadge(item.status_badge);
     const tagsHtml = createTags(item.tags);
     const metaHtml = createMeta(item.meta_details);
     console.log("item", item);
-    
+
     let secondaryHtml = '';
     if (item.secondary_info) {
         secondaryHtml = `<span style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-dark); margin-top: 5px;">${item.secondary_info}</span>`;
@@ -125,7 +123,7 @@ function createNotificationItem(notif) {
 }
 
 // =========================================================
-// 3. MAIN APPLICATION LOGIC (Updated to use fetchApiData)
+// 3. MAIN APPLICATION LOGIC 
 // =========================================================
 
 const App = {
@@ -139,7 +137,7 @@ const App = {
         this.loadUserSummary();
         this.loadImpactMetrics();
         this.loadCommunityAnnouncements(true); // Load the paginated list of announcements
-        this.loadNotifications(true); 
+        this.loadNotifications(true);
         this.setupTabs();
     },
 
@@ -148,10 +146,10 @@ const App = {
         try {
             // Updated endpoint
             const data = await fetchApiData(ENDPOINT_MAP['user-summary']);
-            
+
             // Update Avatar
             document.getElementById('user-avatar').style.backgroundImage = `url('${data.avatar_url}')`;
-            
+
             // Toggle Start Work Button
             if (data.can_start_work) {
                 document.getElementById('btn-start-work').style.display = 'flex';
@@ -165,7 +163,7 @@ const App = {
             if (data.is_expert || data.is_admin) {
                 expertSection.style.display = 'block';
                 // Only show the tab if it exists in the HTML
-                if (expertTab) expertTab.style.display = 'block'; 
+                if (expertTab) expertTab.style.display = 'block';
             }
 
             if (data.is_admin) {
@@ -182,7 +180,7 @@ const App = {
         try {
             // Updated endpoint
             const data = await fetchApiData(ENDPOINT_MAP['impact-metrics']);
-            
+
             document.getElementById('stat-answers').textContent = data.answers_shared;
             document.getElementById('stat-answers-change').textContent = data.answers_change;
             document.getElementById('stat-marks').textContent = data.avg_exercise_mark;
@@ -205,7 +203,7 @@ const App = {
         const state = this.state.communityFeed;
         const endpoint = ENDPOINT_MAP['community-banner']; // Use the paginated endpoint
         const container = document.getElementById('community-banner'); // Use the existing banner container
-        
+
         // 1. Prepare UI containers inside the banner box
         let listContainer = container.querySelector('.list-container');
         let loader = container.querySelector('.loader');
@@ -222,7 +220,7 @@ const App = {
             loader.style.cssText = 'text-align: center; padding: 10px; display: none;';
             loader.innerHTML = 'Loading...';
             container.appendChild(loader);
-            
+
             state.offset = 0;
             state.endOfResults = false;
         }
@@ -235,7 +233,7 @@ const App = {
 
         const existingBtn = container.querySelector('.btn-load-more');
         const endOfListMsg = container.querySelector('.end-of-list-msg');
-        
+
         if (existingBtn) existingBtn.remove();
         if (endOfListMsg) endOfListMsg.remove();
 
@@ -259,18 +257,18 @@ const App = {
                 const btn = document.createElement('button');
                 btn.className = 'btn-load-more';
                 btn.textContent = 'Load More';
-                btn.onclick = () => this.loadCommunityAnnouncements(false); 
+                btn.onclick = () => this.loadCommunityAnnouncements(false);
                 container.appendChild(btn);
             } else if (state.offset > 0) {
-                 const msg = document.createElement('p');
-                 msg.className = 'end-of-list-msg';
-                 msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
-                 msg.textContent = '-- End of Announcements --';
-                 container.appendChild(msg);
+                const msg = document.createElement('p');
+                msg.className = 'end-of-list-msg';
+                msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
+                msg.textContent = '-- End of Announcements --';
+                container.appendChild(msg);
             } else if (state.offset === 0) {
-                 listContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--color-text-light);">No community announcements available.</div>';
+                listContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--color-text-light);">No community announcements available.</div>';
             }
-            
+
             container.style.display = 'block'; // Ensure the container is visible
 
         } catch (error) {
@@ -294,7 +292,7 @@ const App = {
         const endpoint = ENDPOINT_MAP['notifications'];
         const listContainer = document.getElementById('notifications-list');
         // Assuming notifications-list is inside a container that also holds the loader and button
-        const notificationsContainer = listContainer.parentElement; 
+        const notificationsContainer = listContainer.parentElement;
 
         if (state.loading || (state.endOfResults && !isInitialLoad)) return;
         state.loading = true;
@@ -305,7 +303,7 @@ const App = {
 
         const existingBtn = notificationsContainer.querySelector('.btn-load-more');
         const endOfListMsg = notificationsContainer.querySelector('.end-of-list-msg');
-        
+
         if (existingBtn) existingBtn.remove();
         if (endOfListMsg) endOfListMsg.remove();
 
@@ -336,16 +334,16 @@ const App = {
                 btn.className = 'btn-load-more';
                 btn.textContent = 'Load More';
                 // Note: Arrow function binds 'this' correctly for the click handler
-                btn.onclick = () => this.loadNotifications(false); 
+                btn.onclick = () => this.loadNotifications(false);
                 notificationsContainer.appendChild(btn);
             } else if (state.offset > 0) {
-                 const msg = document.createElement('p');
-                 msg.className = 'end-of-list-msg';
-                 msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
-                 msg.textContent = '-- End of Notifications --';
-                 notificationsContainer.appendChild(msg);
+                const msg = document.createElement('p');
+                msg.className = 'end-of-list-msg';
+                msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
+                msg.textContent = '-- End of Notifications --';
+                notificationsContainer.appendChild(msg);
             } else if (state.offset === 0) {
-                 listContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--color-text-light);">No new notifications.</div>';
+                listContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--color-text-light);">No new notifications.</div>';
             }
 
 
@@ -375,7 +373,7 @@ const App = {
                 // UI Toggle
                 tabs.forEach(t => t.classList.remove('active'));
                 contents.forEach(c => c.classList.remove('active'));
-                
+
                 tab.classList.add('active');
                 const contentDiv = document.getElementById(tabId);
                 contentDiv.classList.add('active');
@@ -420,10 +418,10 @@ const App = {
 
         const existingBtn = contentDiv.querySelector('.btn-load-more');
         if (existingBtn) existingBtn.remove();
-        
+
         const endOfListMsg = contentDiv.querySelector('.end-of-list-msg-tab');
         if (endOfListMsg) endOfListMsg.remove();
-        
+
         // Clear list on initial load
         if (isInitialLoad) {
             listContainer.innerHTML = '';
@@ -434,7 +432,7 @@ const App = {
         try {
             const url = `${endpoint}?limit=${state.limit}&offset=${state.offset}`;
             // Use the real fetch wrapper
-            const data = await fetchApiData(url,); 
+            const data = await fetchApiData(url,);
 
             // Render Items
             data.items.forEach(item => {
@@ -451,16 +449,25 @@ const App = {
                 btn.className = 'btn-load-more';
                 btn.textContent = 'Load More';
                 // Note: Arrow function binds 'this' correctly for the click handler
-                btn.onclick = () => this.loadTabContent(tabId, false); 
+                btn.onclick = () => this.loadTabContent(tabId, false);
                 contentDiv.appendChild(btn);
             } else if (state.offset > 0) {
-                 const msg = document.createElement('p');
-                 msg.className = 'end-of-list-msg-tab';
-                 msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
-                 msg.textContent = '-- End of List --';
-                 contentDiv.appendChild(msg);
+                const msg = document.createElement('p');
+                msg.className = 'end-of-list-msg-tab';
+                msg.style.cssText = 'text-align: center; margin-top: 15px; color: var(--color-text-light);';
+                msg.textContent = '-- End of List --';
+                contentDiv.appendChild(msg);
             } else if (state.offset === 0) {
-                 listContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--color-text-light);">No items to display.</div>';
+                listContainer.innerHTML = `
+                    <div class="null-state">
+                        <div class="null-state-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                        </div>
+                        <div class="null-state-text">No items to display</div>
+                    </div>
+                `;
             }
 
 

@@ -2,7 +2,7 @@ import { ROOT } from "../../core/config.js";
 
 // --- JAVASCRIPT LOGIC ---
 
-const CURRENT_USER_ID = 1;
+
 
 let questionData = {};
 let answerList = [];

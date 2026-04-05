@@ -1,31 +1,138 @@
 /* General Body Styles */
 body {
-    /* Font is already set in the global base styles, removing duplication */
-    /* background-color is already set in the global base styles, removing duplication */
     margin: 0;
-    /* Maintain padding top for fixed nav, but use a spacing token */
-    /* padding-top: var(--space-xl);  */
 }
 
 .main-content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 var(--space-sm); /* Using space-sm for side padding */
+    padding: 0 var(--space-sm);
     margin-top: var(--space-xl);
 }
 
-header
-{
+/* -----------------------------
+    HEADER STYLES
+------------------------------ */
+header {
     margin-bottom: var(--space-lg);
 }
 
-h1 {
-    font-size: var(--font-size-lg); /* Using the new large font size token */
-    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
-    text-align: left;
-    margin-bottom: var(--space-md); /* Using space-md for good separation */
-    color: var(--color-text); /* Using the dark text color token */
+.title-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
+
+.title-panel>div:first-child {
+    flex-grow: 1;
+    padding-right: var(--space-md);
+}
+
+.main-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--color-gray-900);
+}
+
+.page-description {
+    color: var(--color-gray-600);
+    margin: 0;
+    font-size: 1rem;
+}
+
+.title-icon {
+    color: var(--color-primary);
+    opacity: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.title-icon svg {
+    width: 32px;
+    height: 32px;
+    stroke-width: 2.5px;
+}
+
+/* -----------------------------
+    USER STATS CARD (FIXED OVERLAY)
+------------------------------ */
+.user-stats-card-fixed {
+    position: fixed;
+    right: -24px;
+    top: 50vh;
+    transform: translateY(-50%);
+    width: 260px;
+    z-index: 100;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: none;
+    /* Hidden on mobile by default */
+}
+
+@media (min-width: 1200px) {
+    .user-stats-card-fixed {
+        display: block;
+    }
+}
+
+.stats-card-title {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    border-bottom: 1px solid var(--color-border-light);
+    padding-bottom: 8px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
+    font-weight: 500;
+}
+
+.stats-footer {
+    text-align: center;
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 12px;
+}
+
+.stats-link {
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.stats-link:hover {
+    text-decoration: underline;
+}
+
 
 /* -----------------------------
     🛠️ FILTER BAR STYLES
@@ -33,52 +140,135 @@ h1 {
 
 .filter-bar {
     display: flex;
-    gap: var(--space-xs); /* Tighter gap */
-    margin-bottom: var(--space-md);
+    gap: 12px;
+    margin-bottom: var(--space-lg);
+    align-items: stretch;
+}
+
+.search-wrapper {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.search-wrapper:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-blue-100);
 }
 
 #tag-filter-input {
     flex-grow: 1;
-    padding: var(--space-xs) var(--space-sm);
+    padding: 12px 16px;
+    border: none;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    background: transparent;
+}
+
+#tag-filter-input:focus {
+    outline: none;
+}
+
+.search-wrapper .btn-filter {
+    border: none;
+    background: transparent;
+    padding: 0 16px;
+    color: var(--color-gray-400);
+    cursor: pointer;
+    border-left: 1px solid var(--color-gray-100);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+}
+
+.search-wrapper .btn-filter:hover {
+    color: var(--color-primary);
+    background-color: var(--color-gray-50);
+}
+
+.btn-advanced-filter {
+    padding: 0 20px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
+    background-color: var(--color-surface);
+    color: var(--color-gray-700);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-advanced-filter:hover {
+    border-color: var(--color-gray-300);
+    background-color: var(--color-gray-50);
     color: var(--color-text);
 }
 
-.btn-filter, .btn-create {
-    padding: var(--space-xs) var(--space-md);
+.btn-create {
+    padding: 0 24px;
     border: none;
     border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
+    font-size: 0.95rem;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.btn-filter {
-    background-color: var(--color-surface);
-    color: var(--color-placeholder); /* More subtle text for secondary button */
-    border: 1px solid var(--color-border);
-}
-
-.btn-filter:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background-color: var(--color-secondary-background);
-}
-
-.btn-create {
-    background-color: var(--color-primary); /* Primary button color */
+    background-color: var(--color-primary);
     color: white;
     font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(31, 116, 255, 0.2);
 }
 
 .btn-create:hover {
-    background-color: #0056b3; /* Darker shade for primary hover */
+    background-color: var(--color-blue-600);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(31, 116, 255, 0.3);
+}
+
+/* Advanced Dropdown */
+.advanced-filter-dropdown {
+    background: var(--color-surface);
+    padding: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    display: flex;
+    gap: 32px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    color: var(--color-gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    min-width: 150px;
 }
 
 /* -----------------------------
@@ -87,32 +277,36 @@ h1 {
 
 .tabs-container {
     display: flex;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-md);
-    flex-wrap: wrap; /* Added for mobile responsiveness */
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--color-border-light);
+    padding-bottom: 0;
 }
 
 .tab-button {
-    padding: calc(var(--space-xs) / 1.25) var(--space-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm); /* Using sm radius for tabs */
-    background-color: var(--color-surface);
-    color: var(--color-placeholder);
+    padding: 8px 0;
+    margin-right: 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background-color: transparent;
+    color: var(--color-gray-500);
     cursor: pointer;
-    font-size: var(--font-size-sm);
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    font-size: 0.95rem;
+    transition: all 0.2s;
     font-weight: 500;
 }
 
 .tab-button:hover:not(.active) {
-    background-color: var(--color-secondary-background);
-    color: var(--color-text);
+    color: var(--color-gray-700);
 }
 
 .tab-button.active {
-    background-color: var(--color-primary);
-    color: var(--color-surface);
-    border-color: var(--color-primary);
+    background-color: transparent;
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+    box-shadow: none;
 }
 
 /* -----------------------------
@@ -121,87 +315,234 @@ h1 {
 
 .question-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     background-color: var(--color-surface);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-xs);
-    box-shadow: var(--shadow-md); /* Using the lighter shadow token */
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid transparent; /* Prepare for focus/hover border */
+    border: 1px solid var(--color-border-light);
+    gap: 24px;
 }
 
 .question-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slightly stronger hover shadow */
-    border-color: var(--color-primary);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    border-color: var(--color-blue-200);
 }
 
-.question-title {
+/* --- Left: Voting Section --- */
+.qi-vote-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 48px;
+    flex-shrink: 0;
+    padding-top: 4px;
+}
+
+.vote-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-gray-400);
+    padding: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+    border-radius: 50%;
+}
+
+.vote-btn:hover {
+    color: var(--color-gray-600);
+    background-color: var(--color-gray-50);
+}
+
+.vote-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-gray-700);
+    margin: 4px 0;
+}
+
+.vote-label {
+    font-size: 0.7rem;
+    color: var(--color-gray-500);
+    font-weight: 500;
+}
+
+/* Voted States */
+.qi-vote-section.voted-up .vote-btn.up {
+    color: var(--color-success);
+    background-color: var(--color-green-50);
+}
+
+.qi-vote-section.voted-down .vote-btn.down {
+    color: var(--color-error);
+    background-color: var(--color-red-100);
+}
+
+.qi-vote-section.voted-up .vote-count {
+    color: var(--color-success);
+}
+
+.qi-vote-section.voted-down .vote-count {
+    color: var(--color-error);
+}
+
+
+/* --- Center: Content Section --- */
+.qi-content-section {
     flex-grow: 1;
-    font-size: var(--font-size-base);
-    color: var(--color-text);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    margin-right: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    align-items: flex-start;
+}
+
+.qi-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-gray-900);
+}
+
+.qi-title a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s;
+}
+
+.qi-title a:hover {
+    color: var(--color-primary);
+}
+
+.qi-meta {
+    font-size: 0.85rem;
+    color: var(--color-gray-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.qi-meta .author-name {
+    color: var(--color-gray-500);
+    font-weight: 500;
+}
+
+.qi-meta .author-name:hover {
+    text-decoration: underline;
+    color: var(--color-gray-700);
+}
+
+
+/* --- Right: Answer Section --- */
+.qi-answer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    flex-shrink: 0;
+    padding: 8px;
+    align-self: center;
+}
+
+.answer-count-val {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-gray-600);
+}
+
+.answer-label {
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
+}
+
+/* Solved State */
+.qi-answer-section.solved {
+    border: 1px solid var(--color-success);
+    background-color: var(--color-green-50);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+}
+
+.qi-answer-section.solved .answer-count-val,
+.qi-answer-section.solved .answer-label {
+    color: var(--color-green-700);
+}
+
+/* --- Tags --- */
+.qi-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
 }
 
 .tag-pill {
-    /* This style is duplicated and should be consolidated or removed if using the previous definition */
-    /* Keeping it for now but using tokens */
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    white-space: nowrap;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
+    border: 1px solid transparent;
 }
 
-/* Tag Color Schemes - Keep as is, but consider using new tokens for consistency later */
-/* For now, these utility classes remain until a robust tag color system is defined */
-.tag-physics { background-color: #ff9999; color: #cc0000; }
-.tag-maths { background-color: #99ff99; color: #008000; }
-.tag-quantum-computing { background-color: #ffcc99; color: #cc6600; }
-.tag-psychology { background-color: #ccccff; color: #6600cc; }
-.tag-test { background-color: #eee; color: var(--color-placeholder); } /* Changed color to placeholder token */
+/* Pastel Colors */
+.tag-color-0 {
+    background-color: #fff1f2;
+    color: #9f1239;
+}
+
+.tag-color-1 {
+    background-color: #fff7ed;
+    color: #9a3412;
+}
+
+.tag-color-2 {
+    background-color: #fefce8;
+    color: #854d0e;
+}
+
+.tag-color-3 {
+    background-color: #f0fdf4;
+    color: #166534;
+}
+
+.tag-color-4 {
+    background-color: #eff6ff;
+    color: #1e40af;
+}
+
+.tag-color-5 {
+    background-color: #faf5ff;
+    color: #6b21a8;
+}
+
+.tag-color-6 {
+    background-color: #fdf4ff;
+    color: #86198f;
+}
+
+.tag-color-7 {
+    background-color: #ecfdf5;
+    color: #065f46;
+}
 
 /* -----------------------------
     ➕ LOAD MORE STYLES
 ------------------------------ */
-
 .load-more-container {
     text-align: center;
-    margin: var(--space-md) 0 var(--space-lg) 0;
-}
-
-.btn-load-more {
-    padding: var(--space-xs) var(--space-lg);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface);
-    color: var(--color-primary);
-    cursor: pointer;
-    font-size: var(--font-size-base);
-    transition: all 0.2s ease;
-}
-
-.btn-load-more:hover:not(:disabled) {
-    background-color: var(--color-blue); /* Lighter blue from tokens */
-    color: var(--color-primary);
-}
-
-.btn-load-more:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    border-color: var(--color-border);
-    color: var(--color-placeholder);
-}
-
-/* Loading/Error State */
-.loading, .error {
-    text-align: center;
-    padding: var(--space-md);
-    color: var(--color-placeholder);
+    margin: 48px 0;
 }

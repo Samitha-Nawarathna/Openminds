@@ -2,6 +2,7 @@
     $title = 'All Profiles';
     $filename = 'profilebrowser';
     $profile_picture_url = ROOT."/uploads/0/profile.avif";
+    $subjects = $data['subjects'];
     include_once('../app/views/partials/header.view.php');
 ?>
 
@@ -57,6 +58,18 @@
                     <label><input type="checkbox" class="role-filter" value="mentor"> Mentor</label>
                     <label><input type="checkbox" class="role-filter" value="student"> Student</label>
                 </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Subject</h4>
+                <select id="subject-filter" class="filter-select">
+                    <option value="">All</option>
+                    <?php if(!empty($subjects)): ?>
+                        <?php foreach($subjects as $subject): ?>
+                            <option value="<?= htmlspecialchars($subject->name) ?>"><?= htmlspecialchars($subject->name) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
             </div>
 
             <div class="filter-group">

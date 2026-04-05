@@ -73,4 +73,10 @@ class NoteModel
         return $this->update($id, ['pinned' => 0]);
     }
 
+    public function count_by_topic($topic_id)
+    {
+        $result = $this->query("SELECT COUNT(*) as count FROM " . $this->table . " WHERE topic_id = :topic_id", ['topic_id' => $topic_id]);
+        return $result[0]->count ?? 0;
+    }
+
 }

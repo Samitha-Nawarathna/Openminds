@@ -7,7 +7,7 @@
     // Mock PHP placeholders for root paths (assumes standard framework setup)
     $ROOT = ''; 
     $MOCK_API_SAVE_URL = $ROOT . '/exercises/api/save_draft';
-    $MOCK_API_SUBMIT_URL = $ROOT . '/exercises/api/submit';
+    $MOCK_API_SUBMIT_URL = $ROOT . '/api/exercises/create';
 
     include_once "../app/views/partials/header.view.php";
 ?>
@@ -18,22 +18,41 @@
 <body>
 
 <div id="setup-modal" class="modal">
-    <div class="modal-content">
-        <h2>Exercise Details</h2>
-        <form id="setup-form">
-            <label for="exercise-title-input">Exercise Title (e.g., Intro to Big O Notation)</label>
-            <input type="text" id="exercise-title-input" placeholder="Required" required>
+    <div class="modal-content setup-modal-content">
+        <!-- Header Section -->
+        <div class="setup-header">
+            <div class="setup-icon">🎓</div>
+            <h1 class="setup-title">Let's Create an Exercise</h1>
+            <p class="setup-subtitle">Enter the basic details to get started.</p>
+        </div>
 
-            <label for="exercise-subject-input">Subject / Topic</label>
-            <input type="text" id="exercise-subject-input" placeholder="e.g., Data Structures, PHP" required>
+        <form id="setup-form" class="setup-form">
+            <!-- Row 1: Two-column layout for Title and Subject -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="exercise-title-input">Exercise Title</label>
+                    <input type="text" id="exercise-title-input" placeholder="Required" required>
+                </div>
+                <div class="form-group">
+                    <label for="exercise-subject-input">Subject / Topic</label>
+                    <input type="text" id="exercise-subject-input" placeholder="e.g., Data Structures, PHP" required>
+                </div>
+            </div>
 
-            <label for="exercise-description-input">Description (Optional Overview)</label>
-            <textarea id="exercise-description-input" rows="3" placeholder="Learning objectives..."></textarea>
+            <!-- Description Section -->
+            <div class="form-group">
+                <label for="exercise-description-input">Description (Optional Overview)</label>
+                <textarea id="exercise-description-input" rows="4" placeholder="Learning objectives..."></textarea>
+            </div>
             
-            <label for="exercise-tags-input">Tags (Comma separated)</label>
-            <input type="text" id="exercise-tags-input" placeholder="e.g., beginner, sorting, trees">
+            <!-- Tags Section -->
+            <div class="form-group">
+                <label for="exercise-tags-input">Tags (Comma separated)</label>
+                <input type="text" id="exercise-tags-input" placeholder="e.g., beginner, sorting, trees">
+            </div>
 
-            <button type="submit" class="btn-blue" style="width: 100%; margin-top: var(--space-md);">Start Building</button>
+            <!-- Primary Action Button -->
+            <button type="submit" class="btn-blue btn-start-building">Start Building</button>
         </form>
     </div>
 </div>
@@ -62,25 +81,25 @@
                 name="content"
                 placeholder="Enter the question"
                 storage-key="demo-editor-2"
-                height="250px">
+                height="150px">
             </quill-editor>
 
-            <label for="q-explanation-input" style="margin-top:var(--space-md);">Explanation (Required for Review)</label>
+            <label for="q-explanation-input">Explanation (Required for Review)</label>
             <quill-editor 
                 id="q-explanation-input"
                 name="content"
-                placeholder="Enter the question"
+                placeholder="Enter the explanation"
                 storage-key="demo-editor-2"
-                height="250px">
+                height="150px">
             </quill-editor>            
 
-            <label for="q-weight-input" style="margin-top:var(--space-md);">Question Weight/Points</label>
-            <input type="number" id="q-weight-input" min="1" value="1" required style="width: 100px;">
+            <label for="q-weight-input">Question Weight/Points</label>
+            <input type="number" id="q-weight-input" min="1" value="1" required>
 
-            <h3 style="margin-top:var(--space-md); border-bottom: 1px solid var(--color-border);">Answer Options</h3>
+            <h3>Answer Options</h3>
             <div id="options-container" class="option-group">
                 </div>
-            <button type="button" id="add-option-btn" class="btn-none" style="margin-top: var(--space-xs); padding: var(--space-xs) var(--space-md); border-style: dashed;">+ Add Option</button>
+            <button type="button" id="add-option-btn" class="btn-none">+ Add Option</button>
         </form>
     </div>
 </div>
