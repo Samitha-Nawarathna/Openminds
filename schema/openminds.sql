@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Dec 11, 2025 at 12:19 AM
+-- Generation Time: Apr 06, 2026 at 04:02 AM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -30,10 +30,10 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `announcements`;
 CREATE TABLE IF NOT EXISTS `announcements` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `creator_id` int DEFAULT NULL COMMENT 'The admin user who created this announcement',
-  `style` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'primary-accent' COMMENT 'Style for UI display (e.g., primary-accent, warning)',
+  `style` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'primary-accent' COMMENT 'Style for UI display (e.g., primary-accent, warning)',
   `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 for hidden/archived, 1 for active/visible',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -61,7 +61,7 @@ INSERT INTO `announcements` (`id`, `title`, `content`, `creator_id`, `style`, `i
 DROP TABLE IF EXISTS `answer`;
 CREATE TABLE IF NOT EXISTS `answer` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `content` text NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
   `creator_id` int DEFAULT NULL,
   `q_id` int NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -93,13 +93,125 @@ CREATE TABLE IF NOT EXISTS `attempt_answer` (
   `id` int NOT NULL AUTO_INCREMENT,
   `attempt_id` int NOT NULL COMMENT 'Foreign Key to exercise_attempt table',
   `question_id` int NOT NULL COMMENT 'Foreign Key to question table',
-  `user_response` text NOT NULL COMMENT 'The user''s submitted answer, choice ID, or response text',
+  `user_response` text COLLATE utf8mb4_general_ci NOT NULL COMMENT 'The user''s submitted answer, choice ID, or response text',
   `is_correct` tinyint(1) DEFAULT NULL COMMENT '1 if the response was correct, 0 if incorrect',
   `score_earned` decimal(5,2) DEFAULT NULL COMMENT 'Points earned for this specific question',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_attempt_question` (`attempt_id`,`question_id`),
   KEY `fk_answer_question` (`question_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores the user''s response for each question within an exercise attempt';
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores the user''s response for each question within an exercise attempt';
+
+--
+-- Dumping data for table `attempt_answer`
+--
+
+INSERT INTO `attempt_answer` (`id`, `attempt_id`, `question_id`, `user_response`, `is_correct`, `score_earned`) VALUES
+(6, 7, 24, '[222,225]', 1, 2.00),
+(7, 7, 25, '[226,227,229]', 1, 3.00),
+(8, 7, 26, '[230,232]', 1, 3.00),
+(9, 8, 24, '[222,225]', 1, 2.00),
+(10, 8, 25, '[226,229]', 0, 0.00),
+(11, 8, 26, '[230,232]', 1, 3.00),
+(12, 9, 27, '[1]', 1, 1.00),
+(13, 10, 28, '[246]', 1, 2.00),
+(14, 10, 29, '[250]', 1, 1.00),
+(15, 10, 30, '[254]', 1, 1.00),
+(16, 11, 28, '[246]', 1, 2.00),
+(17, 11, 29, '[250]', 1, 1.00),
+(18, 11, 30, '[254]', 1, 1.00),
+(19, 12, 28, '[247]', 0, 0.00),
+(20, 12, 29, '[250]', 1, 1.00),
+(21, 12, 30, '[254]', 1, 1.00),
+(22, 13, 31, '[258]', 1, 2.00),
+(23, 13, 32, '[262]', 1, 2.00),
+(24, 13, 33, '[266]', 1, 1.00),
+(25, 14, 28, '[246]', 1, 2.00),
+(26, 14, 29, '[250]', 1, 1.00),
+(27, 14, 30, '[254]', 1, 1.00),
+(28, 15, 28, '[246]', 1, 2.00),
+(29, 15, 29, '[251]', 0, 0.00),
+(30, 15, 30, '[254]', 1, 1.00),
+(31, 16, 31, '[260]', 0, 0.00),
+(32, 16, 32, '[262]', 1, 2.00),
+(33, 16, 33, '[266]', 1, 1.00),
+(34, 17, 31, '[258]', 1, 2.00),
+(35, 17, 32, '[262]', 1, 2.00),
+(36, 17, 33, '[266]', 1, 1.00),
+(37, 18, 31, '[259]', 0, 0.00),
+(38, 18, 32, '[263]', 0, 0.00),
+(39, 18, 33, '[266]', 1, 1.00),
+(40, 19, 31, '[258]', 1, 2.00),
+(41, 19, 32, '[262]', 1, 2.00),
+(42, 19, 33, '[266]', 1, 1.00),
+(43, 20, 27, '[1]', 1, 1.00),
+(44, 21, 28, '[246]', 1, 2.00),
+(45, 21, 29, '[250]', 1, 1.00),
+(46, 21, 30, '[254]', 1, 1.00),
+(47, 22, 34, '[234]', 0, 0.00),
+(48, 22, 35, '[238]', 1, 1.00),
+(49, 22, 36, '[242]', 0, 0.00),
+(50, 23, 24, '[222]', 0, 0.00),
+(51, 23, 25, '[226]', 0, 0.00),
+(52, 23, 26, '[230]', 0, 0.00),
+(53, 24, 27, '[1]', 1, 1.00),
+(54, 25, 24, '[222]', 0, 0.00),
+(55, 25, 25, '[227,229]', 0, 0.00),
+(56, 25, 26, '[230,232]', 1, 3.00),
+(57, 26, 24, '[222,225]', 1, 2.00),
+(58, 26, 25, '[226,227,229]', 1, 3.00),
+(59, 26, 26, '[230,232]', 1, 3.00),
+(60, 27, 24, '[]', 0, 0.00),
+(61, 27, 25, '[226,227,229]', 1, 3.00),
+(62, 27, 26, '[230,232]', 1, 3.00),
+(63, 28, 34, '[234]', 0, 0.00),
+(64, 28, 35, '[238]', 1, 1.00),
+(65, 28, 36, '[242]', 0, 0.00),
+(66, 29, 37, '[270]', 0, 0.00),
+(67, 29, 38, '[274]', 1, 1.00),
+(68, 29, 39, '[278]', 1, 1.00),
+(69, 30, 40, '[282]', 1, 1.00),
+(70, 30, 41, '[286]', 1, 2.00),
+(71, 30, 42, '[290]', 1, 1.00),
+(72, 31, 28, '[246]', 1, 2.00),
+(73, 31, 29, '[250]', 1, 1.00),
+(74, 31, 30, '[254]', 1, 1.00),
+(75, 32, 43, '[]', 0, 0.00),
+(76, 32, 44, '[300]', 0, 0.00),
+(77, 32, 45, '[304]', 0, 0.00),
+(78, 33, 46, '[306]', 1, 1.00),
+(79, 33, 47, '[310,311]', 1, 1.00),
+(80, 33, 48, '[317]', 0, 0.00),
+(81, 34, 46, '[306]', 1, 1.00),
+(82, 34, 47, '[310,311]', 1, 1.00),
+(83, 34, 48, '[314]', 1, 1.00),
+(84, 35, 43, '[294]', 1, 1.00),
+(85, 35, 44, '[298]', 1, 1.00),
+(86, 35, 45, '[302]', 1, 1.00),
+(87, 36, 49, '[]', 0, 0.00),
+(88, 37, 31, '[261]', 0, 0.00),
+(89, 37, 32, '[264]', 0, 0.00),
+(90, 37, 33, '[266]', 1, 1.00),
+(91, 38, 40, '[282]', 1, 1.00),
+(92, 38, 41, '[286]', 1, 2.00),
+(93, 38, 42, '[290]', 1, 1.00),
+(94, 39, 40, '[282]', 1, 1.00),
+(95, 39, 41, '[286]', 1, 2.00),
+(96, 39, 42, '[290]', 1, 1.00),
+(97, 40, 40, '[282]', 1, 1.00),
+(98, 40, 41, '[289]', 0, 0.00),
+(99, 40, 42, '[290]', 1, 1.00),
+(100, 41, 43, '[294]', 1, 1.00),
+(101, 41, 44, '[298]', 1, 1.00),
+(102, 41, 45, '[302]', 1, 1.00),
+(103, 42, 50, '[326]', 1, 1.00),
+(104, 42, 51, '[330]', 0, 0.00),
+(105, 42, 52, '[334]', 1, 1.00),
+(106, 43, 50, '[326]', 1, 1.00),
+(107, 43, 51, '[330]', 0, 0.00),
+(108, 43, 52, '[334]', 1, 1.00),
+(109, 44, 34, '[234,235]', 1, 2.00),
+(110, 44, 35, '[239]', 0, 0.00),
+(111, 44, 36, '[242,243]', 0, 0.00);
 
 -- --------------------------------------------------------
 
@@ -112,8 +224,8 @@ CREATE TABLE IF NOT EXISTS `events` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL COMMENT 'The ID of the user who initiated the event (FK to user.id)',
   `event_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The exact time the event occurred',
-  `event_type` varchar(50) NOT NULL COMMENT 'e.g., note_created, question_asked, exercise_attempted, vote_given',
-  `entity_type` varchar(50) NOT NULL COMMENT 'The type of entity involved (e.g., Note, Question, Exercise, Answer)',
+  `event_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'e.g., note_created, question_asked, exercise_attempted, vote_given',
+  `entity_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'The type of entity involved (e.g., Note, Question, Exercise, Answer)',
   `entity_id` int DEFAULT NULL COMMENT 'The ID of the related entity in its respective table',
   `data` json DEFAULT NULL COMMENT 'Flexible storage for metric-critical data (e.g., score, subject_id, vote_direction)',
   PRIMARY KEY (`id`),
@@ -166,13 +278,13 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 DROP TABLE IF EXISTS `exerciseanswer`;
 CREATE TABLE IF NOT EXISTS `exerciseanswer` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `answer_text` varchar(1000) NOT NULL,
+  `answer_text` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL,
   `is_correct` tinyint(1) DEFAULT '0',
   `display_order` int NOT NULL,
   `question_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `question_id` (`question_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=338 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exerciseanswer`
@@ -180,59 +292,106 @@ CREATE TABLE IF NOT EXISTS `exerciseanswer` (
 
 INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`, `question_id`) VALUES
 (1, 'x = 2', 1, 0, 1),
-(2, 'x = 3', 0, 0, 1),
-(3, 'Newton’s Third Law', 1, 0, 2),
-(4, 'Newton’s First Law', 0, 0, 2),
-(7, 'for i in range(5):', 1, 0, 4),
-(8, 'loop i from 1 to 5', 0, 0, 4),
-(35, 'Option A', 0, 0, 18),
-(36, 'Option B', 0, 0, 18),
-(37, 'Option A', 0, 0, 19),
-(38, 'Option B', 0, 0, 19),
-(39, 'Option A', 0, 0, 20),
-(40, 'Option B', 0, 0, 20),
-(41, 'Option A', 0, 0, 21),
-(42, 'Option B', 0, 0, 21),
-(57, 'Option A', 0, 0, 27),
-(58, 'Option B', 1, 0, 27),
-(59, 'option c', 0, 0, 27),
-(60, 'Option A', 1, 0, 28),
-(61, 'Option B', 0, 0, 28),
-(75, 'Option A', 1, 0, 34),
-(76, 'Option B', 0, 0, 34),
-(79, 'Option A', 0, 0, 36),
-(80, 'Option B', 1, 0, 36),
-(81, 'oc', 0, 0, 36),
-(82, 'Option A', 1, 0, 37),
-(83, 'Option c', 0, 0, 37),
-(84, 'Option A', 1, 0, 38),
-(85, 'Option B', 0, 0, 38),
-(86, 'Option A', 0, 0, 39),
-(87, 'Option B', 1, 0, 39),
-(88, 'Option A', 0, 0, 40),
-(89, 'Option B', 1, 0, 40),
-(90, 'Option A', 0, 0, 41),
-(91, 'Option B', 1, 0, 41),
-(92, 'option C', 0, 0, 41),
-(93, 'Option A', 1, 0, 42),
-(94, 'Option B', 0, 0, 42),
-(95, 'Option A', 0, 0, 43),
-(96, 'Option B', 1, 0, 43),
-(97, 'option c', 1, 0, 43),
-(98, 'Option A', 0, 0, 44),
-(99, 'Option B', 1, 0, 44),
-(100, 'options c', 1, 0, 44),
-(101, 'Option A', 1, 0, 45),
-(102, 'Option B', 0, 0, 45),
-(103, 'Option A', 1, 0, 46),
-(104, 'Option B', 0, 0, 46),
-(105, 'Option C', 1, 0, 46),
-(106, 'Option A', 1, 0, 47),
-(107, 'Option B', 0, 0, 47),
-(108, 'Option A', 0, 0, 48),
-(109, 'Option B', 1, 0, 48),
-(110, 'Option A', 1, 0, 49),
-(111, 'Option B', 0, 0, 49);
+(222, 'x = 4', 1, 0, 82),
+(223, 'x = (13 − 5) / 2', 0, 1, 82),
+(224, 'x2= (13 − 5) / 2', 0, 2, 82),
+(225, 'x = 3', 1, 3, 82),
+(226, 'x² + 3x + 3', 1, 0, 83),
+(227, '(x + 3)(x + 3)', 1, 1, 83),
+(228, 'x² + 9', 0, 2, 83),
+(229, 'x² + 6x + 9', 1, 3, 83),
+(230, 'sin²θ + cos²θ = 1', 1, 0, 84),
+(231, 'tanθ = cosθ / sinθ', 0, 1, 84),
+(232, 'tanθ = sinθ / cosθ', 1, 2, 84),
+(233, 'sin 0° = 1', 0, 3, 84),
+(234, 'op1', 1, 0, 85),
+(235, 'op2', 1, 1, 85),
+(236, 'op3', 0, 2, 85),
+(237, 'op4', 0, 3, 85),
+(238, 'op1', 1, 0, 86),
+(239, 'op3', 0, 1, 86),
+(240, 'op3', 0, 2, 86),
+(241, 'op1', 0, 3, 86),
+(242, 'op1', 1, 0, 87),
+(243, 'op2', 0, 1, 87),
+(244, 'op3', 0, 2, 87),
+(245, 'op1', 1, 3, 87),
+(246, 'op1', 1, 0, 88),
+(247, 'op2', 0, 1, 88),
+(248, 'op3', 0, 2, 88),
+(249, 'op4', 0, 3, 88),
+(250, 'op1', 1, 0, 89),
+(251, 'op2', 0, 1, 89),
+(252, 'op3', 0, 2, 89),
+(253, 'op4', 0, 3, 89),
+(254, 'op1', 1, 0, 90),
+(255, 'op3', 0, 1, 90),
+(256, 'op3', 0, 2, 90),
+(257, 'op3', 0, 3, 90),
+(258, 'op1', 1, 0, 91),
+(259, 'op2', 0, 1, 91),
+(260, 'op3', 0, 2, 91),
+(261, 'op4', 0, 3, 91),
+(262, 'op1', 1, 0, 92),
+(263, 'op2', 0, 1, 92),
+(264, 'op3', 0, 2, 92),
+(265, 'op4', 0, 3, 92),
+(266, 'op1', 1, 0, 93),
+(267, 'op2', 0, 1, 93),
+(268, 'op3', 0, 2, 93),
+(269, 'op4', 0, 3, 93),
+(270, 'op1', 1, 0, 94),
+(271, 'op2', 1, 1, 94),
+(272, 'op3', 0, 2, 94),
+(273, 'op4', 0, 3, 94),
+(274, 'op1', 1, 0, 95),
+(275, 'op2', 0, 1, 95),
+(276, 'op3', 0, 2, 95),
+(277, 'op5', 0, 3, 95),
+(278, 'op1', 1, 0, 96),
+(279, 'op2', 0, 1, 96),
+(280, 'op3', 0, 2, 96),
+(281, 'op4', 0, 3, 96),
+(282, 'op1', 1, 0, 97),
+(283, 'op2', 0, 1, 97),
+(284, 'op3', 0, 2, 97),
+(285, 'op4', 0, 3, 97),
+(286, 'op1', 1, 0, 98),
+(287, 'op2', 0, 1, 98),
+(288, 'op3', 0, 2, 98),
+(289, 'op4', 0, 3, 98),
+(290, 'op1', 1, 0, 99),
+(291, 'op2', 0, 1, 99),
+(292, 'op3', 0, 2, 99),
+(293, 'op4', 0, 3, 99),
+(294, 'op1', 1, 0, 100),
+(295, 'op2', 0, 1, 100),
+(296, 'op3', 0, 2, 100),
+(297, 'op4', 0, 3, 100),
+(298, 'op1', 1, 0, 101),
+(299, 'op2', 0, 1, 101),
+(300, 'op3', 0, 2, 101),
+(301, 'op4', 0, 3, 101),
+(302, 'op1', 1, 0, 102),
+(303, 'op2', 0, 1, 102),
+(304, 'op3', 0, 2, 102),
+(305, 'op4', 0, 3, 102),
+(322, 'op1', 1, 0, 107),
+(323, 'op2', 0, 1, 107),
+(324, 'op3', 0, 2, 107),
+(325, 'op4', 0, 3, 107),
+(326, 'op1', 1, 0, 108),
+(327, 'op2', 0, 1, 108),
+(328, 'op3', 0, 2, 108),
+(329, 'op4', 0, 3, 108),
+(330, 'op1', 1, 0, 109),
+(331, 'op2', 1, 1, 109),
+(332, 'op3', 0, 2, 109),
+(333, 'op4', 0, 3, 109),
+(334, 'op1', 1, 0, 110),
+(335, 'op2', 0, 1, 110),
+(336, 'op3', 0, 2, 110),
+(337, 'op4', 0, 3, 110);
 
 -- --------------------------------------------------------
 
@@ -243,14 +402,14 @@ INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`
 DROP TABLE IF EXISTS `exercisequestion`;
 CREATE TABLE IF NOT EXISTS `exercisequestion` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `question_text` text NOT NULL,
-  `explanation` text NOT NULL,
+  `question_text` text COLLATE utf8mb4_general_ci NOT NULL,
+  `explanation` text COLLATE utf8mb4_general_ci NOT NULL,
   `weight` int NOT NULL DEFAULT '1',
   `exercise_id` int NOT NULL,
   `display_order` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `exercise_id` (`exercise_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exercisequestion`
@@ -259,28 +418,31 @@ CREATE TABLE IF NOT EXISTS `exercisequestion` (
 INSERT INTO `exercisequestion` (`id`, `question_text`, `explanation`, `weight`, `exercise_id`, `display_order`) VALUES
 (1, 'What is the solution of 2x + 3 = 7?', '', 1, 1, 0),
 (2, 'Which law states that for every action, there is an equal and opposite reaction?', '', 1, 2, 0),
-(4, 'What is the correct Python syntax for a for loop?', '', 1, 4, 0),
-(18, 'question 2', '', 1, 14, 0),
-(19, 'question 1', '', 1, 14, 0),
-(20, 'question 2', '', 1, 15, 0),
-(21, 'question 1', '', 1, 15, 0),
-(27, 'q1', '', 1, 19, 0),
-(28, 'q1', '', 1, 20, 0),
-(34, 'q1', '', 1, 25, 0),
-(36, 'q2', '', 1, 27, 0),
-(37, 'q1', '', 1, 27, 0),
-(38, 'q1', '', 1, 28, 0),
-(39, 'q2', '', 1, 28, 0),
-(40, 'q1', '', 1, 29, 0),
-(41, 'q1', '', 1, 30, 0),
-(42, 'q2', '', 1, 31, 0),
-(43, 'q1', '', 1, 31, 0),
-(44, 'q1', '', 1, 32, 0),
-(45, 'q2', '', 1, 32, 0),
-(46, 'question 1', '', 1, 33, 0),
-(47, 'question 1', '', 1, 34, 0),
-(48, 'question 1', '', 1, 35, 0),
-(49, 'q1', '', 1, 36, 0);
+(82, 'Solve the equation:    2x + 5 = 13', '2x + 5 = 13 ⇒ 2x = 8 ⇒ x = 4\nOption C simplifies to the same value.', 2, 45, 0),
+(83, 'Which of the following expressions are equivalent to (x + 3)² ?', '(x + 3)² = (x + 3)(x + 3) = x² + 6x + 9', 3, 45, 1),
+(84, 'Which of the following trigonometric identities are correct?', 'Which of the following trigonometric identities are correct?', 3, 45, 2),
+(85, 'q1', 'ex', 2, 46, 0),
+(86, 'q2', 'ex', 1, 46, 1),
+(87, 'q3', 'ex', 1, 46, 2),
+(88, 'q1', 'ex', 2, 47, 0),
+(89, 'q1', 'ex', 1, 47, 1),
+(90, 'q2', 'exxx', 1, 47, 2),
+(91, 'q1', 'ex', 2, 48, 0),
+(92, 'q2', 'ex', 2, 48, 1),
+(93, 'q3', 'ex', 1, 48, 2),
+(94, 'q1', 'ex1', 2, 49, 0),
+(95, 'q2', 'ex2', 1, 49, 1),
+(96, 'q3', 'ex3', 1, 49, 2),
+(97, 'q1', 'expla', 1, 50, 0),
+(98, 'q2', 'ex', 2, 50, 1),
+(99, 'q3', 'ex', 1, 50, 2),
+(100, 'q1', 'exx', 1, 51, 0),
+(101, 'q2', 'ex', 1, 51, 1),
+(102, 'q3', 'ex', 1, 51, 2),
+(107, 'q1', '', 1, 53, 0),
+(108, 'q1', 'ex', 1, 52, 0),
+(109, 'q2', 'ex', 1, 52, 1),
+(110, 'q3', 'ex', 1, 52, 2);
 
 -- --------------------------------------------------------
 
@@ -292,19 +454,19 @@ DROP TABLE IF EXISTS `exercises`;
 CREATE TABLE IF NOT EXISTS `exercises` (
   `id` int NOT NULL AUTO_INCREMENT,
   `subject_id` int NOT NULL,
-  `title` varchar(255) NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `creator_id` int NOT NULL,
-  `status` enum('pending','approved','rejected') DEFAULT 'pending',
-  `feedback` text,
+  `status` enum('pending','approved','draft','rejected') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `feedback` text COLLATE utf8mb4_general_ci,
   `reviewed_by` int DEFAULT NULL,
-  `description` text,
+  `description` text COLLATE utf8mb4_general_ci,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
   KEY `creator_id` (`creator_id`),
   KEY `reviewed_by` (`reviewed_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `exercises`
@@ -313,22 +475,18 @@ CREATE TABLE IF NOT EXISTS `exercises` (
 INSERT INTO `exercises` (`id`, `subject_id`, `title`, `created_at`, `creator_id`, `status`, `feedback`, `reviewed_by`, `description`, `updated_at`) VALUES
 (1, 1, 'Basic Algebra Practice', '2025-10-17 22:06:22', 1, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
 (2, 2, 'Newton Laws Challenge', '2025-10-17 22:06:22', 5, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
-(4, 3, 'Python Loop Exercises', '2025-10-17 22:06:22', 40, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(14, 2, 'Test exercise', '2025-10-21 01:48:59', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(15, 2, 'Test exercise', '2025-10-21 01:51:23', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(19, 2, 'physics', '2025-10-22 03:40:02', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(20, 2, 'physics', '2025-10-22 03:46:26', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(25, 2, 'title', '2025-10-22 23:01:51', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(27, 2, 'title', '2025-10-23 00:23:14', 94, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(28, 2, 'title', '2025-10-23 00:34:56', 94, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(29, 2, 'title', '2025-10-23 00:55:56', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(30, 2, 'title', '2025-10-23 02:03:00', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(31, 2, 'title', '2025-10-23 02:37:15', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(32, 2, 'title', '2025-10-23 02:59:03', 91, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(33, 2, 'title', '2025-11-06 19:41:38', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(34, 2, 'title', '2025-11-06 22:48:23', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(35, 2, 'title', '2025-11-07 07:17:16', 1, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17'),
-(36, 2, 'title', '2025-11-14 02:14:02', 101, 'pending', NULL, NULL, NULL, '2025-11-19 03:34:17');
+(4, 3, 'Python Loop Exercises', '2025-10-17 22:06:22', 40, 'approved', NULL, NULL, NULL, '2025-12-23 06:00:54'),
+(14, 2, 'Test exercise', '2025-10-21 01:48:59', 91, 'approved', NULL, NULL, NULL, '2025-12-23 06:01:11'),
+(15, 2, 'Test exercise', '2025-10-21 01:51:23', 91, 'approved', NULL, NULL, NULL, '2025-12-23 06:01:23'),
+(45, 8, 'Mathematics MCQ Quiz – Algebra & Calculus Basics', '2026-01-02 03:12:55', 2, 'draft', NULL, 103, 'This exercise is designed to test students’ understanding of basic algebraic expressions, linear equations, trigonometric identities, and introductory calculus concepts.\nEach question may have multiple correct answers, includes mathematical expressions, and is assigned a weight to evaluate difficulty and scoring.', '2026-04-02 14:55:01'),
+(46, 7, 'electronics laws', '2026-01-12 09:46:59', 2, 'approved', 'hiiii', 103, 'des', '2026-02-04 06:11:51'),
+(47, 7, 'electronics laws', '2026-01-20 04:20:32', 2, 'approved', 'hiiib  bhvuhvjvudszxdcfvgbhj', 103, 'des', '2026-02-04 05:55:43'),
+(48, 7, 'electronics laws', '2026-01-31 09:52:00', 103, 'approved', NULL, NULL, 'ex', '2026-03-04 23:32:53'),
+(49, 7, 'electronics laws', '2026-02-11 12:20:29', 104, 'approved', NULL, NULL, 'des', '2026-03-04 23:32:18'),
+(50, 7, 'electronics laws', '2026-02-18 22:42:31', 105, 'approved', NULL, NULL, 'des', '2026-03-04 23:22:18'),
+(51, 7, 'Mathematics MCQ Quiz – Algebra & Calculus Basics', '2026-03-05 11:50:19', 107, 'approved', NULL, 105, 'cvbn', '2026-03-05 17:21:52'),
+(52, 7, 'quiz -electro', '2026-04-02 09:39:59', 107, 'approved', '__HIDDEN_BY_MENTOR__', 109, NULL, '2026-04-04 05:59:19'),
+(53, 3, 'ti', '2026-04-03 09:11:57', 107, 'draft', NULL, NULL, NULL, '2026-04-03 09:12:17');
 
 -- --------------------------------------------------------
 
@@ -351,30 +509,20 @@ CREATE TABLE IF NOT EXISTS `exercisetag` (
 INSERT INTO `exercisetag` (`exercise_id`, `tag_id`) VALUES
 (4, 8),
 (1, 9),
-(2, 9),
-(1, 10),
-(2, 10),
-(14, 18),
-(15, 18),
-(33, 18),
-(29, 24),
-(34, 25),
-(20, 27),
-(27, 27),
-(14, 28),
-(15, 28),
-(33, 28),
-(34, 28),
-(35, 28),
-(36, 28),
-(19, 32),
-(19, 33),
-(19, 34),
-(25, 39),
-(28, 43),
-(31, 43),
-(32, 43),
-(30, 46);
+(46, 53),
+(47, 53),
+(48, 53),
+(49, 53),
+(50, 53),
+(51, 53),
+(52, 53),
+(45, 55),
+(45, 56),
+(45, 57),
+(45, 58),
+(45, 59),
+(45, 60),
+(45, 61);
 
 -- --------------------------------------------------------
 
@@ -393,7 +541,51 @@ CREATE TABLE IF NOT EXISTS `exercise_attempt` (
   PRIMARY KEY (`id`),
   KEY `idx_exe_u_latest` (`exe_id`,`u_id`,`latest`),
   KEY `fk_attempt_user` (`u_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores each attempt a user makes on an exercise';
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores each attempt a user makes on an exercise';
+
+--
+-- Dumping data for table `exercise_attempt`
+--
+
+INSERT INTO `exercise_attempt` (`id`, `exe_id`, `date`, `u_id`, `score`, `latest`) VALUES
+(7, 45, '2026-01-12 18:56:23', 2, 8.00, 0),
+(8, 45, '2026-01-12 18:57:06', 2, 5.00, 1),
+(9, 1, '2026-01-20 09:48:16', 2, 1.00, 1),
+(10, 47, '2026-01-20 09:53:48', 2, 4.00, 1),
+(11, 47, '2026-01-31 15:14:32', 103, 4.00, 0),
+(12, 47, '2026-02-01 02:53:16', 103, 2.00, 0),
+(13, 48, '2026-02-01 11:42:24', 103, 5.00, 0),
+(14, 47, '2026-02-01 12:02:27', 103, 4.00, 0),
+(15, 47, '2026-02-01 12:13:45', 103, 3.00, 0),
+(16, 48, '2026-02-01 12:41:05', 103, 3.00, 0),
+(17, 48, '2026-02-01 12:42:11', 103, 5.00, 0),
+(18, 48, '2026-02-01 12:42:35', 103, 1.00, 0),
+(19, 48, '2026-02-01 12:45:39', 103, 5.00, 1),
+(20, 1, '2026-02-02 09:57:58', 103, 1.00, 1),
+(21, 47, '2026-02-04 06:02:47', 103, 4.00, 1),
+(22, 46, '2026-02-04 06:19:24', 103, 1.00, 0),
+(23, 45, '2026-02-04 16:54:02', 103, 0.00, 0),
+(24, 1, '2026-02-09 09:35:19', 104, 1.00, 1),
+(25, 45, '2026-02-19 04:24:13', 103, 3.00, 0),
+(26, 45, '2026-02-19 04:24:53', 103, 8.00, 0),
+(27, 45, '2026-02-19 04:25:31', 103, 6.00, 1),
+(28, 46, '2026-02-19 04:54:11', 103, 1.00, 1),
+(29, 49, '2026-03-05 17:17:18', 108, 2.00, 1),
+(30, 50, '2026-03-30 06:16:52', 105, 4.00, 1),
+(31, 47, '2026-03-30 06:38:44', 105, 4.00, 1),
+(32, 51, '2026-04-01 06:29:27', 107, 0.00, 0),
+(33, 52, '2026-04-02 15:11:50', 109, 2.00, 0),
+(34, 52, '2026-04-02 15:23:39', 108, 3.00, 1),
+(35, 51, '2026-04-03 05:26:34', 107, 3.00, 1),
+(36, 2, '2026-04-03 09:34:44', 107, 0.00, 1),
+(37, 48, '2026-04-04 02:33:06', 107, 1.00, 1),
+(38, 50, '2026-04-04 02:34:21', 107, 4.00, 1),
+(39, 50, '2026-04-04 02:48:17', 108, 4.00, 0),
+(40, 50, '2026-04-04 02:49:46', 108, 2.00, 1),
+(41, 51, '2026-04-04 02:51:34', 109, 3.00, 1),
+(42, 52, '2026-04-04 03:04:19', 109, 2.00, 0),
+(43, 52, '2026-04-04 03:23:29', 109, 2.00, 1),
+(44, 46, '2026-04-04 04:48:10', 108, 2.00, 1);
 
 -- --------------------------------------------------------
 
@@ -444,8 +636,8 @@ INSERT INTO `experts` (`user_id`, `subject_id`) VALUES
 DROP TABLE IF EXISTS `notes`;
 CREATE TABLE IF NOT EXISTS `notes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `content` text,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci,
   `topic_id` int DEFAULT NULL,
   `owner_id` int NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -591,11 +783,11 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sender_id` int NOT NULL,
   `receiver_id` int NOT NULL,
-  `content` text NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `notifications`
@@ -664,7 +856,9 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 (60, 102, 102, 'Your user role has been changed to expert.', 0, '2025-12-02 06:20:27'),
 (61, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:21:49'),
 (62, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:22:29'),
-(63, 102, 102, 'Your user role has been changed to expert.', 0, '2025-12-02 06:22:44');
+(63, 102, 102, 'Your user role has been changed to expert.', 0, '2025-12-02 06:22:44'),
+(64, 103, 2, 'Your exercise #47 received feedback: hiiib  bhvuhvjvudszxdcfvgbhj', 0, '2026-01-25 16:16:36'),
+(65, 103, 2, 'Your exercise #46 received feedback: hiiii', 0, '2026-02-04 05:56:28');
 
 -- --------------------------------------------------------
 
@@ -675,9 +869,9 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 DROP TABLE IF EXISTS `otp_codes`;
 CREATE TABLE IF NOT EXISTS `otp_codes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `code` varchar(10) DEFAULT NULL,
+  `username` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `code` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `type` enum('registration','login','change_password','accountverification') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'registration',
   `is_used` tinyint(1) DEFAULT '0',
   `expires_at` datetime DEFAULT NULL,
@@ -951,14 +1145,14 @@ CREATE TABLE IF NOT EXISTS `profile_summary` (
 DROP TABLE IF EXISTS `question`;
 CREATE TABLE IF NOT EXISTS `question` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `content` text NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
   `creator_id` int DEFAULT NULL,
   `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_question_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `question`
@@ -986,7 +1180,36 @@ INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `c
 (19, ';iug\'9r', 'oue[\'fiygef', NULL, 0, '2025-10-23 00:52:16'),
 (20, 'ti', 'con', 94, 0, '2025-10-23 02:35:08'),
 (21, 'ti', 'con', 94, 0, '2025-10-23 02:56:52'),
-(22, 'ti', 'contet', 94, 0, '2025-10-23 04:03:38');
+(22, 'ti', 'contet', 94, 0, '2025-10-23 04:03:38'),
+(24, 'Exercise 45 - Q82', 'Solve the equation:    2x + 5 = 13', 2, 0, '2026-01-12 18:56:23'),
+(25, 'Exercise 45 - Q83', 'Which of the following expressions are equivalent to (x + 3)² ?', 2, 0, '2026-01-12 18:56:23'),
+(26, 'Exercise 45 - Q84', 'Which of the following trigonometric identities are correct?', 2, 0, '2026-01-12 18:56:23'),
+(27, 'Exercise 1 - Q1', 'What is the solution of 2x + 3 = 7?', 2, 0, '2026-01-20 09:48:16'),
+(28, 'Exercise 47 - Q88', 'q1', 2, 0, '2026-01-20 09:53:48'),
+(29, 'Exercise 47 - Q89', 'q1', 2, 0, '2026-01-20 09:53:48'),
+(30, 'Exercise 47 - Q90', 'q2', 2, 0, '2026-01-20 09:53:48'),
+(31, 'Exercise 48 - Q91', 'q1', 103, 0, '2026-02-01 11:42:24'),
+(32, 'Exercise 48 - Q92', 'q2', 103, 0, '2026-02-01 11:42:24'),
+(33, 'Exercise 48 - Q93', 'q3', 103, 0, '2026-02-01 11:42:24'),
+(34, 'Exercise 46 - Q85', 'q1', 103, 0, '2026-02-04 06:19:24'),
+(35, 'Exercise 46 - Q86', 'q2', 103, 0, '2026-02-04 06:19:24'),
+(36, 'Exercise 46 - Q87', 'q3', 103, 0, '2026-02-04 06:19:24'),
+(37, 'Exercise 49 - Q94', 'q1', 108, 0, '2026-03-05 17:17:18'),
+(38, 'Exercise 49 - Q95', 'q2', 108, 0, '2026-03-05 17:17:18'),
+(39, 'Exercise 49 - Q96', 'q3', 108, 0, '2026-03-05 17:17:18'),
+(40, 'Exercise 50 - Q97', 'q1', 105, 0, '2026-03-30 06:16:52'),
+(41, 'Exercise 50 - Q98', 'q2', 105, 0, '2026-03-30 06:16:52'),
+(42, 'Exercise 50 - Q99', 'q3', 105, 0, '2026-03-30 06:16:52'),
+(43, 'Exercise 51 - Q100', 'q1', 107, 0, '2026-04-01 06:29:27'),
+(44, 'Exercise 51 - Q101', 'q2', 107, 0, '2026-04-01 06:29:27'),
+(45, 'Exercise 51 - Q102', 'q3', 107, 0, '2026-04-01 06:29:27'),
+(46, 'Exercise 52 - Q103', 'q1', 109, 0, '2026-04-02 15:11:50'),
+(47, 'Exercise 52 - Q104', 'q2', 109, 0, '2026-04-02 15:11:50'),
+(48, 'Exercise 52 - Q105', 'q3', 109, 0, '2026-04-02 15:11:50'),
+(49, 'Exercise 2 - Q2', 'Which law states that for every action, there is an equal and opposite reaction?', 107, 0, '2026-04-03 09:34:44'),
+(50, 'Exercise 52 - Q108', 'q1', 109, 0, '2026-04-04 03:04:19'),
+(51, 'Exercise 52 - Q109', 'q2', 109, 0, '2026-04-04 03:04:19'),
+(52, 'Exercise 52 - Q110', 'q3', 109, 0, '2026-04-04 03:04:19');
 
 -- --------------------------------------------------------
 
@@ -1050,14 +1273,14 @@ CREATE TABLE IF NOT EXISTS `request` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
   `time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `subject` varchar(50) NOT NULL,
-  `description` text,
-  `proof_link` text,
-  `review` enum('pending','approved','rejected') DEFAULT 'pending',
-  `feedback` text,
+  `subject` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `proof_link` text COLLATE utf8mb4_general_ci,
+  `review` enum('pending','approved','rejected') COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `feedback` text COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `request`
@@ -1118,7 +1341,8 @@ INSERT INTO `request` (`id`, `user_id`, `time`, `subject`, `description`, `proof
 (63, 101, '2025-11-14 08:12:37', 'subject', 'd', '', 'approved', NULL),
 (64, 102, '2025-11-25 10:28:02', 'theology', 'something', NULL, 'approved', NULL),
 (65, 102, '2025-11-25 10:30:21', 'theology', 'something', NULL, 'approved', NULL),
-(66, 102, '2025-12-02 05:31:17', 'psychology', 'desc', '', 'pending', NULL);
+(66, 102, '2025-12-02 05:31:17', 'psychology', 'desc', '', 'pending', NULL),
+(67, 109, '2026-04-02 15:02:42', 'Electronics', 'sdfghjkdfghjkwertyuiosdfghj', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/109/request.pdf', 'approved', NULL);
 
 -- --------------------------------------------------------
 
@@ -1129,7 +1353,7 @@ INSERT INTO `request` (`id`, `user_id`, `time`, `subject`, `description`, `proof
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` int NOT NULL,
-  `name` varchar(50) DEFAULT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1152,9 +1376,9 @@ INSERT INTO `roles` (`role_id`, `name`) VALUES
 DROP TABLE IF EXISTS `subjects`;
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) DEFAULT NULL,
+  `name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `subjects`
@@ -1166,7 +1390,9 @@ INSERT INTO `subjects` (`id`, `name`) VALUES
 (3, 'Biology'),
 (4, 'Computer Science'),
 (5, 'Art History'),
-(6, 'theology');
+(6, 'theology'),
+(7, 'Electronics'),
+(8, 'Calculus');
 
 -- --------------------------------------------------------
 
@@ -1177,10 +1403,10 @@ INSERT INTO `subjects` (`id`, `name`) VALUES
 DROP TABLE IF EXISTS `tags`;
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tags`
@@ -1189,7 +1415,11 @@ CREATE TABLE IF NOT EXISTS `tags` (
 INSERT INTO `tags` (`id`, `name`) VALUES
 (27, ''),
 (21, '4'),
+(56, 'algebra'),
+(53, 'beginer'),
+(60, 'beginner'),
 (48, 'biology'),
+(57, 'calculus'),
 (26, 'chem'),
 (28, 'chemistry'),
 (36, 'computer'),
@@ -1201,6 +1431,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (3, 'Databases'),
 (49, 'design'),
 (33, 'e'),
+(61, 'expressions'),
 (23, 'fff'),
 (20, 'field theory'),
 (45, 'gdyt'),
@@ -1210,9 +1441,12 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (38, 'jogiy'),
 (40, 'jyf'),
 (1, 'Machine Learning'),
+(55, 'math'),
 (25, 'maths'),
+(58, 'mcq'),
 (10, 'Mechanics'),
 (35, 'motion'),
+(59, 'multiple-answer'),
 (5, 'Networking'),
 (46, 'p'),
 (19, 'particle physics'),
@@ -1249,7 +1483,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 DROP TABLE IF EXISTS `topics`;
 CREATE TABLE IF NOT EXISTS `topics` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `creator_id` int NOT NULL,
   `pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if the topic is pinned, 0 otherwise',
   PRIMARY KEY (`id`)
@@ -1279,20 +1513,20 @@ INSERT INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
+  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(75) NOT NULL,
+  `email` varchar(75) COLLATE utf8mb4_general_ci NOT NULL,
   `role` int NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `banned` tinyint(1) DEFAULT '0',
-  `profile_pic` text,
+  `profile_pic` text COLLATE utf8mb4_general_ci,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `profile_picture` varchar(200) NOT NULL DEFAULT '\\uploads\\\\0\\profile.avif',
+  `profile_picture` varchar(200) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '\\uploads\\\\0\\profile.avif',
   `display_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user`
@@ -1359,7 +1593,15 @@ INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`,
 (94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test'),
 (97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test'),
 (101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3'),
-(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha');
+(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha'),
+(103, 'navodya', '$2y$10$R.0zgSctspJmZPWq8MMwW.6/6fo2x151wvbpBwHrjGO2OBTB9qQEW', 'navodyamethmali5@gmail.com', 3, '2026-01-20 09:57:07', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'navodya'),
+(104, 'Expert', '$2y$10$6OLp.UuWXwgugFRusnNRpuhIPO3iBem3I3m3Ts2AOMCvPPCO6WESq', 'methmalidissanayake@gmail.com', 3, '2026-02-09 09:29:39', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Expert'),
+(105, 'Expert1', '$2y$10$a3hHef98P5UWtPjMh45EkucE4X5.hMnZWRk/FsvgMFJkx//eAhC2a', 'expert1@gmail.com', 3, '2026-02-19 03:42:34', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Expert1'),
+(106, 'Mentor1', '$2y$10$G04gIJPAhG9ptPfJ2drO.eHtCfFIB7LDqZgShr087fc/G1KEapsJ.', 'mentor1@gmail.com', 2, '2026-02-19 04:14:30', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mentor1'),
+(107, 'mentor3', '$2y$10$LWGgvi667zMlOREAU3VgOOCEiI4nAZqURqwCp7rnOLIPPp2AAIELe', 'mentor1@gmai.com', 2, '2026-03-04 23:40:55', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'mentor3'),
+(108, 'student1', '$2y$10$0FeTNXcHxlkazIpMdyEVb.F6r5yyvFszEfoAMtLX7AL5K/zlCoiU6', 'student1@gmail.com', 1, '2026-03-05 00:48:36', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student1'),
+(109, 'student001', '$2y$10$pS9fnbrmR8420iFDA4zyxO.fG7Mv3lFLT4WWAbOklSL/yqipwf2vS', 'stu@gmail.com', 3, '2026-03-30 07:06:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student001'),
+(110, 'mentor2', '$2y$10$wz29mCUervG3bBezcWEQguu2JPmke8tv6xdhpv2p0wyeNq1IY921u', 'mentor_2@gmail.com', 1, '2026-04-06 03:28:23', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'mentor2');
 
 -- --------------------------------------------------------
 
@@ -1371,7 +1613,7 @@ DROP TABLE IF EXISTS `uservoteanswer`;
 CREATE TABLE IF NOT EXISTS `uservoteanswer` (
   `a_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') NOT NULL,
+  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`a_id`,`u_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1400,7 +1642,7 @@ DROP TABLE IF EXISTS `uservoteexercise`;
 CREATE TABLE IF NOT EXISTS `uservoteexercise` (
   `exercise_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') NOT NULL,
+  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`exercise_id`,`u_id`),
   KEY `u_id` (`u_id`)
@@ -1413,8 +1655,19 @@ CREATE TABLE IF NOT EXISTS `uservoteexercise` (
 INSERT INTO `uservoteexercise` (`exercise_id`, `u_id`, `votetype`, `created_at`) VALUES
 (1, 44, 'upvote', '2025-10-17 22:06:22'),
 (1, 45, 'upvote', '2025-10-17 22:06:22'),
+(1, 104, 'upvote', '2026-02-09 09:35:23'),
 (2, 46, 'upvote', '2025-10-17 22:06:22'),
-(4, 48, 'upvote', '2025-10-17 22:06:22');
+(4, 48, 'upvote', '2025-10-17 22:06:22'),
+(45, 103, 'upvote', '2026-02-04 16:54:10'),
+(46, 103, 'upvote', '2026-02-04 06:19:28'),
+(47, 103, 'upvote', '2026-02-01 12:30:03'),
+(47, 105, 'upvote', '2026-03-30 06:38:50'),
+(48, 103, 'upvote', '2026-02-01 12:41:11'),
+(50, 105, 'upvote', '2026-03-30 06:32:44'),
+(51, 107, 'upvote', '2026-04-01 06:29:32'),
+(51, 109, 'downvote', '2026-04-04 02:52:58'),
+(52, 108, 'upvote', '2026-04-02 15:23:43'),
+(52, 109, 'upvote', '2026-04-02 15:11:54');
 
 -- --------------------------------------------------------
 
@@ -1426,7 +1679,7 @@ DROP TABLE IF EXISTS `uservotequestion`;
 CREATE TABLE IF NOT EXISTS `uservotequestion` (
   `q_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') NOT NULL,
+  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`q_id`,`u_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
