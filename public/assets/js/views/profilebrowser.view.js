@@ -74,7 +74,7 @@ function loadProfiles(appendMode = false) {
             }
 
             // Simple logic to hide load more if we likely reached the end
-            const resultsCount = (res.match(/class="profile-item"/g) || []).length;
+            const resultsCount = (res.match(/class="profile-item/g) || []).length;
             loadMoreBtn.style.display = resultsCount < state.limit ? 'none' : 'block';
         })
         .finally(() => {

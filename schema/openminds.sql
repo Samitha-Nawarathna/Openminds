@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 02, 2026 at 04:27 AM
+-- Generation Time: Apr 05, 2026 at 10:33 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -113,10 +113,10 @@ DELIMITER ;
 DROP TABLE IF EXISTS `announcements`;
 CREATE TABLE IF NOT EXISTS `announcements` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `creator_id` int DEFAULT NULL COMMENT 'The admin user who created this announcement',
-  `style` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'primary-accent' COMMENT 'Style for UI display (e.g., primary-accent, warning)',
+  `style` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'primary-accent' COMMENT 'Style for UI display (e.g., primary-accent, warning)',
   `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0 for hidden/archived, 1 for active/visible',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   PRIMARY KEY (`id`),
   KEY `q_id` (`q_id`),
   KEY `fk_answer_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `answer`
@@ -168,7 +168,9 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (13, '{\"ops\":[{\"insert\":\"answer1\\n\"}]}', 103, 25, '2026-01-22 23:31:45', 0),
 (14, '{\"ops\":[{\"insert\":\"something\\n\"}]}', 103, 26, '2026-01-24 20:44:57', 1),
 (15, '{\"ops\":[{\"insert\":\"answer\\n\\n\"}]}', 102, 27, '2026-02-06 22:59:16', 1),
-(16, '{\"ops\":[{\"insert\":\"abswer\\n\"}]}', 102, 27, '2026-02-19 00:49:16', 0);
+(16, '{\"ops\":[{\"insert\":\"abswer\\n\"}]}', 102, 27, '2026-02-19 00:49:16', 0),
+(17, '{\"ops\":[{\"insert\":\"answer2\\n\"}]}', 102, 29, '2026-04-04 05:14:52', 0),
+(18, '{\"ops\":[{\"insert\":\"dcfd\\n\"}]}', 102, 26, '2026-04-04 05:15:50', 0);
 
 -- --------------------------------------------------------
 
@@ -215,7 +217,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   PRIMARY KEY (`id`),
   KEY `idx_user_time_type` (`user_id`,`event_time`,`event_type`),
   KEY `idx_entity` (`entity_type`,`entity_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `events`
@@ -265,7 +267,13 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 (41, 102, '2026-02-19 00:49:16', 'question_answered', 'Answer', 16, '{\"question_id\": 27}'),
 (42, 102, '2026-03-06 01:45:16', 'note_created', 'Note', 46, '{\"title\": \"yfu\", \"subject_id\": 1}'),
 (43, 102, '2026-03-06 01:45:24', 'note_deleted', 'Note', 46, NULL),
-(44, 102, '2026-03-06 01:45:35', 'note_created', 'Note', 47, '{\"title\": \"uy\", \"subject_id\": 1}');
+(44, 102, '2026-03-06 01:45:35', 'note_created', 'Note', 47, '{\"title\": \"uy\", \"subject_id\": 1}'),
+(45, 102, '2026-04-01 23:32:03', 'note_created', 'Note', 48, '{\"title\": \"title\", \"subject_id\": 1}'),
+(46, 102, '2026-04-04 04:55:12', 'question_asked', 'Question', 29, '{\"subject_id\": 1}'),
+(47, 102, '2026-04-04 05:14:52', 'question_answered', 'Answer', 17, '{\"question_id\": 29}'),
+(48, 102, '2026-04-04 05:15:50', 'question_answered', 'Answer', 18, '{\"question_id\": 26}'),
+(49, 102, '2026-04-05 16:49:23', 'note_created', 'Note', 49, '{\"title\": \"test note\", \"subject_id\": 1}'),
+(50, 102, '2026-04-05 16:49:41', 'note_updated', 'Note', 49, '{\"subject_id\": 1}');
 
 --
 -- Triggers `events`
@@ -631,7 +639,7 @@ CREATE TABLE IF NOT EXISTS `notes` (
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
   KEY `fk_note_topic` (`topic_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notes`
@@ -664,7 +672,9 @@ INSERT INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_
 (43, 'test_title', '{\"ops\":[{\"insert\":\"content1\\n\"}]}', 9, 1, '2026-01-19 04:09:12', '2026-01-19 04:09:12', 0),
 (44, 'fg', '{\"ops\":[{\"insert\":\"conte\\n\"}]}', 16, 103, '2026-01-23 10:21:02', '2026-01-23 10:29:07', 0),
 (45, 'title', '{\"ops\":[{\"insert\":\"con\\n\"}]}', 9, 102, '2026-02-19 11:46:12', '2026-02-19 11:46:12', 0),
-(47, 'uy', '{\"ops\":[{\"insert\":\"jhg\\n\"}]}', 5, 102, '2026-03-06 12:45:35', '2026-03-06 12:45:35', 0);
+(47, 'uy', '{\"ops\":[{\"insert\":\"jhg\\n\"}]}', 5, 102, '2026-03-06 12:45:35', '2026-03-06 12:45:35', 0),
+(48, 'title', '{\"ops\":[{\"insert\":\"content\\n\"}]}', 9, 102, '2026-04-02 10:32:02', '2026-04-02 10:32:02', 0),
+(49, 'test note', '{\"ops\":[{\"attributes\":{\"underline\":true},\"insert\":\"content\"},{\"insert\":\" \"},{\"attributes\":{\"bold\":true},\"insert\":\"content\"},{\"insert\":\"\\n\"}]}', 25, 102, '2026-04-06 03:49:23', '2026-04-05 22:19:40', 0);
 
 -- --------------------------------------------------------
 
@@ -762,11 +772,15 @@ INSERT INTO `note_tags` (`note_id`, `tag_id`) VALUES
 (39, 51),
 (40, 51),
 (45, 51),
+(48, 51),
+(49, 51),
 (35, 52),
 (39, 52),
 (42, 52),
 (43, 52),
 (44, 52),
+(48, 52),
+(49, 52),
 (41, 54),
 (41, 55);
 
@@ -785,7 +799,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notifications`
@@ -855,7 +869,8 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 (61, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:21:49'),
 (62, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:22:29'),
 (63, 102, 102, 'Your user role has been changed to expert.', 0, '2025-12-02 06:22:44'),
-(64, 102, 97, 'Your user role has been changed to expert.', 0, '2026-03-22 02:12:51');
+(64, 102, 97, 'Your user role has been changed to expert.', 0, '2026-03-22 02:12:51'),
+(65, 0, 102, 'You have successfully logged in.', 0, '2026-04-05 02:39:25');
 
 -- --------------------------------------------------------
 
@@ -874,7 +889,7 @@ CREATE TABLE IF NOT EXISTS `otp_codes` (
   `expires_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=233 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=234 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `otp_codes`
@@ -1112,7 +1127,8 @@ INSERT INTO `otp_codes` (`id`, `username`, `email`, `code`, `type`, `is_used`, `
 (229, 'samitha', 'samithanawarathna528@gmail.com', '958325', 'change_password', 0, '2025-11-25 08:32:39', '2025-11-25 13:58:00'),
 (230, 'samitha', 'samithanawarathna528@gmail.com', '197768', 'change_password', 0, '2025-11-25 08:35:14', '2025-11-25 14:00:28'),
 (231, 'samitha', 'samithanawarathna528@gmail.com', '768274', 'change_password', 0, '2025-11-25 08:36:25', '2025-11-25 14:01:37'),
-(232, 'samitha', 'samithanawarathna528@gmail.com', '649159', 'change_password', 0, '2025-11-25 08:38:22', '2025-11-25 14:03:29');
+(232, 'samitha', 'samithanawarathna528@gmail.com', '649159', 'change_password', 0, '2025-11-25 08:38:22', '2025-11-25 14:03:29'),
+(233, 'samitha', 'Samithanawarathna528@gmail.com', '114459', 'login', 0, '2026-04-05 02:43:02', '2026-04-05 08:08:12');
 
 -- --------------------------------------------------------
 
@@ -1149,7 +1165,7 @@ CREATE TABLE IF NOT EXISTS `question` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_question_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `question`
@@ -1181,7 +1197,8 @@ INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `c
 (25, 'question', 'content', 103, 0, '2026-01-22 23:31:13'),
 (26, 'title', 'content', 103, 0, '2026-01-23 04:54:24'),
 (27, 'what is block chain?', 'what is block chain?', 102, 0, '2026-02-06 22:59:01'),
-(28, 'Exercise 1 - Q1', 'What is the solution of 2x + 3 = 7?', 102, 0, '2026-03-06 07:05:18');
+(28, 'Exercise 1 - Q1', 'What is the solution of 2x + 3 = 7?', 102, 0, '2026-03-06 07:05:18'),
+(29, 'test1', 'testw', 102, 0, '2026-04-04 04:55:12');
 
 -- --------------------------------------------------------
 
@@ -1236,7 +1253,8 @@ INSERT INTO `questiontag` (`question_id`, `tag_id`) VALUES
 (19, 45),
 (21, 50),
 (27, 57),
-(27, 58);
+(27, 58),
+(29, 59);
 
 -- --------------------------------------------------------
 
@@ -1389,7 +1407,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tags`
@@ -1413,6 +1431,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (3, 'Databases'),
 (49, 'design'),
 (33, 'e'),
+(59, 'f'),
 (23, 'fff'),
 (20, 'field theory'),
 (45, 'gdyt'),
@@ -1468,7 +1487,7 @@ CREATE TABLE IF NOT EXISTS `topics` (
   `creator_id` int NOT NULL,
   `pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if the topic is pinned, 0 otherwise',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `topics`
@@ -1498,7 +1517,8 @@ INSERT INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
 (21, 'phy6', 102, 0),
 (22, 'phy7', 102, 0),
 (23, 'phy8', 102, 0),
-(24, 'ygj', 102, 0);
+(24, 'ygj', 102, 0),
+(25, 'test_topic', 102, 0);
 
 -- --------------------------------------------------------
 
@@ -1590,7 +1610,7 @@ INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`,
 (94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test', 0.000000),
 (97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 3, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test', 0.000000),
 (101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3', 0.000000),
-(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 1.140082),
+(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 2.007793),
 (103, 'samitha2', '$2y$10$WB3LwrkyincnJO/do15tQuph4uACw2RsaWn10lI3idK4i8O7rWn86', 'eva2@example.com', 1, '2026-01-23 04:38:07', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha2', 0.994072);
 
 -- --------------------------------------------------------
@@ -1906,6 +1926,93 @@ ALTER TABLE `uservoteexercise`
 --
 ALTER TABLE `uservotequestion`
   ADD CONSTRAINT `uservotequestion_ibfk_1` FOREIGN KEY (`q_id`) REFERENCES `question` (`id`) ON DELETE CASCADE;
+
+-- --------------------------------------------------------
+-- DATA: DEMO MOCK CONTENT SEEDING
+-- --------------------------------------------------------
+
+INSERT IGNORE INTO `tags` (`id`, `name`) VALUES 
+(1001, 'Machine Learning'), (1002, 'API Design'), (1003, 'Linear Algebra'), (1004, 'ReactJS'), (1005, 'Cloud Computing');
+
+INSERT IGNORE INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
+(1001, 'Advanced Machine Learning', 97, 0),
+(1002, 'System Architecture', 101, 1),
+(1003, 'Modern Web Development', 102, 0);
+
+INSERT IGNORE INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `created_at`) VALUES
+(1001, 'What is the difference between supervised and unsupervised learning?', 'I am getting started with data science. Could someone explain the core difference between supervised and unsupervised learning with an example?', 103, 1, '2026-04-01 10:00:00'),
+(1002, 'How to handle JWT token expiration securely?', 'In a typical React and Node.js REST API, how should I handle the refresh token cycle securely to prevent XSS?', 94, 0, '2026-04-02 12:30:00'),
+(1003, 'Understanding the Time Complexity of QuickSort', 'Why is QuickSort O(N^2) in the worst case when MergeSort is O(N log N)? Should I always prefer MergeSort?', 102, 1, '2026-04-03 09:15:00'),
+(1004, 'What is a closure in JavaScript?', 'I hear the term "closure" thrown around a lot in JS tutorials. What does it actually mean in practice?', 101, 0, '2026-04-04 14:20:00'),
+(1005, 'Explain eigenvectors and eigenvalues simply', 'I am studying Linear Algebra for my graphics class. What exactly are eigenvectors scaling?', 103, 1, '2026-04-05 16:45:00');
+
+INSERT IGNORE INTO `questiontag` (`question_id`, `tag_id`) VALUES
+(1001, 1001), (1002, 1002), (1002, 1004), (1003, 1001), (1004, 1004), (1005, 1003);
+
+INSERT IGNORE INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chosen`) VALUES
+(1001, '{"ops":[{"insert":"Supervised learning uses labeled datasets to train algorithms that classify data or predict outcomes accurately. Unsupervised learning analyzes and clusters unlabeled datasets.\n"}]}', 97, 1001, '2026-04-01 11:15:00', 1),
+(1002, '{"ops":[{"insert":"Store your JWT access token in memory or an HttpOnly secure cookie. Never store it in LocalStorage!\n"}]}', 101, 1002, '2026-04-02 13:00:00', 0),
+(1003, '{"ops":[{"insert":"QuickSort worst-case happens when the pivot chosen is consistently the smallest or largest element (e.g., already sorted array). Randomizing the pivot mitigates this significantly.\n"}]}', 94, 1003, '2026-04-03 10:00:00', 1),
+(1004, '{"ops":[{"insert":"An eigenvector of a linear transformation is a non-zero vector that changes at most by a scalar factor when that linear transformation is applied to it. The scalar is the eigenvalue!\n"}]}', 97, 1005, '2026-04-05 18:00:00', 1),
+(1005, '{"ops":[{"insert":"A closure gives you access to an outer function\'s scope from an inner function. In JavaScript, closures are created every time a function is created, at function creation time.\n"}]}', 102, 1004, '2026-04-05 10:00:00', 0);
+
+INSERT IGNORE INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_at`, `updated_at`, `is_pinned`) VALUES
+(1001, 'Introduction to Neural Networks', '{"ops":[{"insert":"Neural networks are computing systems with interconnected nodes that work much like neurons in the human brain.\n"}]}', 1001, 97, '2026-04-01 08:00:00', '2026-04-01 08:00:00', 1),
+(1002, 'Microservices vs Monoliths', '{"ops":[{"insert":"Microservices offer independent deployment and scaling, whereas monoliths are simpler to debug and orchestrate initially.\n"}]}', 1002, 101, '2026-04-02 09:30:00', '2026-04-02 09:30:00', 0),
+(1003, 'React Hooks Lifecycle', '{"ops":[{"insert":"useEffect runs after every render by default. By passing a dependency array, you explicitly define when it should sync.\n"}]}', 1003, 102, '2026-04-03 14:00:00', '2026-04-03 14:00:00', 1);
+
+INSERT IGNORE INTO `uservotequestion` (`u_id`, `q_id`, `votetype`, `created_at`) VALUES
+(97, 1001, 'upvote', '2026-04-01 12:00:00'),
+(101, 1001, 'upvote', '2026-04-01 12:05:00'),
+(94, 1003, 'upvote', '2026-04-03 09:30:00'),
+(102, 1005, 'upvote', '2026-04-05 17:00:00');
+
+INSERT IGNORE INTO `uservoteanswer` (`u_id`, `a_id`, `votetype`, `created_at`) VALUES
+(103, 1001, 'upvote', '2026-04-01 11:30:00'),
+(102, 1001, 'upvote', '2026-04-01 13:00:00'),
+(101, 1003, 'upvote', '2026-04-03 11:00:00');
+
+INSERT IGNORE INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`, `entity_id`, `data`) VALUES
+(1001, 103, '2026-04-01 10:00:00', 'question_asked', 'Question', 1001, '{"subject_id": 1}'),
+(1002, 94, '2026-04-02 12:30:00', 'question_asked', 'Question', 1002, '{"subject_id": 1}'),
+(1003, 102, '2026-04-03 09:15:00', 'question_asked', 'Question', 1003, '{"subject_id": 1}'),
+(1004, 101, '2026-04-04 14:20:00', 'question_asked', 'Question', 1004, '{"subject_id": 1}'),
+(1005, 103, '2026-04-05 16:45:00', 'question_asked', 'Question', 1005, '{"subject_id": 1}'),
+(1006, 97, '2026-04-01 11:15:00', 'question_answered', 'Answer', 1001, '{"question_id": 1001}'),
+(1007, 101, '2026-04-02 13:00:00', 'question_answered', 'Answer', 1002, '{"question_id": 1002}'),
+(1008, 94, '2026-04-03 10:00:00', 'question_answered', 'Answer', 1003, '{"question_id": 1003}'),
+(1009, 97, '2026-04-05 18:00:00', 'question_answered', 'Answer', 1004, '{"question_id": 1005}'),
+(1010, 102, '2026-04-05 10:00:00', 'question_answered', 'Answer', 1005, '{"question_id": 1004}'),
+(1011, 97, '2026-04-01 08:00:00', 'note_created', 'Note', 1001, '{"subject_id": 1}'),
+(1012, 101, '2026-04-02 09:30:00', 'note_created', 'Note', 1002, '{"subject_id": 1}'),
+(1013, 102, '2026-04-03 14:00:00', 'note_created', 'Note', 1003, '{"subject_id": 1}'),
+(1014, 97, '2026-04-01 12:00:00', 'vote_given', 'Question', 1001, '{"direction": "upvote"}'),
+(1015, 101, '2026-04-01 12:05:00', 'vote_given', 'Question', 1001, '{"direction": "upvote"}'),
+(1016, 94, '2026-04-03 09:30:00', 'vote_given', 'Question', 1003, '{"direction": "upvote"}'),
+(1017, 102, '2026-04-05 17:00:00', 'vote_given', 'Question', 1005, '{"direction": "upvote"}'),
+(1018, 103, '2026-04-01 11:30:00', 'vote_given', 'Answer', 1001, '{"direction": "upvote"}'),
+(1019, 102, '2026-04-01 13:00:00', 'vote_given', 'Answer', 1001, '{"direction": "upvote"}'),
+(1020, 101, '2026-04-03 11:00:00', 'vote_given', 'Answer', 1003, '{"direction": "upvote"}');
+
+-- --------------------------------------------------------
+-- VIEW: `profile_summary` (Unified Left Join structural correction)
+-- --------------------------------------------------------
+CREATE OR REPLACE VIEW `profile_summary` AS 
+SELECT 
+  `u`.`id` AS `profile_id`,
+  `us`.`subject_id` AS `subject_id`,
+  `u`.`username` AS `username`,
+  `u`.`display_name` AS `display_name`,
+  `r`.`name` AS `role_name`,
+  `u`.`created_at` AS `created_at`,
+  `s`.`name` AS `subject_name`,
+  COALESCE(NULLIF(`u`.`profile_picture`, ''), 'uploads\\0\\profile.avif') AS `profile_picture`,
+  `u`.`banned` AS `banned` 
+FROM `user` `u` 
+LEFT JOIN `roles` `r` ON `u`.`role` = `r`.`role_id`
+LEFT JOIN `experts` `us` ON `u`.`id` = `us`.`user_id`
+LEFT JOIN `subjects` `s` ON `us`.`subject_id` = `s`.`id`;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
