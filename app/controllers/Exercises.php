@@ -4,9 +4,13 @@ class Exercises extends Controller
 {
     public function index()
     {
-        $role = $_SESSION['role'] ?? 'student';
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
         $user_id = $_SESSION['user_id'] ?? 0;
-        $can_create = in_array($role, ['expert', 'admin'], true);
+
+        if (!in_array($role, ['student', 'mentor', 'expert', 'admin'], true)) {
+        $role = 'student';
+        }
+        $can_create = ($role === 'mentor');
         $can_edit = $can_create;
 
         // Initial load parameters
@@ -23,11 +27,13 @@ class Exercises extends Controller
             'offset' => $initial_offset,
             'limit' => $initial_limit,
             'expert_subject_ids' => $expert_subject_ids,
+            
         ]);
 
         $initial_exercises = array_map(function ($row) {
             return (array)$row;
         }, $initial_load_result['rows'] ?? []);
+        $initial_exercises = $this->apply_hidden_exercise_visibility($initial_exercises, (int)$user_id);
 
         $data = [
             'current_user_id' => $user_id,
@@ -40,7 +46,7 @@ class Exercises extends Controller
             'initial_offset' => $initial_offset,
             'role' => $role,
             'can_create' => $can_create,
-            'can_edit' => $can_edit
+            'can_edit' => $can_edit,
         ];
         $this->view('exercises/browser', $data);
     }
@@ -48,6 +54,7 @@ class Exercises extends Controller
 
 
     public function create(){
+
         // GET: show the editor page
         if ($this->is_get()) {
             $this->view('exercises/create');
@@ -63,11 +70,183 @@ class Exercises extends Controller
     }
 
     /**
+     * API: GET /exercises/api/subjects
+     * Returns subject list for exercise create form dropdown.
+     */
+    public function api_subjects()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
+            return;
+        }
+
+        try {
+            $subjectsModel = new Subjects();
+            $rows = $subjectsModel->where([]) ?: [];
+
+            $subjects = array_map(function ($row) {
+                return [
+                    'id' => (int)($row->id ?? 0),
+                    'name' => trim((string)($row->name ?? '')),
+                ];
+            }, $rows);
+
+            $subjects = array_values(array_filter($subjects, function ($subject) {
+                return $subject['id'] > 0 && $subject['name'] !== '';
+            }));
+
+            usort($subjects, function ($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
+
+            $this->json_respond([
+                'success' => true,
+                'subjects' => $subjects,
+            ]);
+        } catch (Exception $e) {
+            error_log('api_subjects error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Failed to load subjects.']);
+            return;
+        }
+    }
+
+    /**
+     * API: POST /exercises/api/save_draft
+     * Creates or updates a mentor-owned draft exercise with lenient validation.
+     */
+    public function api_save_draft()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->json_error('Method not allowed', 405);
+        }
+
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if ($current_user <= 0 || $role !== 'mentor') {
+            $this->json_error('Only mentors can save drafts', 403);
+        }
+
+        $data = $this->json_request();
+        $metadata = is_array($data['metadata'] ?? null) ? $data['metadata'] : [];
+        $questions = is_array($data['questions'] ?? null) ? $data['questions'] : [];
+
+        $exercise_id = (int)($metadata['id'] ?? $data['exercise_id'] ?? 0);
+        $title = trim((string)($metadata['title'] ?? ''));
+        if ($title === '') {
+            $title = 'Untitled Draft';
+        }
+
+        $description = isset($metadata['description']) ? trim((string)$metadata['description']) : null;
+        $description = ($description === '') ? null : $description;
+        $subject_candidate = (int)($metadata['subject'] ?? $metadata['subjectId'] ?? 0);
+        $tags_csv = (string)($metadata['tags'] ?? '');
+
+        try {
+            $pdo = $this->db();
+
+            $existing = null;
+            if ($exercise_id > 0) {
+                $existing = $this->get_owned_exercise($pdo, $exercise_id, $current_user);
+                if (!$existing) {
+                    $this->json_error('Draft not found or access denied', 403);
+                }
+            }
+
+            $subject_id = $this->resolve_subject_id($pdo, $subject_candidate, $existing);
+
+            $pdo->beginTransaction();
+
+            $exercise_id = $this->upsert_exercise_shell($pdo, [
+                'id' => $exercise_id,
+                'subject_id' => $subject_id,
+                'title' => $title,
+                'description' => $description,
+                'status' => 'draft',
+            ], $current_user, $existing);
+
+            $this->sync_exercise_tags($pdo, $exercise_id, $tags_csv);
+            $this->sync_exercise_questions($pdo, $exercise_id, $questions, false);
+
+            $pdo->commit();
+
+            $this->json_respond([
+                'success' => true,
+                'message' => 'Draft saved successfully',
+                'id' => (int)$exercise_id,
+                'status' => 'draft',
+            ]);
+        } catch (Exception $e) {
+            if (isset($pdo) && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('api_save_draft error: ' . $e->getMessage());
+            $this->json_error('Failed to save draft', 500);
+        }
+    }
+
+    public function mentorview()
+    {
+        $exercise_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+            header('Location: ' . ROOT . '/exercises?message=Unauthorized access');
+            return;
+        }
+
+        try {
+            $pdo = $this->db();
+            $exerciseStmt = $pdo->prepare("SELECT id, title, description, status, subject_id, creator_id, created_at, updated_at, subject_id FROM exercises WHERE id = :id LIMIT 1");
+            $exerciseStmt->execute([':id' => $exercise_id]);
+            $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise || (int)$exercise['creator_id'] !== $current_user) {
+                header('Location: ' . ROOT . '/exercises?message=Exercise not found or access denied');
+                return;
+            }
+
+            $bundle = $this->fetchExerciseBundle($pdo, $exercise_id);
+            if (!$bundle) {
+                header('Location: ' . ROOT . '/exercises?message=Exercise not found');
+                return;
+            }
+
+            $exerciseModel = new ExercisesModel();
+            $stats = $exerciseModel->get_exercise_attempt_stats($exercise_id);
+
+            $data = [
+                'exercise' => $bundle['exercise'],
+                'questions' => $bundle['questions'],
+                'stats' => [
+                    'attempt_count' => $stats['attempt_count'],
+                    'average_score' => $stats['average_score'],
+                    'question_count' => count($bundle['questions'] ?? []),
+                ],
+                'can_edit' => true,
+                'can_hide' => true,
+                'edit_url' => ROOT . '/exercises/edit?id=' . $exercise_id,
+                'hide_url' => ROOT . '/exercises/hide?id=' . $exercise_id,
+                'visibility' => $this->get_exercise_visibility_state($exercise_id, (int)$exercise['creator_id'], $current_user),
+            ];
+
+            $this->view('exercises/mentorview', $data);
+        } catch (Exception $e) {
+            error_log('mentorview error: ' . $e->getMessage());
+            header('Location: ' . ROOT . '/exercises?message=Unable to load mentor view');
+        }
+    }
+
+    /**
      * API: POST /api/exercises/create
      * Accepts JSON body and inserts exercise, questions, answers, and tags in a single transaction.
      */
     public function api_create()
     {
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
@@ -75,8 +254,8 @@ class Exercises extends Controller
         }
 
         $data = $this->json_request();
-        $current_user = $_SESSION['user_id'] ?? null;
-        // $current_user = $_SESSION['user_id'] ?? 2;
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
         // Require authentication
         if (!$current_user) {
@@ -85,12 +264,27 @@ class Exercises extends Controller
             return;
         }
 
+        if ($role !== 'mentor') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Only mentors can submit exercises.']);
+            return;
+        }
+
         $metadata = $data['metadata'] ?? null;
         $questions = $data['questions'] ?? null;
 
-        if (empty($metadata) || empty($metadata['title']) || empty($metadata['subject']) || !is_array($questions)) {
+        if (empty($metadata) || empty($metadata['title']) || !isset($metadata['subject']) || !is_array($questions)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid request: missing required metadata or questions.']);
+            return;
+        }
+
+        $exercise_id = (int)($metadata['id'] ?? $data['exercise_id'] ?? 0);
+
+        $subject_id = (int)$metadata['subject'];
+        if ($subject_id <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid subject selection.']);
             return;
         }
 
@@ -104,7 +298,7 @@ class Exercises extends Controller
         foreach ($questions as $qi => $q) {
             $q_text = trim($q['question_text'] ?? $q['prompt'] ?? '');
             $q_expl = trim($q['explanation'] ?? '');
-            $weight = isset($q['weight']) ? intval($q['weight']) : 0;
+            $weight = isset($q['weight']) ? intval($q['weight']) : (isset($q['difficulty']) ? intval($q['difficulty']) : 0);
             $opts = $q['options'] ?? [];
 
             if ($q_text === '' || $q_expl === '' || $weight < 1) {
@@ -138,89 +332,40 @@ class Exercises extends Controller
 
         // Good to go --- perform DB operations in a transaction
         try {
-            // Create PDO and begin transaction
-            $pdo = new PDO("mysql:host=".DBHOST.";dbname=".DBNAME.";charset=utf8mb4", DBUSER, DBPASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo = $this->db();
+
+            $existing = null;
+            if ($exercise_id > 0) {
+                $existing = $this->get_owned_exercise($pdo, $exercise_id, $current_user);
+                if (!$existing) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'message' => 'Exercise not found or access denied.']);
+                    return;
+                }
+            }
+
+            if (!$this->subject_exists($pdo, $subject_id)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Selected subject does not exist.']);
+                return;
+            }
+
             $pdo->beginTransaction();
 
-            // Resolve or create subject
-            $subjects = new Subjects();
-            $subject_name = trim($metadata['subject']);
-            // Use helper in Subjects model to add or find
-            $subject_id = $subjects->add_new_subject($subject_name);
+            $exercise_id = $this->upsert_exercise_shell($pdo, [
+                'id' => $exercise_id,
+                'subject_id' => $subject_id,
+                'title' => trim((string)$metadata['title']),
+                'description' => $metadata['description'] ?? null,
+                'status' => 'pending',
+            ], $current_user, $existing);
 
-            // Insert exercise
-            $stmt = $pdo->prepare("INSERT INTO exercises (subject_id, title, description, creator_id, status, created_at) VALUES (:subject_id, :title, :description, :creator_id, :status, :created_at)");
-            $stmt->execute([
-                ':subject_id' => $subject_id,
-                ':title' => $metadata['title'],
-                ':description' => $metadata['description'] ?? null,
-                ':creator_id' => $current_user,
-                ':status' => 'pending',
-                ':created_at' => date('Y-m-d H:i:s')
-            ]);
-
-            $exercise_id = $pdo->lastInsertId();
-
-            // Tags
-            $tags_string = $metadata['tags'] ?? '';
-            $tags_array = array_filter(array_map('trim', explode(',', $tags_string)));
-
-            foreach ($tags_array as $tag_name) {
-                // Find or create tag
-                $tagStmt = $pdo->prepare("SELECT id FROM tags WHERE name = :name LIMIT 1");
-                $tagStmt->execute([':name' => $tag_name]);
-                $tagRow = $tagStmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($tagRow) {
-                    $tag_id = $tagRow['id'];
-                } else {
-                    $insTag = $pdo->prepare("INSERT INTO tags (name) VALUES (:name)");
-                    $insTag->execute([':name' => $tag_name]);
-                    $tag_id = $pdo->lastInsertId();
-                }
-
-                // Insert relation (exercisetag)
-                $insRel = $pdo->prepare("INSERT INTO exercisetag (exercise_id, tag_id) VALUES (:exercise_id, :tag_id)");
-                $insRel->execute([':exercise_id' => $exercise_id, ':tag_id' => $tag_id]);
-            }
-
-            // Insert questions and options
-            $qStmt = $pdo->prepare("INSERT INTO exercisequestion (question_text, explanation, weight, exercise_id, display_order) VALUES (:question_text, :explanation, :weight, :exercise_id, :display_order)");
-            $optStmt = $pdo->prepare("INSERT INTO exerciseanswer (answer_text, is_correct, display_order, question_id) VALUES (:answer_text, :is_correct, :display_order, :question_id)");
-
-            foreach ($questions as $qi => $q) {
-                $question_text = trim($q['question_text'] ?? $q['prompt']);
-                $explanation = trim($q['explanation']);
-                $weight = intval($q['weight']);
-
-                $qStmtParams = [
-                    ':question_text' => $question_text,
-                    ':explanation' => $explanation,
-                    ':weight' => $weight,
-                    ':exercise_id' => $exercise_id,
-                    ':display_order' => $qi
-                ];
-
-                $qStmt->execute($qStmtParams);
-                $question_id = $pdo->lastInsertId();
-
-                $opts = $q['options'];
-                foreach ($opts as $oi => $opt) {
-                    $answer_text = trim($opt['answer_text'] ?? $opt['text']);
-                    $is_correct = (!empty($opt['is_correct']) || !empty($opt['isCorrect'])) ? 1 : 0;
-
-                    $optStmt->execute([
-                        ':answer_text' => $answer_text,
-                        ':is_correct' => $is_correct,
-                        ':display_order' => $oi,
-                        ':question_id' => $question_id
-                    ]);
-                }
-            }
+            $this->sync_exercise_tags($pdo, (int)$exercise_id, (string)($metadata['tags'] ?? ''));
+            $this->sync_exercise_questions($pdo, (int)$exercise_id, $questions, true);
 
             $pdo->commit();
 
-            http_response_code(201);
+            http_response_code($existing ? 200 : 201);
             echo json_encode(['success' => true, 'message' => 'Exercise created successfully', 'id' => $exercise_id]);
             return;
 
@@ -232,6 +377,186 @@ class Exercises extends Controller
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Database error while creating exercise', 'error' => $e->getMessage()]);
             return;
+        }
+    }
+
+    private function subject_exists(PDO $pdo, int $subject_id): bool
+    {
+        if ($subject_id <= 0) {
+            return false;
+        }
+
+        $stmt = $pdo->prepare("SELECT id FROM subjects WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $subject_id]);
+        return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function get_owned_exercise(PDO $pdo, int $exercise_id, int $current_user)
+    {
+        $stmt = $pdo->prepare("SELECT id, creator_id, subject_id, status FROM exercises WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $exercise_id]);
+        $exercise = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$exercise || (int)$exercise['creator_id'] !== $current_user) {
+            return null;
+        }
+
+        return $exercise;
+    }
+
+    private function resolve_subject_id(PDO $pdo, int $subject_candidate, $existing = null): int
+    {
+        if ($subject_candidate > 0 && $this->subject_exists($pdo, $subject_candidate)) {
+            return $subject_candidate;
+        }
+
+        $existing_subject = (int)($existing['subject_id'] ?? 0);
+        if ($existing_subject > 0 && $this->subject_exists($pdo, $existing_subject)) {
+            return $existing_subject;
+        }
+
+        $fallback = $pdo->query("SELECT id FROM subjects ORDER BY id ASC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        if (!$fallback) {
+            throw new Exception('No subject found for draft save');
+        }
+
+        return (int)$fallback['id'];
+    }
+
+    private function upsert_exercise_shell(PDO $pdo, array $payload, int $current_user, $existing = null): int
+    {
+        $exercise_id = (int)($payload['id'] ?? 0);
+        $subject_id = (int)($payload['subject_id'] ?? 0);
+        $title = trim((string)($payload['title'] ?? 'Untitled Draft'));
+        $description = $payload['description'] ?? null;
+        $status = trim((string)($payload['status'] ?? 'draft'));
+
+        if ($title === '') {
+            $title = 'Untitled Draft';
+        }
+
+        if ($description === '') {
+            $description = null;
+        }
+
+        if ($exercise_id > 0 && $existing) {
+            $update = $pdo->prepare("UPDATE exercises SET subject_id = :subject_id, title = :title, description = :description, status = :status, updated_at = NOW() WHERE id = :id AND creator_id = :creator_id");
+            $update->execute([
+                ':subject_id' => $subject_id,
+                ':title' => $title,
+                ':description' => $description,
+                ':status' => $status,
+                ':id' => $exercise_id,
+                ':creator_id' => $current_user,
+            ]);
+            return $exercise_id;
+        }
+
+        $insert = $pdo->prepare("INSERT INTO exercises (subject_id, title, description, creator_id, status, created_at, updated_at) VALUES (:subject_id, :title, :description, :creator_id, :status, NOW(), NOW())");
+        $insert->execute([
+            ':subject_id' => $subject_id,
+            ':title' => $title,
+            ':description' => $description,
+            ':creator_id' => $current_user,
+            ':status' => $status,
+        ]);
+
+        return (int)$pdo->lastInsertId();
+    }
+
+    private function sync_exercise_tags(PDO $pdo, int $exercise_id, string $tags_csv): void
+    {
+        $deleteRel = $pdo->prepare("DELETE FROM exercisetag WHERE exercise_id = :exercise_id");
+        $deleteRel->execute([':exercise_id' => $exercise_id]);
+
+        $tags = array_values(array_unique(array_filter(array_map('trim', explode(',', $tags_csv)))));
+        if (empty($tags)) {
+            return;
+        }
+
+        $tagSelect = $pdo->prepare("SELECT id FROM tags WHERE name = :name LIMIT 1");
+        $tagInsert = $pdo->prepare("INSERT INTO tags (name) VALUES (:name)");
+        $relInsert = $pdo->prepare("INSERT INTO exercisetag (exercise_id, tag_id) VALUES (:exercise_id, :tag_id)");
+
+        foreach ($tags as $tag_name) {
+            $tagSelect->execute([':name' => $tag_name]);
+            $tagRow = $tagSelect->fetch(PDO::FETCH_ASSOC);
+
+            if ($tagRow) {
+                $tag_id = (int)$tagRow['id'];
+            } else {
+                $tagInsert->execute([':name' => $tag_name]);
+                $tag_id = (int)$pdo->lastInsertId();
+            }
+
+            $relInsert->execute([
+                ':exercise_id' => $exercise_id,
+                ':tag_id' => $tag_id,
+            ]);
+        }
+    }
+
+    private function sync_exercise_questions(PDO $pdo, int $exercise_id, array $questions, bool $strict): void
+    {
+        $questionIdsStmt = $pdo->prepare("SELECT id FROM exercisequestion WHERE exercise_id = :exercise_id");
+        $questionIdsStmt->execute([':exercise_id' => $exercise_id]);
+        $question_ids = array_map('intval', array_column($questionIdsStmt->fetchAll(PDO::FETCH_ASSOC), 'id'));
+
+        if (!empty($question_ids)) {
+            $answerDelete = $pdo->prepare("DELETE FROM exerciseanswer WHERE question_id = :question_id");
+            foreach ($question_ids as $question_id) {
+                $answerDelete->execute([':question_id' => $question_id]);
+            }
+        }
+
+        $questionDelete = $pdo->prepare("DELETE FROM exercisequestion WHERE exercise_id = :exercise_id");
+        $questionDelete->execute([':exercise_id' => $exercise_id]);
+
+        if (empty($questions)) {
+            return;
+        }
+
+        $questionInsert = $pdo->prepare("INSERT INTO exercisequestion (question_text, explanation, weight, exercise_id, display_order) VALUES (:question_text, :explanation, :weight, :exercise_id, :display_order)");
+        $answerInsert = $pdo->prepare("INSERT INTO exerciseanswer (answer_text, is_correct, display_order, question_id) VALUES (:answer_text, :is_correct, :display_order, :question_id)");
+
+        foreach ($questions as $qi => $q) {
+            $question_text = trim((string)($q['question_text'] ?? $q['prompt'] ?? ''));
+            $explanation = trim((string)($q['explanation'] ?? ''));
+            $weight = isset($q['weight']) ? (int)$q['weight'] : (isset($q['difficulty']) ? (int)$q['difficulty'] : 1);
+            if ($weight < 1) {
+                $weight = 1;
+            }
+
+            if (!$strict && $question_text === '' && $explanation === '') {
+                continue;
+            }
+
+            $questionInsert->execute([
+                ':question_text' => $question_text,
+                ':explanation' => $explanation,
+                ':weight' => $weight,
+                ':exercise_id' => $exercise_id,
+                ':display_order' => (int)$qi,
+            ]);
+
+            $question_id = (int)$pdo->lastInsertId();
+            $options = is_array($q['options'] ?? null) ? $q['options'] : [];
+
+            foreach ($options as $oi => $opt) {
+                $answer_text = trim((string)($opt['answer_text'] ?? $opt['text'] ?? ''));
+                if (!$strict && $answer_text === '') {
+                    continue;
+                }
+
+                $is_correct = (!empty($opt['is_correct']) || !empty($opt['isCorrect'])) ? 1 : 0;
+
+                $answerInsert->execute([
+                    ':answer_text' => $answer_text,
+                    ':is_correct' => $is_correct,
+                    ':display_order' => (int)$oi,
+                    ':question_id' => $question_id,
+                ]);
+            }
         }
     }
 
@@ -248,7 +573,7 @@ class Exercises extends Controller
         $exercises = new ExercisesModel;
         $exercise = $exercises->first(['id' => $exercise_id]);
 
-        if (!$exercise || $exercise->status !== 'approved') {
+        if (!$exercise || !$this->isExerciseVisibleForAttempt($exercise)) {
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
             return;
         }
@@ -264,18 +589,18 @@ class Exercises extends Controller
 
     public function show()
     {
-        //only accessible to creator
-        $exercise_id = $_GET['id'] ?? 1;
-        if (!$exercise_id) {
-            // Handle missing exercise ID (e.g., redirect or show error)
-            header('Location: '.ROOT.'/exercises?message=Exercise ID is required to attempt an exercise');
+        $exercise_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($exercise_id <= 0) {
+            header('Location: '.ROOT.'/exercises?message=Exercise ID is required to review an exercise');
+            return;
         }
 
         $exercises = new ExercisesModel;
         $exercise_data = $exercises->first(['id' => $exercise_id]);
 
-        if(!$exercise_data->status === 'approved'){
+        if (!$exercise_data || !$this->isExerciseVisibleForAttempt($exercise_data)) {
             header('Location: '.ROOT.'/exercises?message=Exercise is not approved for attempts');
+            return;
         }
 
         $user = new User;
@@ -286,20 +611,17 @@ class Exercises extends Controller
         $exercisequestion = new Exercisequestion;
         $exerciseanswer = new Exerciseanswer;
 
-
         $creator = $user->first(['id' => $exercise_data->creator_id])->username ?? 'Unknown';
         $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
 
         $tag_in_exercise = $exercise_tag->where(['exercise_id' => $exercise_id]);
-        $tags_list = [];
+        $tag_list = [];
 
-        foreach ($tag_in_exercise as $key => $tag) {
-            // $tag_info = $subject->first(['id' => $tag->tag_id]);
+        foreach ($tag_in_exercise as $tag) {
             $tag_list[] = $tags->first(['id' => $tag->tag_id])->name ?? 'Unknown Tag';
         }
 
         $votes = $user_vote_exercise->where(['exercise_id' => $exercise_id]);
-    
         $upvotes = 0;
         $downvotes = 0;
         $user_vote_status = 'none';
@@ -310,52 +632,109 @@ class Exercises extends Controller
             } elseif ($vote->votetype === 'downvote') {
                 $downvotes++;
             }
-
-            // if ($vote->user_id === $current_user->id) {
-            //     $user_vote_status = $vote->vote_type;
-            // }
-        }
-
-
-
-        if (!$exercise_data) {
-            // Handle case where exercise is not found
-            header('Location: '.ROOT.'/exercises?message=Exercise not found');
         }
 
         $questions = $exercisequestion->where(['exercise_id' => $exercise_id]);
-        
         if (empty($questions)) {
-            // Handle case where no questions are found for the exercise
             header('Location: '.ROOT.'/exercises/attempt?id='.$exercise_id.'&message=No questions found for this exercise');
+            return;
+        }
+
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $average_score = 0;
+        $user_answers = [];
+        $correct_answers = [];
+        $selected_by_question = [];
+
+        if ($current_user > 0) {
+            try {
+                $pdo = $this->db();
+
+                $attemptStmt = $pdo->prepare("SELECT id, score FROM exercise_attempt WHERE exe_id = :exercise_id AND u_id = :user_id ORDER BY latest DESC, date DESC, id DESC LIMIT 1");
+                $attemptStmt->execute([
+                    ':exercise_id' => $exercise_id,
+                    ':user_id' => $current_user,
+                ]);
+                $latestAttempt = $attemptStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($latestAttempt) {
+                    $average_score = (float)$latestAttempt['score'];
+
+                    $attemptAnswersStmt = $pdo->prepare("SELECT aa.question_id AS mapped_question_id, aa.user_response, q.title AS mapped_title FROM attempt_answer aa LEFT JOIN question q ON q.id = aa.question_id WHERE aa.attempt_id = :attempt_id");
+                    $attemptAnswersStmt->execute([':attempt_id' => (int)$latestAttempt['id']]);
+                    $attemptAnswers = $attemptAnswersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($attemptAnswers as $row) {
+                        $selected_ids = [];
+                        if (!empty($row['user_response'])) {
+                            $decoded = json_decode($row['user_response'], true);
+                            if (is_array($decoded)) {
+                                $selected_ids = array_map('intval', $decoded);
+                            }
+                        }
+
+                        $mapped_title = (string)($row['mapped_title'] ?? '');
+                        $mapped_exercise_question_id = 0;
+                        if ($mapped_title !== '' && preg_match('/^Exercise\\s+' . preg_quote((string)$exercise_id, '/') . '\\s+-\\s+Q(\\d+)$/', $mapped_title, $matches)) {
+                            $mapped_exercise_question_id = (int)($matches[1] ?? 0);
+                        }
+
+                        if ($mapped_exercise_question_id > 0) {
+                            $selected_by_question[$mapped_exercise_question_id] = $selected_ids;
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                error_log('show() attempt mapping error: ' . $e->getMessage());
+            }
         }
 
         $question_list = [];
 
-
         foreach ($questions as $question) {
             $answers = $exerciseanswer->where(['question_id' => $question->id]);
+            $selected_ids = $selected_by_question[(int)$question->id] ?? [];
             $answer_options = [];
+            $correct_ids = [];
 
             foreach ($answers as $ans) {
-                $answer_options[] = $ans->answer_text;
+                $option_id = (int)$ans->id;
+                $is_correct = (bool)$ans->is_correct;
+                $is_selected = in_array($option_id, $selected_ids, true);
+
+                if ($is_correct) {
+                    $correct_ids[] = $option_id;
+                }
+
+                $answer_options[] = [
+                    'option_id' => $option_id,
+                    'text' => (string)$ans->answer_text,
+                    'is_correct' => $is_correct,
+                    'was_selected' => $is_selected,
+                ];
             }
 
+            $question_id = (int)$question->id;
             $question_list[] = [
-                'id' => $question->id,
-                'question_text' => $question->question_text,
-                'options' => $answer_options
+                'id' => $question_id,
+                'question_text' => (string)$question->question_text,
+                'options' => $answer_options,
             ];
-            
-        };
 
-        //remember to fetch review data too
+            $user_answers[$question_id] = $selected_ids;
+            $correct_answers[$question_id] = $correct_ids;
+        }
+
+        error_log('show() user_answers: ' . json_encode($user_answers));
+        error_log('show() correct_answers: ' . json_encode($correct_answers));
+
         $review_data = [
-            'average_score' => 0.8,
+            'average_score' => $average_score,
+            'total_questions' => count($question_list),
+            'user_answers' => $user_answers,
+            'correct_answers' => $correct_answers,
         ];
 
-
-        // --- MOCK DATA SETUP ---
         $role = $_SESSION['role'] ?? 'student';
         $can_edit = in_array($role, ['expert', 'admin'], true);
 
@@ -369,16 +748,15 @@ class Exercises extends Controller
                 'tags' => $tag_list,
                 'upvotes' => $upvotes,
                 'downvotes' => $downvotes,
-                'user_vote_status' => 'upvote', // possible values: 'upvoted', 'downvoted', 'none'
-                
+                'user_vote_status' => $user_vote_status,
             ],
             'questions' => $question_list,
             'review_data' => $review_data,
-            'can_edit' => $can_edit
+            'can_edit' => $can_edit,
         ];
 
         $this->view('exercises/view', $data);
-        
+
     }
 
     public function edit()
@@ -397,8 +775,6 @@ class Exercises extends Controller
             header('Location: '.ROOT.'/exercises/show?id='.$exercise_id);
         } else {
             // --- GET (Load Edit View Logic) ---
-            $this->view('exercises/edit', []);
-            
             $exercise_id = $_GET['id'] ?? null; // Changed default to null for proper check
     
             if (!$exercise_id) {
@@ -423,11 +799,12 @@ class Exercises extends Controller
                 return;
             }
     
-            // Note: The status check below seems intended to restrict editing of approved exercises. 
-            // We'll keep the original logic but be mindful it might need adjustment (e.g., status should be 'draft').
-            if($exercise_data->status === 'approved'){
-                 header('Location: '.ROOT.'/exercises?message=Exercise is approved and cannot be edited');
-                 return;
+            $current_user = (int)($_SESSION['user_id'] ?? 0);
+            $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+            if ($current_user <= 0 || $role !== 'mentor' || (int)$exercise_data->creator_id !== $current_user) {
+                header('Location: '.ROOT.'/exercises?message=Unauthorized access');
+                return;
             }
     
             // --- 2. Fetch Questions and Answers ---
@@ -476,33 +853,21 @@ class Exercises extends Controller
             $subject_name = $subject->first(['id' => $exercise_data->subject_id])->name ?? 'Unknown Subject';
     
             $data = [
-                // This is the core data used to initialize the JS state (EXERCISE_METADATA and EXERCISE_QUESTIONS)
+                'is_edit_mode' => true,
                 'initial_data' => [
                     'metadata' => [
                         'id' => $exercise_data->id,
                         'title' => $exercise_data->title,
-                        'subjectId' => $exercise_data->subject_id, // Pass ID for potential future use
+                        'subjectId' => $exercise_data->subject_id,
                         'subject' => $subject_name,
-                        'description' => $exercise_data->description ?? '', // NEW FIELD
-                        'tags' => implode(', ', $tags_list), // Format as a comma-separated string for the input field
+                        'description' => $exercise_data->description ?? '',
+                        'tags' => implode(', ', $tags_list),
                     ],
                     'questions' => $question_list,
                 ],
-                
-                // Other data for the 'edit' view (like creator, votes, etc. from original code)
-                'exercise_details' => [
-                    'exercise_id' => $exercise_data->id,
-                    'title' => $exercise_data->title,
-                    'subject' => $subject_name,
-                    // ... (other fields for exercise summary)
-                ],
-                
-                // The view will need the formatted `initial_data` to inject into the front-end script.
-                // The original logic for votes and creator is retained but not necessary for the builder.
-                // ... (Votes and Review data)
             ];
     
-            $this->view('exercises/edit', $data); // Assuming you are reusing the 'create' view for editing
+            $this->view('exercises/create', $data);
         }
     }
     public function delete()
@@ -528,8 +893,55 @@ class Exercises extends Controller
 
     public function hide()
     {
-        $exercise_id = $_GET['id'] ?? null;
-        header('Location: '.ROOT.'/exercises/show?id='.$exercise_id.'&message=Hide exercise triggered');
+        $this->toggleVisibility();
+    }
+
+    public function toggleVisibility()
+    {
+        $input = $this->json_request();
+        $exercise_id = (int)($_POST['exercise_id'] ?? $_POST['id'] ?? ($_GET['id'] ?? ($input['exercise_id'] ?? $input['id'] ?? 0)));
+        $current_user = (int)($_SESSION['user_id'] ?? 0);
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+            $this->json_error('Unauthorized request', 403);
+        }
+
+        try {
+            $pdo = $this->db();
+            $stmt = $pdo->prepare("SELECT id, creator_id FROM exercises WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => $exercise_id]);
+            $exercise = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$exercise || (int)$exercise['creator_id'] !== $current_user) {
+                $this->json_error('Exercise not found or access denied', 403);
+            }
+
+            $current_visibility = $this->get_exercise_visibility_state($exercise_id, (int)$exercise['creator_id'], $current_user);
+            $next_visibility = ($current_visibility === 'hidden') ? 'visible' : 'hidden';
+            $this->set_exercise_visibility_state($exercise_id, $next_visibility, (int)$exercise['creator_id'], $current_user);
+
+            $payload = [
+                'success' => true,
+                'status' => 'success',
+                'exercise_id' => $exercise_id,
+                'visibility' => $next_visibility,
+            ];
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($input)) {
+                $this->json_respond($payload);
+            }
+
+            $message = $next_visibility === 'hidden'
+                ? 'Exercise hidden from other users for this session.'
+                : 'Exercise shown to other users.';
+
+            header('Location: ' . ROOT . '/exercises/mentorview?id=' . $exercise_id . '&message=' . urlencode($message));
+            exit;
+        } catch (Exception $e) {
+            error_log('toggleVisibility error: ' . $e->getMessage());
+            $this->json_error('Failed to update exercise visibility', 500);
+        }
     }
 
     public function expertreview()
@@ -846,11 +1258,11 @@ class Exercises extends Controller
 
             $params = [];
 
-            // Optional: Filter by subject
-            if ($subject_id > 0) {
-                $query .= " AND e.subject_id = :subject_id";
-                $params[':subject_id'] = $subject_id;
-            }
+            // // Optional: Filter by subject
+            // if ($subject_id > 0) {
+            //     $query .= " AND e.subject_id = :subject_id";
+            //     $params[':subject_id'] = $subject_id;
+            // }
 
             // Exclude creator's own exercises
             $query .= " AND e.creator_id != :current_user_id";
@@ -939,7 +1351,7 @@ class Exercises extends Controller
             $exerciseStmt->execute([':id' => $exercise_id]);
             $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$exercise) {
+            if (!$exercise || $exercise['status'] !== 'pending') {
                 $this->json_error('Exercise not found or not pending', 404);
             }
 
@@ -956,7 +1368,9 @@ class Exercises extends Controller
                 'id' => (int)$bundle['exercise']['id'],
                 'title' => $bundle['exercise']['title'],
                 'subject' => $bundle['exercise']['subject_name'],
+                'tags' => $bundle['exercise']['tags'] ?? [],
                 'creator_name' => $exercise['creator_name'],
+                'creator_role' => $bundle['exercise']['creator_role'] ?? 'Unknown',
                 'created_at' => $bundle['exercise']['created_at'],
                 'creator_id' => (int)$bundle['exercise']['creator_id'],
                 'questions' => $bundle['questions']
@@ -979,7 +1393,8 @@ class Exercises extends Controller
         if ($exercise_id === 'all' || $exercise_id === 'list') {
             try {
                 $pdo = $this->db();
-                $rows = $pdo->query("SELECT e.id, e.title, s.name AS subject, e.created_at FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.status = 'approved' ORDER BY e.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+                $rows = $pdo->query("SELECT e.id, e.title, e.creator_id, s.name AS subject, e.created_at FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.status = 'approved' ORDER BY e.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+                $rows = $this->apply_hidden_exercise_visibility($rows, (int)($_SESSION['user_id'] ?? 0));
 
                 $this->json_respond([
                     'success' => true,
@@ -1010,7 +1425,7 @@ class Exercises extends Controller
                 $this->json_error('Exercise not found', 404);
             }
 
-            if ($bundle['exercise']['status'] !== 'approved') {
+            if (!$this->isExerciseVisibleForAttempt((object)$bundle['exercise'])) {
                 $this->json_error('Exercise is not approved for attempts', 403);
             }
 
@@ -1019,7 +1434,10 @@ class Exercises extends Controller
                 'id' => (int)$bundle['exercise']['id'],
                 'title' => $bundle['exercise']['title'],
                 'subject' => $bundle['exercise']['subject_name'],
+                'tags' => $bundle['exercise']['tags'] ?? [],
                 'created_at' => $bundle['exercise']['created_at'],
+                'creator_name' => $bundle['exercise']['creator_name'] ?? 'Unknown',
+                'creator_role' => $bundle['exercise']['creator_role'] ?? 'Unknown',
                 'creator_id' => (int)$bundle['exercise']['creator_id'],
                 'questions' => $bundle['questions'],
             ]);
@@ -1040,17 +1458,26 @@ class Exercises extends Controller
         
         try {
             $exerciseModel = new ExercisesModel();
-            $exercises = $exerciseModel->filter_and_search([
-                'where' => ['status' => 'approved'],
-                'order_by' => 'created_at',
-                'order_dir' => 'DESC',
+            $result = $exerciseModel->get_browser_list([
+                'role' => 'student',
+                'user_id' => (int)($_SESSION['user_id'] ?? 0),
+                'tab' => 'all',
+                'offset' => $offset,
                 'limit' => $limit,
-                'offset' => $offset
+                'subject' => '',
+                'search' => '',
+                'sort' => 'created_at-DESC',
             ]);
+
+            $rows = array_map(function ($row) {
+                return (array)$row;
+            }, $result['rows'] ?? []);
+            $rows = $this->apply_hidden_exercise_visibility($rows, (int)($_SESSION['user_id'] ?? 0));
 
             $this->json_respond([
                 'success' => true,
-                'exercises' => $exercises
+                'exercises' => $rows,
+                'total' => $result['total'] ?? 0
             ]);
         } catch (Exception $e) {
             error_log('api_get_published error: '.$e->getMessage());
@@ -1340,6 +1767,8 @@ class Exercises extends Controller
             $questionMapStmt = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
 
             $details = [];
+            $userAnswers = [];
+            $correctAnswers = [];
             $maxScore = 0;
 
             foreach ($questions as $q) {
@@ -1368,17 +1797,28 @@ class Exercises extends Controller
                 }
 
                 $options = [];
+                $correctIds = [];
                 foreach ($optionsRaw as $opt) {
+                    $optionId = (int)$opt['id'];
+                    $isCorrectOption = (bool)$opt['is_correct'];
+                    if ($isCorrectOption) {
+                        $correctIds[] = $optionId;
+                    }
+
                     $options[] = [
-                        'option_id' => (int)$opt['id'],
+                        'option_id' => $optionId,
                         'text' => $opt['answer_text'],
-                        'is_correct' => (bool)$opt['is_correct'],
-                        'was_selected' => in_array((int)$opt['id'], $selectedIds, true),
+                        'is_correct' => $isCorrectOption,
+                        'was_selected' => in_array($optionId, $selectedIds, true),
                     ];
                 }
 
+                $questionId = (int)$q['id'];
+                $userAnswers[$questionId] = array_map('intval', $selectedIds);
+                $correctAnswers[$questionId] = $correctIds;
+
                 $details[] = [
-                    'question_id' => (int)$q['id'],
+                    'question_id' => $questionId,
                     'prompt' => $q['question_text'],
                     'user_score' => (float)($attemptAnswer['score_earned'] ?? 0),
                     'max_weight' => (float)$q['weight'],
@@ -1391,20 +1831,48 @@ class Exercises extends Controller
                 ];
             }
 
+            error_log('api_get_attempt_details user_answers: ' . json_encode($userAnswers));
+            error_log('api_get_attempt_details correct_answers: ' . json_encode($correctAnswers));
+
             $this->json_respond([
                 'success' => true,
                 'attempt_id' => $attempt_id,
                 'exercise_id' => (int)$attempt['exe_id'],
                 'exercise_title' => $attempt['title'],
                 'subject' => $attempt['subject_name'],
+                'exercise' => [
+                    'id' => (int)$attempt['exe_id'],
+                    'title' => $attempt['title'],
+                ],
                 // Score response uses stored attempt score (no recalculation)
                 'raw_score' => (float)$attempt['score'],
+                'average_score' => (float)$attempt['score'],
                 'max_score' => $maxScore,
                 'percentage_score' => $maxScore > 0 ? round(((float)$attempt['score'] / $maxScore) * 100, 2) : 0,
                 // Keep existing keys for backward compatibility
                 'total_score' => (float)$attempt['score'],
                 'total_max_score' => $maxScore,
                 'attempted_at' => $attempt['date'],
+                'questions' => array_map(function ($detail) {
+                    return [
+                        'id' => $detail['question_id'],
+                        'question_text' => $detail['prompt'],
+                        'options' => array_map(function ($opt) {
+                            return [
+                                'option_id' => $opt['option_id'],
+                                'text' => $opt['text'],
+                                'is_correct' => $opt['is_correct'],
+                                'was_selected' => $opt['was_selected'],
+                            ];
+                        }, $detail['options'] ?? []),
+                    ];
+                }, $details),
+                'options' => array_map(function ($detail) {
+                    return $detail['options'] ?? [];
+                }, $details),
+                'user_answers' => $userAnswers,
+                'correct_answers' => $correctAnswers,
+                'total_questions' => count($details),
                 'details' => $details,
             ]);
 
@@ -1561,13 +2029,19 @@ class Exercises extends Controller
      */
     private function fetchExerciseBundle(PDO $pdo, int $exercise_id)
     {
-        $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id WHERE e.id = :id LIMIT 1");
+        $exerciseStmt = $pdo->prepare("SELECT e.id, e.title, e.status, e.subject_id, e.creator_id, e.created_at, s.name AS subject_name, u.username AS creator_name, r.name AS creator_role FROM exercises e LEFT JOIN subjects s ON s.id = e.subject_id LEFT JOIN user u ON u.id = e.creator_id LEFT JOIN roles r ON r.role_id = u.role WHERE e.id = :id LIMIT 1");
         $exerciseStmt->execute([':id' => $exercise_id]);
         $exercise = $exerciseStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$exercise) {
             return null;
         }
+
+        $tagStmt = $pdo->prepare("SELECT t.name FROM exercisetag et JOIN tags t ON t.id = et.tag_id WHERE et.exercise_id = :exercise_id ORDER BY t.name ASC");
+        $tagStmt->execute([':exercise_id' => $exercise_id]);
+        $exercise['tags'] = array_values(array_map(function ($row) {
+            return $row['name'];
+        }, $tagStmt->fetchAll(PDO::FETCH_ASSOC)));
 
         $questionStmt = $pdo->prepare("SELECT id, question_text, explanation, weight FROM exercisequestion WHERE exercise_id = :exercise_id ORDER BY display_order ASC, id ASC");
         $questionStmt->execute([':exercise_id' => $exercise_id]);
@@ -1601,6 +2075,186 @@ class Exercises extends Controller
             'questions' => $questionPayload,
         ];
     }
+
+    private function isExerciseVisibleForAttempt($exercise): bool
+    {
+        if (!$exercise) {
+            return false;
+        }
+
+        $exercise_id = (int)($exercise->id ?? $exercise['id'] ?? 0);
+        $creator_id = (int)($exercise->creator_id ?? $exercise['creator_id'] ?? 0);
+        $current_user_id = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($exercise_id > 0 && $this->is_exercise_hidden_for_viewer($exercise_id, $creator_id, $current_user_id)) {
+            return false;
+        }
+
+        $status = strtolower(trim((string)($exercise->status ?? $exercise['status'] ?? '')));
+        return $status === 'approved';
+    }
+
+    private function get_exercise_visibility_state(int $exercise_id, int $creator_id = 0, int $viewer_id = 0): string
+    {
+        if ($exercise_id <= 0) {
+            return 'visible';
+        }
+
+        if (!isset($_SESSION['exercise_visibility']) || !is_array($_SESSION['exercise_visibility'])) {
+            $_SESSION['exercise_visibility'] = [];
+        }
+
+        $exercise_key = (string)$exercise_id;
+        $session_state = $_SESSION['exercise_visibility'][$exercise_key] ?? null;
+        if (is_string($session_state) && $session_state !== '') {
+            return $session_state === 'hidden' ? 'hidden' : 'visible';
+        }
+
+        if ($creator_id > 0 && $viewer_id > 0 && $viewer_id === $creator_id) {
+            return 'visible';
+        }
+
+        $store = $this->read_hidden_exercise_store();
+        $entry = $store[$exercise_key] ?? null;
+        if (!is_array($entry)) {
+            return 'visible';
+        }
+
+        $expires_at = (int)($entry['expires_at'] ?? 0);
+        if ($expires_at > 0 && $expires_at <= time()) {
+            unset($store[$exercise_key]);
+            $this->write_hidden_exercise_store($store);
+            return 'visible';
+        }
+
+        return ((string)($entry['visibility'] ?? 'hidden')) === 'hidden' ? 'hidden' : 'visible';
+    }
+
+    private function set_exercise_visibility_state(int $exercise_id, string $visibility, int $creator_id = 0, int $viewer_id = 0): void
+    {
+        if ($exercise_id <= 0) {
+            return;
+        }
+
+        if (!isset($_SESSION['exercise_visibility']) || !is_array($_SESSION['exercise_visibility'])) {
+            $_SESSION['exercise_visibility'] = [];
+        }
+
+        $exercise_key = (string)$exercise_id;
+        $normalized_visibility = ($visibility === 'hidden') ? 'hidden' : 'visible';
+        $_SESSION['exercise_visibility'][$exercise_key] = $normalized_visibility;
+
+        $store = $this->read_hidden_exercise_store();
+        if ($normalized_visibility === 'hidden') {
+            $store[$exercise_key] = [
+                'creator_id' => $creator_id > 0 ? $creator_id : $viewer_id,
+                'hidden_by' => $viewer_id > 0 ? $viewer_id : (int)($_SESSION['user_id'] ?? 0),
+                'hidden_at' => time(),
+                'expires_at' => time() + $this->get_hide_ttl_seconds(),
+                'visibility' => 'hidden',
+            ];
+        } else {
+            unset($store[$exercise_key]);
+        }
+
+        $this->write_hidden_exercise_store($store);
+    }
+
+    private function is_exercise_hidden_for_viewer(int $exercise_id, int $creator_id, int $viewer_id): bool
+    {
+        if ($exercise_id <= 0) {
+            return false;
+        }
+
+        if ($creator_id > 0 && $viewer_id === $creator_id) {
+            return false;
+        }
+
+        $visibility = $this->get_exercise_visibility_state($exercise_id, $creator_id, $viewer_id);
+        return $visibility === 'hidden';
+    }
+
+    private function apply_hidden_exercise_visibility(array $rows, int $viewer_id): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $filtered = [];
+        foreach ($rows as $row) {
+            $normalized = (array)$row;
+            $exercise_id = (int)($normalized['id'] ?? 0);
+            $creator_id = (int)($normalized['creator_id'] ?? $normalized['created_by'] ?? 0);
+
+            if ($this->is_exercise_hidden_for_viewer($exercise_id, $creator_id, $viewer_id)) {
+                continue;
+            }
+
+            $filtered[] = $normalized;
+        }
+
+        return $filtered;
+    }
+
+    private function get_hidden_exercise_store_path(): string
+    {
+        $basePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'cache';
+        if (!is_dir($basePath)) {
+            @mkdir($basePath, 0775, true);
+        }
+
+        return $basePath . DIRECTORY_SEPARATOR . 'hidden_exercises.json';
+    }
+
+    private function read_hidden_exercise_store(): array
+    {
+        $path = $this->get_hidden_exercise_store_path();
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $raw = @file_get_contents($path);
+        if ($raw === false || $raw === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $now = time();
+        $dirty = false;
+        foreach ($decoded as $exerciseId => $entry) {
+            $expiresAt = (int)($entry['expires_at'] ?? 0);
+            if ($expiresAt > 0 && $expiresAt <= $now) {
+                unset($decoded[$exerciseId]);
+                $dirty = true;
+            }
+        }
+
+        if ($dirty) {
+            $this->write_hidden_exercise_store($decoded);
+        }
+
+        return $decoded;
+    }
+
+    private function write_hidden_exercise_store(array $store): void
+    {
+        $path = $this->get_hidden_exercise_store_path();
+        @file_put_contents($path, json_encode($store, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    }
+
+    private function get_hide_ttl_seconds(): int
+    {
+        $sessionTtl = (int)ini_get('session.gc_maxlifetime');
+        if ($sessionTtl <= 0) {
+            return 1800;
+        }
+
+        return $sessionTtl;
+    }
     
     // Helper to send JSON error responses
     private function json_error($message, $code = 400)
@@ -1611,44 +2265,6 @@ class Exercises extends Controller
         exit();
     }
     
-    public function api_load_more() {
-        $this->json_respond([
-            "success" => true,
-            "results_returned" => 4,
-            "next_offset" => 14,
-            "available_more" => false,
-            "data" => [
-                [
-                    "id" => 11,
-                    "title" => "Implement Dijkstra's Algorithm (Intermediate)",
-                    "topic" => "Algorithms",
-                    "difficulty" => "Intermediate",
-                    "published_date" => "2025-11-20"
-                ],
-                [
-                    "id" => 12,
-                    "title" => "Design Pattern: Observer",
-                    "topic" => "Software Design",
-                    "difficulty" => "Advanced",
-                    "published_date" => "2025-11-18"
-                ],
-                [
-                    "id" => 13,
-                    "title" => "Data Visualization Basics",
-                    "topic" => "Data Science",
-                    "difficulty" => "Beginner",
-                    "published_date" => "2025-11-15"
-                ],
-                [
-                    "id" => 14,
-                    "title" => "Write a RESTful API specification",
-                    "topic" => "Web Development",
-                    "difficulty" => "Expert",
-                    "published_date" => "2025-11-10"
-                ]
-            ]
-        ]);
-    }
     
     public function filter()
     {
@@ -1667,12 +2283,29 @@ class Exercises extends Controller
         $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
         $user_id = $_SESSION['user_id'] ?? 0; // Assuming session is active
-        $role = $_SESSION['role'] ?? 'student';
+        $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
+
+        if (!in_array($role, ['student', 'mentor', 'expert', 'admin'], true)) {
+            $role = 'student';
+        }
+
+        $allowed_tabs = ['all', 'created', 'created_published', 'created_draft', 'attempted', 'pending'];
+        if (!in_array($tab, $allowed_tabs, true)) {
+            $tab = 'all';
+        }
+
+        if ($tab === 'pending' && !in_array($role, ['expert', 'admin'], true)) {
+            $tab = 'all';
+        }
+
+        if (in_array($tab, ['created', 'created_published', 'created_draft'], true) && $role === 'student') {
+            $tab = 'all';
+        }
 
         $limit = ($limit > 0 && $limit <= 100) ? $limit : 5;
         $offset = $offset >= 0 ? $offset : 0;
 
-        $can_create = in_array($role, ['expert', 'admin'], true);
+        $can_create = ($role === 'mentor');
         $can_edit = $can_create;
 
         $expert_subject_ids = $this->get_expert_subject_ids($role, $user_id);
@@ -1690,12 +2323,19 @@ class Exercises extends Controller
             'expert_subject_ids' => $expert_subject_ids,
         ]);
 
+        $filtered_rows = $this->apply_hidden_exercise_visibility(
+            array_map(function ($row) {
+                return (array)$row;
+            }, $result['rows'] ?? []),
+            (int)$user_id
+        );
+
         $total = $result['total'] ?? 0;
         $has_more = ($offset + $limit) < $total;
 
         // 4. Return JSON
         $this->json_respond([
-            'exercises' => $result['rows'] ?? [],
+            'exercises' => $filtered_rows,
             'has_more' => $has_more,
             'role' => $role,
             'permissions' => [

@@ -141,24 +141,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Fills the modal with metadata and prepares vote tracking */
     function populateModalDetails(data) {
-        // NOTE: These metadata values are mock values not strictly in the current EXERCISE_DATA mock 
-        // but represent the expected fields from the database.
-        const mockMeta = {
+        const modalMeta = {
             title: data.title,
             subject: data.subject,
-            tags: ["Finance", "Basic", "Level 1"],
-            creator_name: "John Doe",
-            creator_role: "Expert",
-            created_at: "2025-10-25",
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            creator_name: data.creator_name || 'Unknown',
+            creator_role: data.creator_role || 'Unknown',
+            created_at: data.created_at || '',
         };
         
-        modalTitleEl.textContent = mockMeta.title;
-        modalSubjectEl.textContent = mockMeta.subject;
+        modalTitleEl.textContent = modalMeta.title;
+        modalSubjectEl.textContent = modalMeta.subject;
 
-        modalTagsEl.innerHTML = mockMeta.tags.map(tag => `<span class="tag-pill">${tag}</span>`).join(' ');
-        modalCreatorNameEl.textContent = mockMeta.creator_name;
-        modalCreatorRoleEl.textContent = mockMeta.creator_role;
-        modalDateEl.textContent = mockMeta.created_at;
+        modalTagsEl.innerHTML = modalMeta.tags.length
+            ? modalMeta.tags.map(tag => `<span class="tag-pill">${tag}</span>`).join(' ')
+            : '<span class="tag-pill">No tags</span>';
+        modalCreatorNameEl.textContent = modalMeta.creator_name;
+        modalCreatorRoleEl.textContent = modalMeta.creator_role;
+        modalDateEl.textContent = modalMeta.created_at;
 
         // NOTE: Vote UI removed from this page - will be on results page
     }
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const badge = document.createElement('span');
             badge.className = 'option-badge';
-            badge.textContent = `PRESS ${optIndex + 1}`;
+            
 
             left.appendChild(stateIcon);
             left.appendChild(input);
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showExplanation() {
         const question = EXERCISE_DATA.questions[currentQIndex];
         explanationBox.innerHTML = `
-            <h3 class="explain-icon" aria-label="Explanation">📖</h3>
+
             <quill-editor 
                 id="explanation-text"
                 readonly

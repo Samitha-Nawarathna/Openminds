@@ -1,7 +1,7 @@
 /* General Body Styles */
 body {
     font-family: var(--font-body, sans-serif);
-    background-color: var(--color-background, #f9f9f9);
+    background-color: var(--color-background, #d6e4ff);
     margin: 0;
     padding-bottom: 50px;
 }
@@ -11,6 +11,15 @@ body {
     margin: 0 auto;
     margin-top: 40px;
     padding: 0 15px;
+}
+
+
+.is-hidden-by-role {
+    display: none !important;
+}
+
+.hidden-exercise {
+    display: none !important;
 }
 
 /* --- Header Styles --- */
@@ -23,7 +32,7 @@ body {
     font-size: 3em;
     font-weight: 600;
     margin: 0;
-    color: #333;
+    color: #000;
 }
 
 /* --- Filter Bar --- */
@@ -47,7 +56,7 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #ffffff;
-    color: #555;
+    color: #000;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
@@ -70,10 +79,11 @@ body {
 }
 
 .btn-create.is-disabled {
+    display: none !important;
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
-    display: block;
+
 }
 
 /* --- Advanced Filter Panel --- */
@@ -136,12 +146,41 @@ body {
     margin-bottom: 20px;
 }
 
+.created-subtabs {
+    display: none;
+    gap: 8px;
+    margin: -8px 0 16px;
+    animation: fadeInSlide 0.2s ease-out;
+}
+
+.created-subtabs.is-visible {
+    display: flex;
+}
+
+.created-subtab-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.created-subtab-btn.active {
+    border-color: var(--color-primary, #007bff);
+    background: rgba(0, 123, 255, 0.08);
+    color: var(--color-primary, #007bff);
+}
+
 .tab-button {
     padding: 8px 15px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: white;
-    color: #555;
+    color: #000;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
 }
@@ -179,7 +218,7 @@ body {
 .exercise-title-list {
     flex-grow: 1;
     font-size: 1.1em;
-    color: #333;
+    color: #000;
 }
 
 .subject-pill {
@@ -191,6 +230,61 @@ body {
     margin-left: 15px;
     min-width: 70px;
     text-align: center;
+}
+
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: capitalize;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.status-draft {
+    background: #fff6d9;
+    color: #8f6a00;
+}
+
+.status-pending {
+    background: #e8f4ff;
+    color: #005a9e;
+}
+
+.status-reject {
+    background: #ffe8e8;
+    color: #a32121;
+}
+
+.empty-state {
+    background: #fff;
+    border: 1px dashed #d5dbe6;
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.empty-state-message {
+    color: #4c566a;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.empty-state-link {
+    color: var(--color-primary, #007bff);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.empty-state-link:hover {
+    text-decoration: underline;
 }
 
 .no-data-msg {
@@ -220,4 +314,15 @@ body {
     border-color: #ddd;
     color: #aaa;
     cursor: not-allowed;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -2,6 +2,7 @@ import { ROOT } from '../../core/config.js';
 
 const MOCK_API_SAVE_URL = ROOT + 'exercises/api/save_draft';
 const MOCK_API_SUBMIT_URL = ROOT + 'api/exercises/create';
+const API_SUBJECTS_URL = ROOT + 'exercises/api/subjects';
 
 // Convert Quill delta JSON string/object to plain text so UI stays readable.
 function quillJsonToPlainText(input) {
@@ -105,6 +106,8 @@ let EXERCISE_METADATA = {};
 let EXERCISE_QUESTIONS = [];
 let currentQIndex = -1; // -1 means no question is selected/being edited.
 let nextQId = 1;
+const INITIAL_DATA = window.EXERCISE_INITIAL_DATA || {};
+const IS_EDIT_MODE = Boolean(window.EXERCISE_IS_EDIT_MODE);
 
 // --- DOM Elements ---
 const setupModal = document.getElementById('setup-modal');
@@ -118,11 +121,106 @@ const submitModal = document.getElementById('submit-modal');
 // NEW DOM ELEMENT REFERENCE
 const editMetadataBtn = document.getElementById('edit-metadata-btn');
 
+async function loadSubjectOptions() {
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    if (!subjectSelect) return;
+
+    // Keep placeholder and clear old dynamic options.
+    subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+
+    try {
+        const res = await fetch(API_SUBJECTS_URL, {headers: {'Accept': 'application/json'}});
+        const result = await res.json();
+
+        if (!res.ok || !result.success || !Array.isArray(result.subjects)) {
+            throw new Error(result.message || 'Failed to load subjects.');
+        }
+
+        result.subjects.forEach((subject) => {
+            const option = document.createElement('option');
+            option.value = String(subject.id);
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
+        });
+
+        // Restore previously selected value after reload when possible.
+        if (EXERCISE_METADATA.subject) {
+            subjectSelect.value = String(EXERCISE_METADATA.subject);
+        }
+    } catch (err) {
+        console.error('Could not load subjects', err);
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Unable to load subjects';
+        subjectSelect.appendChild(option);
+        subjectSelect.disabled = true;
+    }
+}
+
+function normalizeInitialQuestion(question, index) {
+    const options = Array.isArray(question.options) ? question.options : [];
+
+    return {
+        id: question.id ? parseInt(question.id) : index + 1,
+        question_text: question.question_text || question.prompt || '',
+        explanation: question.explanation || '',
+        weight: question.weight ?? 1,
+        options: options.map((option) => ({
+            text: option.text ?? option.answer_text ?? '',
+            isCorrect: Boolean(option.isCorrect ?? option.is_correct),
+        })),
+    };
+}
+
+function hydrateInitialData() {
+    const metadata = INITIAL_DATA.metadata || {};
+    const questions = Array.isArray(INITIAL_DATA.questions) ? INITIAL_DATA.questions : [];
+
+    if (!metadata.title) {
+        return false;
+    }
+
+    EXERCISE_METADATA = {
+        id: metadata.id || '',
+        title: metadata.title || '',
+        subjectId: metadata.subjectId || '',
+        subject: metadata.subject || '',
+        description: metadata.description || '',
+        tags: metadata.tags || '',
+    };
+
+    EXERCISE_QUESTIONS = questions.map((question, index) => normalizeInitialQuestion(question, index));
+    nextQId = EXERCISE_QUESTIONS.reduce((maxId, question) => Math.max(maxId, question.id || 0), 0) + 1;
+
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    document.getElementById('exercise-title-input').value = EXERCISE_METADATA.title;
+    if (subjectSelect) {
+        subjectSelect.value = String(EXERCISE_METADATA.subjectId || '');
+    }
+    document.getElementById('exercise-description-input').value = EXERCISE_METADATA.description;
+    document.getElementById('exercise-tags-input').value = EXERCISE_METADATA.tags;
+
+    setupModal.style.display = 'none';
+    mainBuilderContent.style.display = 'flex';
+    controlBar.style.display = 'flex';
+
+    renderQuestionList();
+    if (EXERCISE_QUESTIONS.length > 0) {
+        loadQuestion(0);
+    } else {
+        addNewQuestion();
+    }
+
+    updateBuilderUI(true);
+    return true;
+}
+
 // --- STEP 1: SETUP MODAL LOGIC ---
 
 // Function to handle the actual saving of form data and closing the modal
 function updateMetadata() {
     EXERCISE_METADATA = {
+        id: EXERCISE_METADATA.id || '',
         title: document.getElementById('exercise-title-input').value,
         subject: document.getElementById('exercise-subject-input').value,
         description: document.getElementById('exercise-description-input').value,
@@ -312,6 +410,91 @@ function saveCurrentQuestion() {
     return true; // Save succeeded
 }
 
+function upsertCurrentQuestionDraftState() {
+    const qIdRaw = document.getElementById('current-q-id').value;
+    const prompt = getEditorContent('q-prompt-input').trim();
+    const explanation = getEditorContent('q-explanation-input').trim();
+    const weightInput = parseInt(document.getElementById('q-weight-input').value, 10);
+    const weight = Number.isFinite(weightInput) && weightInput > 0 ? weightInput : 1;
+
+    const options = Array.from(optionsContainer.children).map((div, index) => ({
+        answer_text: (div.querySelector(`#option-text-${index}`) ? getEditorContent(`option-text-${index}`) : '').trim(),
+        is_correct: !!div.querySelector(`input[name="correct-option"]`)?.checked,
+    }));
+
+    const hasAnyContent =
+        prompt !== '' ||
+        explanation !== '' ||
+        options.some((opt) => opt.answer_text !== '');
+
+    if (!qIdRaw && !hasAnyContent) {
+        return;
+    }
+
+    const draftQuestion = {
+        id: qIdRaw ? parseInt(qIdRaw, 10) : nextQId++,
+        question_text: prompt,
+        explanation,
+        weight,
+        options,
+    };
+
+    if (qIdRaw && currentQIndex >= 0 && currentQIndex < EXERCISE_QUESTIONS.length) {
+        EXERCISE_QUESTIONS[currentQIndex] = draftQuestion;
+    } else {
+        EXERCISE_QUESTIONS.push(draftQuestion);
+        currentQIndex = EXERCISE_QUESTIONS.length - 1;
+        document.getElementById('current-q-id').value = String(draftQuestion.id);
+    }
+
+    renderQuestionList();
+}
+
+function buildDraftPayload() {
+    return {
+        metadata: {
+            id: EXERCISE_METADATA.id || '',
+            title: EXERCISE_METADATA.title || '',
+            subject: EXERCISE_METADATA.subject || '',
+            description: EXERCISE_METADATA.description || '',
+            tags: EXERCISE_METADATA.tags || '',
+        },
+        questions: EXERCISE_QUESTIONS.map((q) => ({
+            id: q.id,
+            question_text: quillJsonToPlainText(q.question_text || q.prompt || ''),
+            explanation: quillJsonToPlainText(q.explanation || ''),
+            weight: q.weight ?? q.difficulty ?? 1,
+            difficulty: q.difficulty ?? q.weight ?? 1,
+            options: (q.options || []).map((opt) => ({
+                answer_text: quillJsonToPlainText(opt.answer_text ?? opt.text ?? ''),
+                is_correct: Boolean(opt.is_correct ?? opt.isCorrect),
+            })),
+        })),
+    };
+}
+
+async function persistDraft() {
+    upsertCurrentQuestionDraftState();
+
+    const payload = buildDraftPayload();
+    const res = await fetch(MOCK_API_SAVE_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+        throw new Error(result.message || 'Failed to save draft');
+    }
+
+    if (result.id) {
+        EXERCISE_METADATA.id = String(result.id);
+    }
+
+    return result;
+}
+
 function loadQuestion(index) {
     // UI State: Load a saved question from EXERCISE_QUESTIONS into the editor
     // Called when user clicks a question from left panel
@@ -447,28 +630,27 @@ document.getElementById('prev-q-btn').addEventListener('click', () => {
     }
 });
 
-document.getElementById('save-draft-btn').addEventListener('click', () => {
-    // Save Current Question button: UI-only save (no backend call)
-    // 1. Validate and save current question
-    // 2. Temporarily disable button for "Saving..." feedback
-    // 3. RE-ENABLE button after 500ms
-    // Editors stay fully active—user can immediately re-save or continue editing
-    
-    if (!saveCurrentQuestion()) {
-        return; // Validation failed, user stays on question
-    }
+document.getElementById('save-draft-btn').addEventListener('click', async () => {
+    updateMetadata();
 
     const saveBtn = document.getElementById('save-draft-btn');
     const original = saveBtn.textContent;
-    saveBtn.disabled = true; // Briefly disable button for UX feedback
+    saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
-    setTimeout(() => {
-        document.getElementById('draft-status').textContent = 'Draft Saved!';
+    try {
+        await persistDraft();
+        document.getElementById('draft-status').textContent = 'Draft Saved';
         document.getElementById('draft-status').style.color = 'var(--color-success)';
-        saveBtn.disabled = false; // RE-ENABLE—editors stay active
+    } catch (err) {
+        console.error('Draft save failed', err);
+        alert(err.message || 'Failed to save draft.');
+        document.getElementById('draft-status').textContent = 'Save failed';
+        document.getElementById('draft-status').style.color = 'var(--color-error)';
+    } finally {
+        saveBtn.disabled = false;
         saveBtn.textContent = original;
-    }, 500);
+    }
 });
 
 window.deleteQuestion = function (index) {
@@ -542,15 +724,17 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
         id: q.id,
         question_text: quillJsonToPlainText(q.question_text),
         explanation: quillJsonToPlainText(q.explanation),
-        weight: q.weight,
+        weight: q.weight ?? q.difficulty ?? 1,
+        difficulty: q.difficulty ?? q.weight ?? 1,
         options: (q.options || []).map(opt => ({
-            answer_text: quillJsonToPlainText(opt.answer_text),
-            is_correct: opt.is_correct
+            answer_text: quillJsonToPlainText(opt.answer_text ?? opt.text ?? ''),
+            is_correct: Boolean(opt.is_correct ?? opt.isCorrect)
         }))
     }));
 
     const payload = {
         metadata: {
+            id: EXERCISE_METADATA.id || '',
             title: EXERCISE_METADATA.title,
             subject: EXERCISE_METADATA.subject,
             description: EXERCISE_METADATA.description || null,
@@ -569,6 +753,9 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
         const result = await res.json();
         //redirecting
         if (res.status === 201 || (result && result.success)) {
+            if (result.id) {
+                EXERCISE_METADATA.id = String(result.id);
+            }
             alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${cleanedQuestions.length} questions.`);
             setTimeout(() => {
                 window.location.href = ROOT + 'exercises';
@@ -591,4 +778,15 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
 
 
 // Initial setup: Render options on load
-renderOptions();
+async function initializeView() {
+    renderOptions();
+    await loadSubjectOptions();
+
+    if (IS_EDIT_MODE && hydrateInitialData()) {
+        return;
+    }
+
+    updateBuilderUI();
+}
+
+initializeView();
