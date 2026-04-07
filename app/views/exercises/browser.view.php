@@ -20,7 +20,7 @@
             <button class="btn-filter" id="toggle-advanced-btn">Advanced</button>
             
             <button class="btn-filter" id="filter-btn">Search</button>
-            <a href="<?=ROOT?>/exercises/create" class="btn-create<?= !empty($data['can_create']) ? '' : ' is-disabled' ?>" <?= !empty($data['can_create']) ? '' : 'aria-disabled="true" tabindex="-1"' ?>>+ Create</a>
+            <a <?= !empty($data['can_create']) ? 'href="' . ROOT . '/exercises/create"' : 'data-href="' . ROOT . '/exercises/create"' ?> class="btn-create<?= !empty($data['can_create']) ? '' : ' is-disabled' ?>" <?= !empty($data['can_create']) ? '' : 'aria-disabled="true" tabindex="-1"' ?>>+ Create</a>
         </div>
 
         <!-- NEW: Advanced Filter Panel -->
@@ -86,7 +86,9 @@
                 echo '<div class="empty-state">';
                 echo '  <div class="empty-state-icon" aria-hidden="true">&#128218;</div>';
                 echo '  <p class="empty-state-message">No exercises found in this section</p>';
-                echo '  <a class="empty-state-link" href="' . ROOT . '/exercises/create">Create your first exercise</a>';
+                if (!empty($data['can_create'])) {
+                    echo '  <a class="empty-state-link" href="' . ROOT . '/exercises/create">Create your first exercise</a>';
+                }
                 echo '</div>';
             }
             ?>

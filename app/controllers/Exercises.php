@@ -10,7 +10,7 @@ class Exercises extends Controller
         if (!in_array($role, ['student', 'mentor', 'expert', 'admin'], true)) {
         $role = 'student';
         }
-        $can_create = ($role === 'mentor');
+        $can_create = in_array($role, ['mentor', 'expert', 'admin'], true);
         $can_edit = $can_create;
 
         // Initial load parameters
@@ -125,8 +125,8 @@ class Exercises extends Controller
         $current_user = (int)($_SESSION['user_id'] ?? 0);
         $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
-        if ($current_user <= 0 || $role !== 'mentor') {
-            $this->json_error('Only mentors can save drafts', 403);
+        if ($current_user <= 0 || !in_array($role, ['mentor', 'expert', 'admin'], true)) {
+            $this->json_error('Only authorized roles can save drafts', 403);
         }
 
         $data = $this->json_request();
@@ -193,7 +193,7 @@ class Exercises extends Controller
         $current_user = (int)($_SESSION['user_id'] ?? 0);
         $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
-        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+        if ($exercise_id <= 0 || $current_user <= 0 || !in_array($role, ['mentor', 'expert', 'admin'], true)) {
             header('Location: ' . ROOT . '/exercises?message=Unauthorized access');
             return;
         }
@@ -264,9 +264,9 @@ class Exercises extends Controller
             return;
         }
 
-        if ($role !== 'mentor') {
+        if (!in_array($role, ['mentor', 'expert', 'admin'], true)) {
             http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Only mentors can submit exercises.']);
+            echo json_encode(['success' => false, 'message' => 'Only authorized roles can submit exercises.']);
             return;
         }
 
@@ -802,7 +802,7 @@ class Exercises extends Controller
             $current_user = (int)($_SESSION['user_id'] ?? 0);
             $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
-            if ($current_user <= 0 || $role !== 'mentor' || (int)$exercise_data->creator_id !== $current_user) {
+            if ($current_user <= 0 || $role == 'student' || (int)$exercise_data->creator_id !== $current_user) {
                 header('Location: '.ROOT.'/exercises?message=Unauthorized access');
                 return;
             }
@@ -903,7 +903,7 @@ class Exercises extends Controller
         $current_user = (int)($_SESSION['user_id'] ?? 0);
         $role = strtolower(trim((string)($_SESSION['role'] ?? 'student')));
 
-        if ($exercise_id <= 0 || $current_user <= 0 || $role !== 'mentor') {
+        if ($exercise_id <= 0 || $current_user <= 0 || !in_array($role, ['mentor', 'expert', 'admin'], true)) {
             $this->json_error('Unauthorized request', 403);
         }
 
@@ -2305,7 +2305,7 @@ class Exercises extends Controller
         $limit = ($limit > 0 && $limit <= 100) ? $limit : 5;
         $offset = $offset >= 0 ? $offset : 0;
 
-        $can_create = ($role === 'mentor');
+        $can_create = in_array($role, ['mentor', 'expert', 'admin'], true);
         $can_edit = $can_create;
 
         $expert_subject_ids = $this->get_expert_subject_ids($role, $user_id);

@@ -107,12 +107,8 @@ class ExercisesModel
                 $where[] = "e.status = 'pending'";
                 $where[] = 'e.creator_id != :current_user_id';
                 $bind[':current_user_id'] = $user_id;
-                if ($role === 'admin') {
-                    // Admins can review all pending exercises.
-                }
-                // } else {
-                //     $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
-                // }
+                // Both Experts and Admins only see pending exercises for subjects they are experts in
+                $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
@@ -137,8 +133,8 @@ class ExercisesModel
                             $subject_placeholders[] = $key;
                             $bind[$key] = $val;
                         }
-                        // $where[] = "(e.status = 'approved' OR (e.status = 'pending' AND e.creator_id != :current_user_id AND e.subject_id IN (" . implode(', ', $subject_placeholders) . ")))";
-                        // $bind[':current_user_id'] = $user_id;
+                        $where[] = "(" . $visible_now_clause . " OR (e.status = 'pending' AND e.creator_id != :current_user_id AND e.subject_id IN (" . implode(', ', $subject_placeholders) . ")))";
+                        $bind[':current_user_id'] = $user_id;
                     } else {
                         $where[] = $visible_now_clause;
                     }

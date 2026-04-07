@@ -1,4 +1,4 @@
-import {ROOT} from "../../core/config.js";
+import { ROOT } from "../../core/config.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabsContainer = document.getElementById('tabs-container');
     const loadMoreBtn = document.getElementById('load-more-btn');
     const roleHost = document.querySelector('.main-content-container');
-    
+
     // Filter Elements
     const filterInput = document.getElementById('exercise-filter-input');
     const filterBtn = document.getElementById('filter-btn');
@@ -45,11 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (r === 'mentor') {
             hideEl(pendingTab);
         } else if (r === 'expert') {
-            hideEl(createdTab);
-            hideEl(createBtn);
+            // Can see both pendingTab and createBtn/createdTab
         } else if (r === 'admin') {
-            hideEl(createdTab);
-            hideEl(createBtn);
+            // Can see both pendingTab and createBtn/createdTab
         }
 
         // if active tab is hidden, switch to "all"
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-     // --- State ---
+    // --- State ---
     let currentTab = INITIAL_TAB;
     let currentCreatedSubtab = 'created_published';
     let offset = INITIAL_OFFSET;
@@ -114,18 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < subject.length; i++) {
             hash = subject.charCodeAt(i) + ((hash << 5) - hash);
         }
-        const h = hash % 360; 
-        const s = 60 + (hash % 20); 
-        const l = 85 + (hash % 10); 
+        const h = hash % 360;
+        const s = 60 + (hash % 20);
+        const l = 85 + (hash % 10);
         const background = `hsl(${h}, ${s}%, ${l}%)`;
-        const textL = l - 60; 
+        const textL = l - 60;
         const textColor = `hsl(${h}, ${s}%, ${textL}%)`;
         return { background, color: textColor };
     }
-    
+
     function applyDynamicPillColors() {
         const pills = document.querySelectorAll('.subject-pill');
-        const colorCache = {}; 
+        const colorCache = {};
 
         pills.forEach(pill => {
             const subject = pill.getAttribute('data-subject');
@@ -199,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Create link wrapper
             const link = document.createElement('a');
             link.className = "no-style-link";
-            
+
             // Determine endpoint based on tab/logic
             let endpoint = "attempt";
             if (currentTab === 'pending') endpoint = "expertreview";
@@ -207,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 endpoint = currentCreatedSubtab === 'created_draft' ? 'edit' : 'mentorview';
             }
             if (currentTab === 'attempted') endpoint = "show";
-            
+
             link.href = `${ROOT}/exercises/${endpoint}?id=${exercise.id}`;
 
             const statusText = String(exercise.status || '').toLowerCase();
@@ -215,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusTag = showStatusTag
                 ? `<span class="status-pill status-${statusText || 'draft'}">${statusText || 'draft'}</span>`
                 : '';
-            
+
             link.innerHTML = `
                 <div class="exercise-item" data-id="${exercise.id}">
                     <span class="exercise-title-list">${exercise.title}</span>
@@ -229,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         listContainer.appendChild(fragment);
-        
+
         applyDynamicPillColors();
     }
 
@@ -246,11 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Call the endpoint (Requires ExercisesController::filter method)
         const response = await fetch(`${ROOT}/exercises/filter?${searchParams.toString()}`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         return await response.json();
     }
 
@@ -276,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const data = await fetchExercises(requestParams);
-            
+
             // Backend should return { exercises: [], has_more: bool }
             renderExercises(data.exercises);
 
@@ -318,10 +316,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            
+
             currentTab = nextTab;
             toggleCreatedSubtabs();
-            loadData(true); 
+            loadData(true);
         }
     });
 
@@ -343,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filterInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') loadData(true);
     });
-    
+
     // 4. Advanced Filters triggers
     subjectFilter.addEventListener('change', () => loadData(true));
     sortFilter.addEventListener('change', () => loadData(true));
