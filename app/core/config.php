@@ -9,7 +9,7 @@ define('SERVER_ROOT', dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR)
 if ($_SERVER["SERVER_NAME"] == "localhost")
 {
     // /** database config **/
-    define('DBNAME', 'openminds_navodya');
+    define('DBNAME', 'openminds');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
     define('DBPASS', '1234');
