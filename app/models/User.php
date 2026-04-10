@@ -6,17 +6,31 @@ class User
 
     protected $table = 'user';
 
-    public function get_role($user_id)
+    public function get_role($user_or_role_id)
     {
-        $roles = new Roles;
-
-        $results = $this->first(['id'=>$user_id]);
-
-        if ($results === false) {
-            return $results;
+        $id = (int)$user_or_role_id;
+        if ($id <= 0) {
+            return 'student';
         }
 
-        return $roles->get_role($results->role);
+        $roles = new Roles;
+
+        // First, support callers that pass a direct role_id.
+        $role_name = $roles->get_role($id);
+        if (!$role_name) {
+            // Backward compatibility: many callers pass a user_id.
+            $user = $this->first(['id' => $id]);
+            if ($user === false || !isset($user->role)) {
+                return 'student';
+            }
+
+            $role_name = $roles->get_role((int)$user->role);
+            if (!$role_name) {
+                return 'student';
+            }
+        }
+
+        return strtolower(trim((string)$role_name));
 
     }
 

@@ -3,6 +3,9 @@
                
                $nav_role = $_SESSION['role'] ?? null;
 
+            //    include_once '../app/views/partials/header.view.php';
+
+
             //    include "C:\xampp\htdocs\Openminds\public\assets\css\analysis\systemview.view.css";
 
                if ($nav_role && $nav_role === "admin"){
@@ -47,7 +50,7 @@
         </div>
     </div> -->
 </nav>
-<div class="nav-placeholder"></div>
+<!-- <div class="nav-placeholder"></div> -->
 
 <script type="module">
     const ROOT = "<?=ROOT?>";
@@ -75,6 +78,7 @@
         --sidebar-width: 260px;
         --rsidebar-width: 350px;
         --sidebar-collapsed-width: 70px;
+        --rsidebar-collapsed-width: 100px;
         --space-xl: 2rem;
     }
 
@@ -107,7 +111,7 @@
     }
 
     .rsidebar-container.collapsed {
-        width: var(--sidebar-collapsed-width);
+        width: var(--rsidebar-collapsed-width);
     }
 
     .rsidebar-header {
@@ -448,25 +452,59 @@
         left: 100%; /* Keep it pushed out */
     }
 
-    #navbar-notes-kpi .kpi-card {
+    .kpi-card {
         background-color: var(--color-blue-50);
         padding: 1rem;
         margin-bottom: 1rem;
         border: 1px solid var(--color-blue-100);
         border-radius: var(--radius-md);
+        transition: all 0.3s ease;
     }
-    #navbar-notes-kpi .kpi-title {
+    .kpi-title {
         font-size: 0.75rem;
         color: var(--color-text-light);
         margin-bottom: 0.25rem;
     }
-    #navbar-notes-kpi .kpi-value {
+    .kpi-value {
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--color-primary-accent);
+        transition: font-size 0.3s ease;
     }
-    #navbar-notes-kpi .kpi-change {
+    .kpi-change {
         font-size: 0.75rem;
+    }
+
+    .overview-grid {
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        /* 4 columns for 4 KPIs */
+        grid-template-rows: repeat(2, 1fr);
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    /* Collapsed state for KPI cards */
+    .collapsed .overview-grid {
+        grid-template-columns: 2fr;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .collapsed .kpi-card {
+        padding: 1rem;
+        margin-bottom: 0;
+        text-align: center;
+    }
+
+    .collapsed .kpi-title,
+    .collapsed .kpi-change {
+        display: none;
+    }
+
+    .collapsed .kpi-value {
+        font-size: 1.5rem;
     }
 
     /* Focus Timer Squares UI */
@@ -476,6 +514,7 @@
         gap: 1rem;
         margin-bottom: 1.5rem;
         padding: 0 0.5rem;
+        transition: all 0.3s ease;
     }
 
     .focus-square {
@@ -489,6 +528,7 @@
         text-align: center;
         padding: 1rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
     }
 
     /* Big square for Today */
@@ -512,6 +552,7 @@
         font-size: 2rem;
         font-weight: 800;
         line-height: 1;
+        transition: font-size 0.3s ease;
     }
     
     .focus-square.today .focus-unit {
@@ -535,6 +576,7 @@
         font-size: 1.25rem;
         font-weight: 700;
         color: var(--color-text-dark);
+        transition: font-size 0.3s ease;
     }
     
     .focus-square.yesterday .focus-unit {
@@ -542,7 +584,7 @@
         color: var(--color-text-light);
     }
 
-        /* Smaller square for target */
+    /* Smaller square for target */
     .focus-square.target {
         width: 90px;
         height: 90px;
@@ -557,11 +599,43 @@
         font-size: 1.25rem;
         font-weight: 700;
         color: var(--color-text-dark);
+        transition: font-size 0.3s ease;
     }
     
     .focus-square.target .focus-unit {
         font-size: 0.7rem;
         color: var(--color-text-light);
+    }
+
+    /* Collapsed state for Focus Timer Squares */
+    .collapsed .focus-timer-squares {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0;
+    }
+
+    .collapsed .focus-square,
+    .collapsed .focus-square.today,
+    .collapsed .focus-square.yesterday,
+    .collapsed .focus-square.target {
+        width: 60px;
+        height: 60px;
+        padding: 0.5rem;
+    }
+
+    .collapsed .focus-square .focus-title{
+        display: block;
+    }
+    .collapsed .focus-square .focus-unit {
+        display: none;
+    }
+
+    .collapsed .focus-square .focus-value,
+    .collapsed .focus-square.today .focus-value,
+    .collapsed .focus-square.yesterday .focus-value,
+    .collapsed .focus-square.target .focus-value {
+        font-size: 1.5rem;
     }
 </style>
 
@@ -580,7 +654,7 @@
             <div class="rnav-header"><br>YOUR PROGRESS</div>
 
             <!-- kpi-cards -->
-            <div id="navbar-notes-kpi">
+                    <section class="overview-grid" id="overview-panel">
                 <div class="kpi-card">
                     <div class="kpi-title">Total Notes</div>
                     <div class="kpi-value" id="stat-notes">0</div>
@@ -602,6 +676,7 @@
                     <div class="kpi-change" id="change-consistency"></div>
                 </div>
             </div>
+            </section>
             
             <div class="rnav-header" style="margin-top: 2rem;">FOCUS TIMER</div>
             <div class="focus-timer-squares">

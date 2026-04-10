@@ -74,8 +74,10 @@ App::post('exercises/create', 'Exercises@create');
 App::post('exercises/attempt', 'Exercises@attempt'); // POST submission
 App::get('exercises/attempt', 'Exercises@attempt'); // GET view
 App::get('exercises/show', 'Exercises@show');
+App::get('exercises/mentorview', 'Exercises@mentorview');
 App::get('exercises/edit', 'Exercises@edit');
 App::post('exercises/edit', 'Exercises@edit');
+App::post('exercises/toggleVisibility', 'Exercises@toggleVisibility');
 App::post('exercises/delete', 'Exercises@delete');
 App::get('exercises/hide', 'Exercises@hide');
 App::get('exercises/expertreview', 'Exercises@expertreview');
@@ -101,9 +103,11 @@ App::post('exercises/api/reject_exercise', 'Exercises@api_reject_exercise');
 
 // Browsing and Filtering (R6)
 App::get('exercises/api/published', 'Exercises@api_get_published');
+App::get('exercises/api/subjects', 'Exercises@api_subjects');
 
 // API: Create Exercise (NEW)
 App::post('api/exercises/create', 'Exercises@api_create');
+App::post('exercises/api/save_draft', 'Exercises@api_save_draft');
 
 // Attempting and Results (R7, R9)
 App::post('exercises/api/attempt/{exercise_id}', 'Exercises@api_submit_attempt');

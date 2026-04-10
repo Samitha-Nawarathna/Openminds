@@ -2,6 +2,7 @@ import { ROOT } from '../../core/config.js';
 
 const MOCK_API_SAVE_URL = ROOT + 'exercises/api/save_draft';
 const MOCK_API_SUBMIT_URL = ROOT + 'api/exercises/create';
+const API_SUBJECTS_URL = ROOT + 'exercises/api/subjects';
 
 // Convert Quill delta JSON string/object to plain text so UI stays readable.
 function quillJsonToPlainText(input) {
@@ -98,13 +99,15 @@ function setEditorContent(id, content) {
             el.textContent = safeContent;
         }
     }
-} 
+}
 
 // --- GLOBAL STATE ---
 let EXERCISE_METADATA = {};
 let EXERCISE_QUESTIONS = [];
 let currentQIndex = -1; // -1 means no question is selected/being edited.
 let nextQId = 1;
+const INITIAL_DATA = window.EXERCISE_INITIAL_DATA || {};
+const IS_EDIT_MODE = Boolean(window.EXERCISE_IS_EDIT_MODE);
 
 // --- DOM Elements ---
 const setupModal = document.getElementById('setup-modal');
@@ -118,11 +121,106 @@ const submitModal = document.getElementById('submit-modal');
 // NEW DOM ELEMENT REFERENCE
 const editMetadataBtn = document.getElementById('edit-metadata-btn');
 
+async function loadSubjectOptions() {
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    if (!subjectSelect) return;
+
+    // Keep placeholder and clear old dynamic options.
+    subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+
+    try {
+        const res = await fetch(API_SUBJECTS_URL, { headers: { 'Accept': 'application/json' } });
+        const result = await res.json();
+
+        if (!res.ok || !result.success || !Array.isArray(result.subjects)) {
+            throw new Error(result.message || 'Failed to load subjects.');
+        }
+
+        result.subjects.forEach((subject) => {
+            const option = document.createElement('option');
+            option.value = String(subject.id);
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
+        });
+
+        // Restore previously selected value after reload when possible.
+        if (EXERCISE_METADATA.subject) {
+            subjectSelect.value = String(EXERCISE_METADATA.subject);
+        }
+    } catch (err) {
+        console.error('Could not load subjects', err);
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Unable to load subjects';
+        subjectSelect.appendChild(option);
+        subjectSelect.disabled = true;
+    }
+}
+
+function normalizeInitialQuestion(question, index) {
+    const options = Array.isArray(question.options) ? question.options : [];
+
+    return {
+        id: question.id ? parseInt(question.id) : index + 1,
+        question_text: question.question_text || question.prompt || '',
+        explanation: question.explanation || '',
+        weight: question.weight ?? 1,
+        options: options.map((option) => ({
+            text: option.text ?? option.answer_text ?? '',
+            isCorrect: Boolean(option.isCorrect ?? option.is_correct),
+        })),
+    };
+}
+
+function hydrateInitialData() {
+    const metadata = INITIAL_DATA.metadata || {};
+    const questions = Array.isArray(INITIAL_DATA.questions) ? INITIAL_DATA.questions : [];
+
+    if (!metadata.title) {
+        return false;
+    }
+
+    EXERCISE_METADATA = {
+        id: metadata.id || '',
+        title: metadata.title || '',
+        subjectId: metadata.subjectId || '',
+        subject: metadata.subject || '',
+        description: metadata.description || '',
+        tags: metadata.tags || '',
+    };
+
+    EXERCISE_QUESTIONS = questions.map((question, index) => normalizeInitialQuestion(question, index));
+    nextQId = EXERCISE_QUESTIONS.reduce((maxId, question) => Math.max(maxId, question.id || 0), 0) + 1;
+
+    const subjectSelect = document.getElementById('exercise-subject-input');
+    document.getElementById('exercise-title-input').value = EXERCISE_METADATA.title;
+    if (subjectSelect) {
+        subjectSelect.value = String(EXERCISE_METADATA.subjectId || '');
+    }
+    document.getElementById('exercise-description-input').value = EXERCISE_METADATA.description;
+    document.getElementById('exercise-tags-input').value = EXERCISE_METADATA.tags;
+
+    setupModal.style.display = 'none';
+    mainBuilderContent.style.display = 'flex';
+    controlBar.style.display = 'flex';
+
+    renderQuestionList();
+    if (EXERCISE_QUESTIONS.length > 0) {
+        loadQuestion(0);
+    } else {
+        addNewQuestion();
+    }
+
+    updateBuilderUI(true);
+    return true;
+}
+
 // --- STEP 1: SETUP MODAL LOGIC ---
 
 // Function to handle the actual saving of form data and closing the modal
 function updateMetadata() {
     EXERCISE_METADATA = {
+        id: EXERCISE_METADATA.id || '',
         title: document.getElementById('exercise-title-input').value,
         subject: document.getElementById('exercise-subject-input').value,
         description: document.getElementById('exercise-description-input').value,
@@ -199,22 +297,11 @@ function generateOptionHtml(index, text = '', isCorrect = false) {
     `;
 }
 
-<<<<<<< HEAD
-function renderOptions(options = [{ text: '', isCorrect: true }, { text: '', isCorrect: false }]) {
-    optionsContainer.innerHTML = options.map((opt, index) => generateOptionHtml(index, opt.text, opt.isCorrect)).join('');
-}
-
-window.removeOption = function (el, index) {
-    if (optionsContainer.children.length > 2) {
-        el.parentElement.remove();
-    } else {
-        alert('An exercise must have at least two options.');
-=======
 // Render at least 4 options (A-D) so all are visible without extra scrolling.
 function renderOptions(options = []) {
     const padded = [...options];
     while (padded.length < 4) {
-        padded.push({text: '', is_correct: padded.length === 0});
+        padded.push({ text: '', is_correct: padded.length === 0 });
     }
 
     optionsContainer.innerHTML = padded.map((opt, index) => {
@@ -222,14 +309,13 @@ function renderOptions(options = []) {
         const isCorrect = opt.isCorrect ?? opt.is_correct ?? false;
         return generateOptionHtml(index, text, isCorrect);
     }).join('');
-} 
+}
 
-window.removeOption = function(el, index) {
+window.removeOption = function (el, index) {
     // Keep a minimum of 4 options visible per requirements.
     if (optionsContainer.children.length <= 4) {
         alert('An exercise must keep at least four options.');
         return;
->>>>>>> navodya
     }
     el.parentElement.remove();
 }
@@ -245,18 +331,10 @@ function saveCurrentQuestion() {
     const prompt = getEditorContent('q-prompt-input').trim();
     const explanation = getEditorContent('q-explanation-input').trim();
     const weight = parseInt(document.getElementById('q-weight-input').value);
-<<<<<<< HEAD
-
-    if (!prompt || !explanation || isNaN(weight)) {
-        alert('Please fill out the prompt, explanation, and weight.');
-        return false;
-=======
-    
     // VALIDATE: prompt, explanation, weight >= 1
-    if (!prompt  || isNaN(weight) || weight < 1) {
+    if (!prompt || isNaN(weight) || weight < 1) {
         alert('Please fill out the prompt, explanation, and weight (>=1).');
         return false; // Validation failed, do not save
->>>>>>> navodya
     }
 
     // Collect options from DOM (minimum 4 required)
@@ -264,14 +342,8 @@ function saveCurrentQuestion() {
         answer_text: (div.querySelector(`#option-text-${index}`) ? getEditorContent(`option-text-${index}`) : '').trim(),
         is_correct: !!div.querySelector(`input[name="correct-option"]`).checked,
     }));
-<<<<<<< HEAD
-
-    if (options.filter(o => o.isCorrect).length === 0) {
-=======
-    
     // VALIDATE: at least one correct option selected
     if (options.filter(o => o.is_correct).length === 0) {
->>>>>>> navodya
         alert('Please select at least one correct answer.');
         return false; // Validation failed, do not save
     }
@@ -295,89 +367,149 @@ function saveCurrentQuestion() {
         // Add to array, update currentQIndex to track this new position
         EXERCISE_QUESTIONS.push(newQ);
         currentQIndex = EXERCISE_QUESTIONS.length - 1;
-<<<<<<< HEAD
-        document.getElementById('current-q-id').value = newQ.id;
-    }
-
-=======
         // CRITICAL: Set qId field immediately so NEXT save is UPDATE not INSERT
         // This prevents duplicates when user re-saves the same question
         document.getElementById('current-q-id').value = newQ.id;
     }
-    
+
     // Refresh UI to reflect saved state
->>>>>>> navodya
     renderQuestionList();
     updateBuilderUI(true);
     return true; // Save succeeded
+}
+
+function upsertCurrentQuestionDraftState() {
+    const qIdRaw = document.getElementById('current-q-id').value;
+    const prompt = getEditorContent('q-prompt-input').trim();
+    const explanation = getEditorContent('q-explanation-input').trim();
+    const weightInput = parseInt(document.getElementById('q-weight-input').value, 10);
+    const weight = Number.isFinite(weightInput) && weightInput > 0 ? weightInput : 1;
+
+    const options = Array.from(optionsContainer.children).map((div, index) => ({
+        answer_text: (div.querySelector(`#option-text-${index}`) ? getEditorContent(`option-text-${index}`) : '').trim(),
+        is_correct: !!div.querySelector(`input[name="correct-option"]`)?.checked,
+    }));
+
+    const hasAnyContent =
+        prompt !== '' ||
+        explanation !== '' ||
+        options.some((opt) => opt.answer_text !== '');
+
+    if (!qIdRaw && !hasAnyContent) {
+        return;
+    }
+
+    const draftQuestion = {
+        id: qIdRaw ? parseInt(qIdRaw, 10) : nextQId++,
+        question_text: prompt,
+        explanation,
+        weight,
+        options,
+    };
+
+    if (qIdRaw && currentQIndex >= 0 && currentQIndex < EXERCISE_QUESTIONS.length) {
+        EXERCISE_QUESTIONS[currentQIndex] = draftQuestion;
+    } else {
+        EXERCISE_QUESTIONS.push(draftQuestion);
+        currentQIndex = EXERCISE_QUESTIONS.length - 1;
+        document.getElementById('current-q-id').value = String(draftQuestion.id);
+    }
+
+    renderQuestionList();
+}
+
+function buildDraftPayload() {
+    return {
+        metadata: {
+            id: EXERCISE_METADATA.id || '',
+            title: EXERCISE_METADATA.title || '',
+            subject: EXERCISE_METADATA.subject || '',
+            description: EXERCISE_METADATA.description || '',
+            tags: EXERCISE_METADATA.tags || '',
+        },
+        questions: EXERCISE_QUESTIONS.map((q) => ({
+            id: q.id,
+            question_text: quillJsonToPlainText(q.question_text || q.prompt || ''),
+            explanation: quillJsonToPlainText(q.explanation || ''),
+            weight: q.weight ?? q.difficulty ?? 1,
+            difficulty: q.difficulty ?? q.weight ?? 1,
+            options: (q.options || []).map((opt) => ({
+                answer_text: quillJsonToPlainText(opt.answer_text ?? opt.text ?? ''),
+                is_correct: Boolean(opt.is_correct ?? opt.isCorrect),
+            })),
+        })),
+    };
+}
+
+async function persistDraft() {
+    upsertCurrentQuestionDraftState();
+
+    const payload = buildDraftPayload();
+    const res = await fetch(MOCK_API_SAVE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+        throw new Error(result.message || 'Failed to save draft');
+    }
+
+    if (result.id) {
+        EXERCISE_METADATA.id = String(result.id);
+    }
+
+    return result;
 }
 
 function loadQuestion(index) {
     // UI State: Load a saved question from EXERCISE_QUESTIONS into the editor
     // Called when user clicks a question from left panel
     // After loading, all editor inputs remain fully editable
-    
+
     currentQIndex = index;
 
     renderQuestionList();
 
     const q = EXERCISE_QUESTIONS[index];
-<<<<<<< HEAD
-
-=======
-    
     // Set hidden qId field so next save is UPDATE not INSERT
->>>>>>> navodya
     document.getElementById('current-q-id').value = q.id;
-    
+
     // Load question data into editor fields
     // setEditorContent() handles JSON normalization automatically
     setEditorContent('q-prompt-input', q.question_text ?? q.prompt ?? '');
     setEditorContent('q-explanation-input', q.explanation ?? '');
     document.getElementById('q-weight-input').value = q.weight ?? 1;
     document.getElementById('current-q-title').textContent = `Question Editor: Q${index + 1}`;
-<<<<<<< HEAD
-
-    renderOptions(q.options);
-=======
-    
     // Re-render option editors with this question's option data
     renderOptions(q.options ?? []);
->>>>>>> navodya
     updateBuilderUI();
-} 
+}
 
 window.loadQuestion = loadQuestion;
 
 function addNewQuestion() {
-<<<<<<< HEAD
-    if (!saveCurrentQuestion()) {
-        return; // Don't proceed if save fails
-    }
-
-    currentQIndex = -1; // Mark as new question mode
-=======
     // UI State: Create a fresh new question editor
     // First, save current question if one exists
     if (currentQIndex !== -1 && !saveCurrentQuestion()) {
-         return; // Don't proceed if save fails (user stays on current question)
+        return; // Don't proceed if save fails (user stays on current question)
     }
-    
+
     // Mark as new question mode (empty qId = INSERT on next save, not UPDATE)
     currentQIndex = -1;
->>>>>>> navodya
     document.getElementById('current-q-id').value = '';
     document.getElementById('current-q-title').textContent = `Question Editor: New`;
-    
+
     // Reset form to clear all HTML inputs
     qEditorForm.reset();
-    
+
     // IMPORTANT: Explicitly clear Quill editor content via setEditorContent()
     // form.reset() alone does NOT clear quill-editor web components
     // Without this, old question text persists visually in editor
     setEditorContent('q-prompt-input', '');
     setEditorContent('q-explanation-input', '');
-    
+
     // Render 4 blank options (minimum required by system)
     renderOptions();
     updateBuilderUI();
@@ -418,57 +550,51 @@ document.getElementById('save-next-btn').addEventListener('click', () => {
     // 2. If save fails, show error and do NOT proceed
     // 3. If save succeeds, immediately open fresh blank editor
     // Previous questions stay in memory, fully editable (never locked)
-    
+
     if (!saveCurrentQuestion()) {
         return; // Validation failed, user stays on current question for correction
     }
-    
+
     // Save succeeded, now create fresh blank question editor
     addNewQuestion();
 });
 
 document.getElementById('prev-q-btn').addEventListener('click', () => {
-<<<<<<< HEAD
-    // Ensure the current question is saved when navigating backward
-    if (saveCurrentQuestion() && currentQIndex > 0) {
-=======
     // Previous button: Save-before-navigate pattern
     // 1. Save current question (return if validation fails)
     // 2. If currentQIndex > 0, load previous question for editing
     // Previous questions remain fully editable—no data locked
-    
+
     if (!saveCurrentQuestion()) {
         return; // Validation failed, stay on current question
     }
-    
+
     if (currentQIndex > 0) {
->>>>>>> navodya
         loadQuestion(currentQIndex - 1);
     }
 });
 
-document.getElementById('save-draft-btn').addEventListener('click', () => {
-    // Save Current Question button: UI-only save (no backend call)
-    // 1. Validate and save current question
-    // 2. Temporarily disable button for "Saving..." feedback
-    // 3. RE-ENABLE button after 500ms
-    // Editors stay fully active—user can immediately re-save or continue editing
-    
-    if (!saveCurrentQuestion()) {
-        return; // Validation failed, user stays on question
-    }
+document.getElementById('save-draft-btn').addEventListener('click', async () => {
+    updateMetadata();
 
     const saveBtn = document.getElementById('save-draft-btn');
     const original = saveBtn.textContent;
-    saveBtn.disabled = true; // Briefly disable button for UX feedback
+    saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
-    setTimeout(() => {
-        document.getElementById('draft-status').textContent = 'Draft Saved!';
+    try {
+        await persistDraft();
+        document.getElementById('draft-status').textContent = 'Draft Saved';
         document.getElementById('draft-status').style.color = 'var(--color-success)';
-        saveBtn.disabled = false; // RE-ENABLE—editors stay active
+    } catch (err) {
+        console.error('Draft save failed', err);
+        alert(err.message || 'Failed to save draft.');
+        document.getElementById('draft-status').textContent = 'Save failed';
+        document.getElementById('draft-status').style.color = 'var(--color-error)';
+    } finally {
+        saveBtn.disabled = false;
         saveBtn.textContent = original;
-    }, 500);
+    }
 });
 
 window.deleteQuestion = function (index) {
@@ -515,18 +641,6 @@ document.getElementById('cancel-submit-btn').addEventListener('click', () => {
     submitModal.style.display = 'none';
 });
 
-<<<<<<< HEAD
-document.getElementById('confirm-submit-btn').addEventListener('click', () => {
-    console.log('API: Submitting FINAL exercise for review...', { metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS });
-    fetch(MOCK_API_SUBMIT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metadata: EXERCISE_METADATA, questions: EXERCISE_QUESTIONS }),
-    })
-    alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${EXERCISE_QUESTIONS.length} questions. Redirecting...`);
-    // In a real app: Redirect to the dashboard or a success page.
-    // window.location.href = '<?= $ROOT ?>/dashboard';
-=======
 document.getElementById('confirm-submit-btn').addEventListener('click', async () => {
     if (!EXERCISE_METADATA.title) {
         alert('Please provide exercise details before submitting.');
@@ -542,15 +656,17 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
         id: q.id,
         question_text: quillJsonToPlainText(q.question_text),
         explanation: quillJsonToPlainText(q.explanation),
-        weight: q.weight,
+        weight: q.weight ?? q.difficulty ?? 1,
+        difficulty: q.difficulty ?? q.weight ?? 1,
         options: (q.options || []).map(opt => ({
-            answer_text: quillJsonToPlainText(opt.answer_text),
-            is_correct: opt.is_correct
+            answer_text: quillJsonToPlainText(opt.answer_text ?? opt.text ?? ''),
+            is_correct: Boolean(opt.is_correct ?? opt.isCorrect)
         }))
     }));
 
     const payload = {
         metadata: {
+            id: EXERCISE_METADATA.id || '',
             title: EXERCISE_METADATA.title,
             subject: EXERCISE_METADATA.subject,
             description: EXERCISE_METADATA.description || null,
@@ -562,17 +678,20 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
     try {
         const res = await fetch(MOCK_API_SUBMIT_URL, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
         const result = await res.json();
         //redirecting
         if (res.status === 201 || (result && result.success)) {
+            if (result.id) {
+                EXERCISE_METADATA.id = String(result.id);
+            }
             alert(`SUCCESS! Exercise "${EXERCISE_METADATA.title}" submitted with ${cleanedQuestions.length} questions.`);
             setTimeout(() => {
                 window.location.href = ROOT + 'exercises';
-                }, 800);
+            }, 800);
 
         } else {
             alert('Error: ' + (result.message || 'Unknown error from server.'));
@@ -586,9 +705,19 @@ document.getElementById('confirm-submit-btn').addEventListener('click', async ()
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit for Review';
     }
->>>>>>> navodya
 });
 
 
 // Initial setup: Render options on load
-renderOptions();
+async function initializeView() {
+    renderOptions();
+    await loadSubjectOptions();
+
+    if (IS_EDIT_MODE && hydrateInitialData()) {
+        return;
+    }
+
+    updateBuilderUI();
+}
+
+initializeView();

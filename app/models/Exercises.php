@@ -6,6 +6,18 @@ class ExercisesModel
 
     protected $table = 'exercises';
 
+    public function get_exercise_attempt_stats(int $exercise_id): array
+    {
+        $sql = "SELECT COUNT(*) AS attempt_count, COALESCE(AVG(score), 0) AS average_score FROM exercise_attempt WHERE exe_id = :exercise_id";
+        $rows = $this->query($sql, [':exercise_id' => $exercise_id]);
+        $row = $rows[0] ?? null;
+
+        return [
+            'attempt_count' => (int)($row->attempt_count ?? 0),
+            'average_score' => (float)($row->average_score ?? 0),
+        ];
+    }
+
     public function get_browser_list(array $params)
     {
         $role = strtolower(trim($params['role'] ?? 'student'));
@@ -26,11 +38,28 @@ class ExercisesModel
         $bind = [];
 
         $attempt_join = "";
+        $visible_now_clause = "(e.status = 'approved' OR (e.status = 'hidden' AND e.updated_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)))";
 
         if ($tab === 'attempted') {
             $attempt_join = " INNER JOIN exercise_attempt ea ON ea.exe_id = e.id AND ea.u_id = :attempt_user_id";
             $bind[':attempt_user_id'] = $user_id;
         }
+
+        $add_status_clause = function (array $statuses, $prefix = 'status') use (&$bind, &$where) {
+            if (empty($statuses)) {
+                $where[] = '1 = 0';
+                return;
+            }
+
+            $status_placeholders = [];
+            foreach (array_values($statuses) as $idx => $status) {
+                $key = ':' . $prefix . '_' . $idx;
+                $status_placeholders[] = $key;
+                $bind[$key] = $status;
+            }
+
+            $where[] = 'e.status IN (' . implode(', ', $status_placeholders) . ')';
+        };
 
         $add_in_clause = function ($column, $values, $prefix) use (&$bind, &$where) {
             if (empty($values)) {
@@ -48,10 +77,10 @@ class ExercisesModel
         };
 
         if ($role === 'student') {
-            if ($tab === 'created' || $tab === 'pending') {
+            if ($tab === 'created' || $tab === 'created_published' || $tab === 'created_draft' ) {
                 $where[] = '1 = 0';
             } else {
-                $where[] = "e.status = 'approved'";
+                $where[] = $visible_now_clause;
             }
         } elseif ($role === 'mentor') {
             if ($tab === 'pending') {
@@ -59,10 +88,18 @@ class ExercisesModel
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
+            } elseif ($tab === 'created_published') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['approved'], 'created_published_status');
+            } elseif ($tab === 'created_draft') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['draft', 'pending', 'reject'], 'created_draft_status');
             } elseif ($tab === 'attempted') {
-                $where[] = "e.status = 'approved'";
+                $where[] = $visible_now_clause;
             } else {
-                $where[] = "(e.status = 'approved' OR e.creator_id = :creator_id)";
+                $where[] = "(" . $visible_now_clause . " OR e.creator_id = :creator_id)";
                 $bind[':creator_id'] = $user_id;
             }
         } elseif ($role === 'expert' || $role === 'admin') {
@@ -70,19 +107,24 @@ class ExercisesModel
                 $where[] = "e.status = 'pending'";
                 $where[] = 'e.creator_id != :current_user_id';
                 $bind[':current_user_id'] = $user_id;
-                if ($role === 'admin') {
-                    // Admins can review all pending exercises.
-                } else {
-                    $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
-                }
+                // Both Experts and Admins only see pending exercises for subjects they are experts in
+                $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
+            } elseif ($tab === 'created_published') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['approved'], 'created_published_status');
+            } elseif ($tab === 'created_draft') {
+                $where[] = 'e.creator_id = :creator_id';
+                $bind[':creator_id'] = $user_id;
+                $add_status_clause(['draft', 'pending', 'reject'], 'created_draft_status');
             } elseif ($tab === 'attempted') {
-                $where[] = "e.status = 'approved'";
+                $where[] = $visible_now_clause;
             } else {
                 if ($role === 'admin') {
-                    $where[] = "(e.status = 'approved' OR e.status = 'pending')";
+                    $where[] = "(" . $visible_now_clause . " OR e.status = 'pending')";
                 } else {
                     if (!empty($expert_subject_ids)) {
                         $subject_placeholders = [];
@@ -91,15 +133,15 @@ class ExercisesModel
                             $subject_placeholders[] = $key;
                             $bind[$key] = $val;
                         }
-                        $where[] = "(e.status = 'approved' OR (e.status = 'pending' AND e.creator_id != :current_user_id AND e.subject_id IN (" . implode(', ', $subject_placeholders) . ")))";
+                        $where[] = "(" . $visible_now_clause . " OR (e.status = 'pending' AND e.creator_id != :current_user_id AND e.subject_id IN (" . implode(', ', $subject_placeholders) . ")))";
                         $bind[':current_user_id'] = $user_id;
                     } else {
-                        $where[] = "e.status = 'approved'";
+                        $where[] = $visible_now_clause;
                     }
                 }
             }
         } else {
-            $where[] = "e.status = 'approved'";
+            $where[] = $visible_now_clause;
         }
 
         if ($subject_filter !== '') {
@@ -128,7 +170,7 @@ class ExercisesModel
             $where_sql = ' WHERE ' . implode(' AND ', $where);
         }
 
-        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, s.name AS subject, u.username AS creator_name";
+        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name";
         $from_sql = " FROM exercises e" . $attempt_join . $joins;
         $order_sql = " ORDER BY {$order_by} {$order_dir}";
 
