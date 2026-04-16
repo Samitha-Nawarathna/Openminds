@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (r === 'expert') {
             // Can see both pendingTab and createBtn/createdTab
         } else if (r === 'admin') {
+            hideEl(createdTab);
+            hideEl(pendingTab);
+            hideEl(createBtn);
             // Can see both pendingTab and createBtn/createdTab
         }
 
@@ -66,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5;
 
     const roleFromDom = (roleHost?.dataset?.userRole || USER_ROLE || 'student').trim().toLowerCase();
-    const canViewPending = roleFromDom === 'expert' || roleFromDom === 'admin';
+    const canViewPending = roleFromDom === 'expert' ;
 
     if (!canViewPending && pendingTab) {
         pendingTab.remove();

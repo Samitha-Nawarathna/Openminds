@@ -107,8 +107,10 @@ class ExercisesModel
                 $where[] = "e.status = 'pending'";
                 $where[] = 'e.creator_id != :current_user_id';
                 $bind[':current_user_id'] = $user_id;
-                // Both Experts and Admins only see pending exercises for subjects they are experts in
-                $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
+                // Only apply subject filter if expert has subject assignments; otherwise show all pending
+                if (!empty($expert_subject_ids)) {
+                    $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
+                }
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
