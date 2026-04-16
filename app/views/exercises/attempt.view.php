@@ -87,11 +87,11 @@ $reject_url = ROOT . 'exercises/api/reject_exercise';
             <button id="review-cancel-btn" class="btn secondary" aria-label="Return to review">
                 Continue Review
             </button>
-            <button id="review-approve-btn" class="btn primary" aria-label="Approve exercise">
+            <button id="review-approve-btn" class="btn primary approve" aria-label="Approve exercise">
                 Approve
             </button>
-            <button id="review-reject-btn" class="btn-red" aria-label="Reject exercise">
-                Reject
+            <button id="review-reject-btn" class="btn primary reject" aria-label="Reject exercise">
+                Feedback
             </button>
         </div>
     </div>

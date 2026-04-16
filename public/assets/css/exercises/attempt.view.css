@@ -638,12 +638,36 @@ body {
 
 .confirmation-actions {
     display: flex;
-    gap: var(--space-sm);
-    justify-content: center;
+    justify-content: space-between;   /* better UX layout */
+    align-items: center;
+    margin-top: 16px;
 }
 
-.confirmation-actions button {
-    min-width: 120px;
+/* Button group on right */
+.confirmation-actions .btn {
+    min-width: 100px;       /* equal clean size */
+    padding: 6px 12px;      /* smaller size */
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+/* Approve (Primary clean look) */
+.btn.primary.approve {
+    background-color: var(--color-primary);
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Reject (Danger style) */
+.btn.primary.reject {
+    background-color: var(--color-red-500);
+}
+
+/* Hover effects (modern feel) */
+.btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
 }
 
 /* NEW: Loading Spinner */
@@ -879,7 +903,10 @@ h1 {
     padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-md);
     border: none;
+    
 }
+
+
 .btn.primary:hover:not(:disabled) {
     background-color: #0056b3;
 }
