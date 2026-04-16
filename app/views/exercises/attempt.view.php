@@ -142,7 +142,7 @@ $reject_url = ROOT . 'exercises/api/reject_exercise';
     <div id="action-buttons" class="action-buttons">
         <!-- NEW: Previous Button -->
         <button id="prev-btn" class="btn secondary hidden" aria-label="Go to previous question">
-            ← Previous
+            <  Previous
         </button>
         <button id="check-btn" class="btn primary" disabled aria-label="Check your answer">
             Check Answer
@@ -151,7 +151,7 @@ $reject_url = ROOT . 'exercises/api/reject_exercise';
             Explain
         </button>
         <button id="next-btn" class="btn primary hidden" aria-label="Go to next question">
-            Next Question →
+            Next Question >
         </button>
         <button id="submit-btn" class="btn primary hidden" aria-label="Submit final assessment">
             Submit Assessment

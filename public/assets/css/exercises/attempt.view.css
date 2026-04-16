@@ -449,8 +449,8 @@ body {
 }
 
 .option-card.user-wrong {
-    border-color: #c084fc;
-    background-color: #f7efff;
+    border-color: #dc3545;
+    background-color: #ffe0e0;
 }
 
 .state-icon {
@@ -465,7 +465,7 @@ body {
 }
 
 .option-card.user-wrong .state-icon {
-    color: #a855f7;
+    color: #dc3545;
 }
 
 /* Input/Form Focus State Consistency */
@@ -849,12 +849,12 @@ h1 {
 }
 
 .control-bar.state-wrong {
-    background-color: #7c3aed;
-    color: #ffffff;
+    
+    background-color: #ffe0e0;
 }
 
 .control-bar.state-wrong .btn.primary {
-    background-color: #ff9f1c;
+   
     color: #0f172a;
 }
 
@@ -911,8 +911,10 @@ h1 {
 .explanation-box {
     margin: 20px 0;
     padding: 20px;
-    border: 1px solid var(--color-gray-400);
-    border-radius: 4px;
+    background: #ffffff;
+    border: 1px solid #e3e7ef;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.06);
 }
 
 .explain-icon

@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             questionSubtextEl.textContent = `Difficulty: ${difficultyLabel} • Result: ${resultLabel}`;
         }
 
-        const progressPercent = Math.min(100, Math.round((currentQIndex / totalQCount) * 100));
+        const progressPercent = Math.min(100, Math.round(((currentQIndex+1) / totalQCount) * 100));
         if (progressFill) {
             progressFill.style.width = `${progressPercent}%`;
         }
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const badge = document.createElement('span');
             badge.className = 'option-badge';
-            badge.textContent = `PRESS ${optIndex + 1}`;
+            
             
             left.appendChild(stateIcon);
             left.appendChild(input);
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const explainIcon = document.createElement('h3');
         explainIcon.className = 'explain-icon';
-        explainIcon.textContent = '📖';
+        explainIcon.textContent = 'Explanation';
         explainIcon.setAttribute('aria-label', 'Explanation');
         explanationBox.appendChild(explainIcon);
         
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nextBtn.textContent = 'End Review ✓';
             nextBtn.disabled = false; // Keep enabled so user can click to show modal
         } else {
-            nextBtn.textContent = 'Next Question →';
+            nextBtn.textContent = 'Next Question  >';
             nextBtn.disabled = false;
         }
     }
