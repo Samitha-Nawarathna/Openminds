@@ -73,13 +73,39 @@
             <?php 
             if (!empty($data['initial_exercises'])) {
                 foreach ($data['initial_exercises'] as $exercise) {
-                    // Logic to determine link based on tab/role could go here or in Controller, keeping simple for view
-                    echo '<a class="exercise-item no-style-link" href="' . ROOT . '/exercises/attempt?id=' . htmlspecialchars($exercise['id']) . '" >';
-                                  
-                    echo '  <span class="exercise-title-list">' . htmlspecialchars($exercise['title']) . '</span>';
-                    echo '  <span class="subject-pill" data-subject="' . htmlspecialchars($exercise['subject']) . '">';
-                    echo '      ' . htmlspecialchars($exercise['subject']) . '';
-                    echo '  </span>';
+                    $exerciseId = (int)($exercise['id'] ?? 0);
+                    $exerciseTitle = htmlspecialchars((string)($exercise['title'] ?? 'Untitled Exercise'));
+                    $subjectName = htmlspecialchars((string)($exercise['subject'] ?? 'General'));
+                    $creatorName = htmlspecialchars((string)($exercise['creator_name'] ?? 'Unknown'));
+                    $createdAt = htmlspecialchars((string)($exercise['created_at'] ?? 'just now'));
+                    $statusRaw = strtolower(trim((string)($exercise['status'] ?? 'draft')));
+                    $statusClass = in_array($statusRaw, ['draft', 'pending', 'reject', 'published', 'approved'], true)
+                        ? $statusRaw
+                        : 'draft';
+                    $statusLabel = $statusRaw === 'approved' ? 'published' : $statusRaw;
+                    $voteCount = 0;
+
+                    echo '<a class="no-style-link" href="' . ROOT . '/exercises/attempt?id=' . $exerciseId . '">';
+                    echo '  <div class="exercise-item" data-id="' . $exerciseId . '">';
+                    echo '      <div class="exercise-vote-column" aria-hidden="true">';
+                    echo '          <span class="vote-icon">&#128077;&#65038;</span>';
+                    echo '          <span class="vote-count">' . $voteCount . '</span>';
+                    echo '          <span class="vote-label">Votes</span>';
+                    echo '      </div>';
+                    echo '      <div class="exercise-main-column">';
+                    echo '          <h3 class="exercise-title-list">' . $exerciseTitle . '</h3>';
+                    echo '          <div class="exercise-meta-row">';
+                    echo '              <span class="meta-item">Created by <strong>' . $creatorName . '</strong></span>';
+                    echo '              <span class="meta-separator" aria-hidden="true">&bull;</span>';
+                    echo '              <span class="meta-item">' . $createdAt . '</span>';
+                    echo '          </div>';
+                    echo '      </div>';
+                    echo '      <div class="exercise-side-column">';
+                    echo '          <span class="status-pill status-' . $statusClass . '"><span class="status-icon" aria-hidden="true">○</span><span>' . htmlspecialchars($statusLabel) . '</span></span>';
+                    echo '          <span class="subject-pill" data-subject="' . $subjectName . '">' . $subjectName . '</span>';
+                    echo '          <span class="menu-dots" aria-hidden="true">&bull;&bull;&bull;</span>';
+                    echo '      </div>';
+                    echo '  </div>';
                     echo '</a>';
                 }
             } else {
