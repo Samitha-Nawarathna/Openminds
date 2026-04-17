@@ -297,7 +297,8 @@ h3 {
     transform: translateY(0%);
 }
 
-.topic-item:hover .pin-icon {
+.topic-item:hover .pin-icon,
+.topic-item:hover .delete-icon {
     opacity: 1;
     transform: translateY(-50%);
 }
@@ -306,7 +307,8 @@ h3 {
 
 /* 2. Position the unpin icon absolutely in the top right */
 .unpin-icon,
-.pin-icon {
+.pin-icon,
+.delete-icon {
     position: absolute;
     padding: var(--space-xs);
     color: var(--card-bg);
@@ -340,11 +342,20 @@ h3 {
 
 .pin-icon {
     top: 50%;
+    right: 40px;
     background-color: var(--color-yellow-400);
     margin-right: var(--space-xs);
     transform: translate(-50%, -50%);
     z-index: 10;
+}
 
+.delete-icon {
+    top: 50%;
+    right: -10px;
+    background-color: #f44336; /* Red color */
+    margin-right: var(--space-xs);
+    transform: translate(-50%, -50%);
+    z-index: 10;
 }
 
 /* --- Styles for the Text Content --- */

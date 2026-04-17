@@ -221,6 +221,17 @@ class TopicController extends Controller
         }
     }
 
+    public function api_delete_topic($id) {
+        $topics_model = new Topics();
+        $topic = $topics_model->first(['id' => $id]);
+        if ($topic) {
+            $topics_model->delete($id);
+            $this->json_respond(["success" => true, "message" => "Topic successfully deleted."]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to delete topic. Topic not found."]);
+        }
+    }
+
     public function api_load_more() {
         $this->json_respond([
             "success" => true,

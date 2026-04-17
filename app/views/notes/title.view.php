@@ -70,7 +70,7 @@ include "../app/views/partials/focus_timer.php";
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {
                 // Added data-id for JS event listener
-                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '</a><span class="pin-icon">pin</span></div>';
+                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '</a><span class="pin-icon">pin</span><span class="delete-icon" data-id="' . htmlspecialchars($topic['id']) . '">del</span></div>';
             }
             ?>
         </div>

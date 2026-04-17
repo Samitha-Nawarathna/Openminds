@@ -31,6 +31,7 @@ App::post('topics/create', 'TopicController@create');
 //api endpoints for pinning and unpinning topics.
 App::post('topics/api/pin/{id}', 'TopicController@api_pin_topic');
 App::post('topics/api/unpin/{id}', 'TopicController@api_unpin_topic');
+App::post('topics/api/delete/{id}', 'TopicController@api_delete_topic');
 
 
 //topic module api

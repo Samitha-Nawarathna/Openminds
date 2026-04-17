@@ -59,10 +59,10 @@
     </div>
 </div>
 
-<div style="position: fixed; top: 10px; right: 55vw; z-index: 999;">
+<!-- <div style="position: fixed; top: 10px; right: 55vw; z-index: 999;">
     <button onclick="window.open_note(1)">Open Note 1</button>
     <button onclick="window.open_note(2)">Open Note 2</button>
-</div>
+</div> -->
 
 <?php
     include_once "../app/views/partials/footer.view.php";

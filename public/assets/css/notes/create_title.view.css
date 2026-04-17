@@ -417,7 +417,7 @@ label {
 
     /* SIZE CONTROL */
     width: 100%;
-    max-width: 1000px;
+    max-width: 1200px;
     /* Gives room for the 2-panel layout */
     min-height: 400px;
     /* Prevents collapsing when empty */

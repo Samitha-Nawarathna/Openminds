@@ -68,6 +68,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function apiDeleteTopic(topicId) {
+        if (!confirm('Are you sure you want to delete this subject?')) return;
+        try {
+            const response = await fetch(`${ROOT}/topics/api/delete/${topicId}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete topic: ' + (data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            alert('An error occurred while deleting the topic.');
+        }
+    }
+
     // --- MOCK AJAX function (Updated to use search endpoint if available or stick to load_more) ---
     // Keeping mockFetchTopics for load more functionality as requested, but logic remains same.
     async function mockFetchTopics(offset, filterName) {
@@ -118,8 +136,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add data-id to helper click detection
         pinSpan.dataset.id = topic.id;
 
-        link.appendChild(pinSpan);
+        const delSpan = document.createElement('span');
+        delSpan.className = 'delete-icon';
+        delSpan.textContent = 'del';
+        // Add data-id to helper click detection
+        delSpan.dataset.id = topic.id;
+
         item.appendChild(link);
+        item.appendChild(pinSpan);
+        item.appendChild(delSpan);
 
         return item;
     }
@@ -213,6 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const id = e.target.dataset.id;
             apiUnpinTopic(id);
+            return;
+        }
+
+        // 3. DELETE ICON CLICK
+        if (e.target.classList.contains('delete-icon')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = e.target.dataset.id || e.target.closest('.topic-item').dataset.id;
+            apiDeleteTopic(id);
             return;
         }
 
