@@ -108,3 +108,8 @@ form .input-group textarea:focus {
 .subject-hint::before {
     content: '💡 ';
 }
+
+#btn-delete-docs
+{
+    width: fit-content;
+}

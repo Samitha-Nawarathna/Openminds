@@ -160,6 +160,7 @@ function renderFileList() {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'button btn-none btn-delete';
+    deleteBtn.id = 'btn-delete-docs';
     deleteBtn.textContent = 'delete';
     deleteBtn.onclick = () => removeFile(index);
 

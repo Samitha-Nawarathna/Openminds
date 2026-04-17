@@ -7,15 +7,12 @@
 
 /* Body/Container adjustments - Split Screen Layout */
 body {
-<<<<<<< HEAD
     /* Use design system background */
     background-color: var(--color-blue-100);
     padding: var(--space-md);
     /* Use MD spacing for outer padding */
     display: flex;
     justify-content: center;
-=======
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -71,24 +68,12 @@ body {
 
 /* Right section contains the form */
 .main-content-container {
-<<<<<<< HEAD
-    width: 95%;
+    width: 50%;
     max-width: 1200px;
     margin-top: 50px;
     /* Push content down past where a fixed navbar might be */
     justify-self: center;
     align-self: center;
-=======
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-blue-100);
-    padding: var(--space-md);
-    min-height: 100vh;
-    overflow-y: auto;
-    /* Allow scrolling if content is tall */
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
 h2 {
@@ -116,18 +101,10 @@ section {
 }
 
 /* --- Section 1: Create Topic Styles --- */
-<<<<<<< HEAD
 #create-subject-section {
     width: 380px;
     /* Slightly wider than 350px for better alignment with tokens */
     margin: 0 auto var(--space-lg) auto;
-=======
-#create-topic-section {
-    width: 380px;
-    /* Fixed width for the form */
-    /* Parent (main-content-container) now handles centering */
-    margin: 0;
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 
     /* Apply design system container style to the content inside the section */
     padding: var(--space-lg);
@@ -145,7 +122,7 @@ label {
 }
 
 /* Use the input-group styling for the topic name input */
-#subject-name-input {
+#topic-name-input {
     width: 100%;
     /* The input itself is styled by the core input styles (borderless) */
     /* We'll wrap it in a div if needed, but for simplicity, we style the input directly 
@@ -159,7 +136,7 @@ label {
     transition: border-color 0.2s;
 }
 
-#subject-name-input:focus {
+#topic-name-input:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
     outline: none;
@@ -183,11 +160,7 @@ label {
     margin-top: var(--space-sm);
 }
 
-<<<<<<< HEAD
 #create-subject-btn:disabled {
-=======
-#create-topic-btn:disabled {
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     background-color: var(--color-gray-400);
     /* Use a gray token for disabled state */
     cursor: not-allowed;
@@ -234,7 +207,6 @@ label {
 }
 
 /* --- Section 2: Notes Management Styles --- */
-<<<<<<< HEAD
 
 #notes-modal {
     position: fixed;
@@ -242,48 +214,21 @@ label {
     left: 30%;
     transform: translate(-30%, -30%);
     z-index: 1000;
+    width: 95%;
 }
 
-/* 
-.modal-content {
-    margin: 0;
-} */
-
-/* .panels-container {
-=======
-#notes-modal {
-    justify-self: center;
-    align-self: center;
-    position: absolute;
-    top: 0%;
-    left: 50%;
-    transform: translateX(-50%);
-}
 
 .modal-content {
     margin: 0;
-}
-
-/* Modal header styles */
-.modal-title {
-    margin-bottom: var(--space-xxs);
-    /* Bring subtitle closer */
-}
-
-.modal-subtitle {
-    margin-top: 0;
-    color: var(--color-gray-500);
-    /* Grayer color */
-    font-size: var(--font-size-sm);
-    margin-bottom: var(--space-md);
+    /* width: 95%; */
 }
 
 .panels-container {
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     display: flex;
     gap: var(--space-md);
-    align-items: flex-start; /* Prevents panels from stretching weirdly
-}*/
+    align-items: flex-start;
+    /* Prevents panels from stretching weirdly
+}
 
 .panel {
     /* Base panel style uses surface and shadow */
@@ -320,30 +265,11 @@ label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-<<<<<<< HEAD
     padding: var(--space-xs) 0;
     border-bottom: 1px solid var(--color-border-light);
     /* Use light border token */
 }
 
-=======
-    padding: var(--space-xs) var(--space-sm);
-    border-bottom: 1px solid var(--color-border-light);
-    /* Use light border token */
-    transition: background-color 0.2s;
-}
-
-.note-item:hover:not(.empty-state) {
-    background-color: var(--color-gray-50);
-}
-
-.note-item:hover:not(.empty-state) .add-btn,
-.note-item:hover:not(.empty-state) .remove-btn {
-    opacity: 1;
-    /* Show buttons on hover */
-}
-
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .note-item:last-child {
     border-bottom: none;
 }
@@ -357,31 +283,6 @@ label {
     gap: var(--space-xs);
 }
 
-<<<<<<< HEAD
-=======
-.note-item span::before {
-    content: '📝';
-    font-size: var(--font-size-base);
-    opacity: 0.6;
-}
-
-/* Empty state styling */
-.note-item.empty-state span::before {
-    content: none;
-    /* Remove icon for empty states */
-}
-
-.empty-state-illustration {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-xl) var(--space-md) !important;
-    border-bottom: none !important;
-    text-align: center;
-}
-
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 .add-btn,
 .remove-btn {
     background: none;
@@ -549,22 +450,14 @@ label {
 /* 1. The Overlay: Full screen, darkened, and centers its children */
 .modal {
     display: none;
-<<<<<<< HEAD
     /* Hidden by JS */
     position: fixed;
     z-index: 2000;
     /* Higher than navbars */
-=======
-    /* Hidden by default */
-    position: fixed;
-    z-index: 1000;
-    /* Ensure it's on top of everything */
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-<<<<<<< HEAD
     background-color: rgba(0, 0, 0, 0.6);
     /* Slightly darker for focus */
 
@@ -573,24 +466,11 @@ label {
     align-items: center;
     justify-content: center;
     padding: var(--space-md);
-=======
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    /* Dark background overlay */
-    padding-top: 50px;
-    animation: fadeIn 0.3s;
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
 }
 
 /* 2. The Content Box: Defines the actual size */
 .modal-content {
     background-color: var(--color-surface);
-<<<<<<< HEAD
-=======
-    margin: 10% auto;
-    /* Center it vertically and horizontally */
-    padding: var(--space-lg);
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     position: relative;
@@ -680,14 +560,6 @@ label {
         flex-direction: column;
     }
 
-<<<<<<< HEAD
-=======
-    .left-panel,
-    .right-panel {
-        flex: 1;
-    }
-
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
     .modal-content {
         width: 95%;
         margin: 20px auto;
