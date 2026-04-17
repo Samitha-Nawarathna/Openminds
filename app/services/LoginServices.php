@@ -15,7 +15,6 @@ class LoginServices
         }
 
         $_SESSION['user_data']['is_email'] = 1;
-        $this->update_session_user_data();
 
 
         if (!filter_var($user_data['username'], FILTER_VALIDATE_EMAIL)) {
@@ -40,6 +39,9 @@ class LoginServices
             $errors[] = "Invalid credentials.";
         }
 
+        $this->update_session_user_data();
+
+
         return $errors;
     }
 
@@ -50,6 +52,7 @@ class LoginServices
         if($_SESSION['user_data']['is_email'])
         {
             $_SESSION['user_data']['email'] = $_SESSION['user_data']['username'];
+            show($_SESSION['user_data']);
             $result = $user->first(['email' => $_SESSION['user_data']['email']]);
             $_SESSION['user_data']['username'] = $result->username;
         }else

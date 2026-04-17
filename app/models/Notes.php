@@ -79,4 +79,23 @@ class NoteModel
         return $result[0]->count ?? 0;
     }
 
+    public function get_shared_notes($user_id, $limit = null, $offset = 0, $filter = '')
+    {
+        $query = "SELECT n.*, u.username as owner_name 
+                  FROM note_shares ns 
+                  JOIN notes n ON ns.note_id = n.id 
+                  JOIN user u ON n.owner_id = u.id 
+                  WHERE ns.user_id = :user_id";
+        $params = ['user_id' => $user_id];
+        
+        if (!empty($filter)) {
+            $query .= " AND n.title LIKE :filter";
+            $params['filter'] = "%$filter%";
+        }
+        
+        $query .= " ORDER BY n.created_at DESC";
+        
+        return $this->query($query, $params, $limit, $offset);
+    }
+
 }

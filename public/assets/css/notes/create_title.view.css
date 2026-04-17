@@ -70,19 +70,19 @@ body {
 .main-content-container {
     width: 50%;
     max-width: 1200px;
-    margin-top: 50px;
-    /* Push content down past where a fixed navbar might be */
-    justify-self: center;
-    align-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-xl);
 }
 
 h2 {
     color: var(--color-text);
-    /* border-bottom: 2px solid var(--color-border); */
     padding-bottom: var(--space-sm);
     margin-bottom: var(--space-md);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
 }
 
 .title {
@@ -94,51 +94,47 @@ h2 {
 /* Use the design system .container class for general sections */
 section {
     padding: 0;
-    /* Let the content inside define its padding */
     margin-bottom: var(--space-lg);
     background-color: transparent;
     box-shadow: none;
+    width: 100%;
+    max-width: 450px;
 }
 
 /* --- Section 1: Create Topic Styles --- */
 #create-subject-section {
-    width: 380px;
-    /* Slightly wider than 350px for better alignment with tokens */
-    margin: 0 auto var(--space-lg) auto;
-
-    /* Apply design system container style to the content inside the section */
-    padding: var(--space-lg);
+    width: 100%;
+    margin: 0 auto;
+    padding: var(--space-xl);
     background-color: var(--color-surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--color-border-light);
 }
 
 label {
-    color: var(--color-placeholder);
+    color: var(--color-text-secondary, var(--color-gray-600));
     font-size: var(--font-size-base);
-    font-weight: 500;
-    margin-bottom: var(--space-sm);
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
     display: block;
 }
 
 /* Use the input-group styling for the topic name input */
 #topic-name-input {
     width: 100%;
-    /* The input itself is styled by the core input styles (borderless) */
-    /* We'll wrap it in a div if needed, but for simplicity, we style the input directly 
-       to mimic the .input-group look, or just use the input directly if the design allows. 
-       Let's use the core style for a contained input look.
-    */
-    padding: var(--space-xs);
-    border: 1px solid var(--color-border);
+    padding: var(--space-sm);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius-md);
     font-size: var(--font-size-base);
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    background-color: var(--color-gray-50);
 }
 
 #topic-name-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+    background-color: var(--color-surface);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
     outline: none;
 }
 
@@ -209,12 +205,8 @@ label {
 /* --- Section 2: Notes Management Styles --- */
 
 #notes-modal {
-    position: fixed;
-    top: 30%;
-    left: 30%;
-    transform: translate(-30%, -30%);
-    z-index: 1000;
-    width: 95%;
+    /* Rely on .modal class for full screen overlay and centering */
+    z-index: 2000;
 }
 
 
@@ -242,7 +234,8 @@ label {
 }
 
 .left-panel {
-    flex: 2;
+    flex: 1.2;
+    min-width: 300px;
 }
 
 .left-panel h3 {
@@ -250,7 +243,8 @@ label {
 }
 
 .right-panel {
-    flex: 3;
+    flex: 1;
+    min-width: 250px;
 }
 
 .notes-list {
@@ -450,18 +444,14 @@ label {
 /* 1. The Overlay: Full screen, darkened, and centers its children */
 .modal {
     display: none;
-    /* Hidden by JS */
     position: fixed;
     z-index: 2000;
-    /* Higher than navbars */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    /* Slightly darker for focus */
-
-    /* Perfect Centering */
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -476,12 +466,11 @@ label {
     position: relative;
 
     /* SIZE CONTROL */
-    width: 100%;
-    max-width: 1000px;
-    /* Gives room for the 2-panel layout */
-    min-height: 400px;
-    /* Prevents collapsing when empty */
-    max-height: 85vh;
+    width: 95%;
+    max-width: 1100px;
+    min-width: 320px;
+    min-height: 500px;
+    max-height: 90vh;
     /* Prevents going off-screen */
 
     /* SCROLLING */
@@ -491,9 +480,23 @@ label {
 }
 
 /* 3. Panel Fix: Ensure the search panels don't overflow */
+.modal-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--space-xxs);
+    text-align: left;
+}
+
+.modal-subtitle {
+    font-size: var(--font-size-base);
+    color: var(--color-gray-600);
+    margin-bottom: var(--space-lg);
+}
+
 .panels-container {
     display: flex;
-    gap: var(--space-lg);
+    gap: var(--space-xl);
     width: 100%;
     margin-top: var(--space-md);
 }

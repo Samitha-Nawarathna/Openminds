@@ -21,7 +21,7 @@ include "../app/views/partials/focus_timer.php";
 
     
         <div class="filter-bar">
-            <input type="text" id="topic-filter-input" placeholder="enter a username/name">
+            <input type="text" id="topic-filter-input" placeholder="type an topic name and click filter">
             <button class="btn-filter" id="filter-btn">Filter</button> 
             <a href="<?=ROOT?>/topics/create" class="btn-create">+ Create</a>
         </div>

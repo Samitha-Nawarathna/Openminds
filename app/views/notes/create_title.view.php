@@ -25,12 +25,12 @@
 
     <!-- Right section with form -->
     <div class="main-content-container"> 
-        <section id="create-topic-section">
+        <section id="create-subject-section">
             <h2 class="title">Create Topic</h2>
             <label for="topic-name-input" >Enter the topic name:</label>
             <input type="text" id="topic-name-input"  placeholder="e.g., Quantum Physics Basics">
             <p id="validation-result" class="validation-message"></p>
-            <button id="create-subject-btn" class="button button-primary" onclick="window.createSubject()">Create Subject</button>
+            <button id="create-subject-btn" class="button button-primary" onclick="window.createSubject()">Create Topic</button>
 
             <button onclick="history.back()" class= "button" style="text-align: center; background-color: var(--color-surface); color: black; border: none;">
                 ← Back
@@ -39,7 +39,7 @@
     </div>
 </div>
 
-    <div id="notes-modal" class="modal">
+    <div id="notes-modal" class="modal" style="display: fixed;">
         <div class="modal-content">
             <button class="close-btn" onclick="window.closeNotesModal()">&times;</button>
             <section id="move-notes-section" class="move-notes-section">

@@ -72,8 +72,8 @@
 
     <div class="note-browser-container">
         <div class="tabs-container" id="tabs-container">
-            <button class="tab-button active" data-tab="created" id="created-tab">Created</button>
-            <button class="tab-button" data-tab="shared" id="shared-tab">Shared</button>
+            <!-- <button class="tab-button active" data-tab="created" id="created-tab">Created</button> -->
+            <!-- <button class="tab-button" data-tab="shared" id="shared-tab">Shared</button> -->
         </div>
 
         <div class="list-container" id="notes-list">

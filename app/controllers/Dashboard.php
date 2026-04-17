@@ -25,9 +25,18 @@ class Dashboard extends Controller
         } catch (Exception $e) {
             $points = 0;
         }
+
+        $markQuery = "SELECT AVG(score) AS avg_score FROM exercise_attempt WHERE u_id = :id";
+        try {
+            $avg_marks_raw = $this->dashboardModel->executeQuery($markQuery, ['id' => $userId])[0]->avg_score ?? 0;
+            $avg_marks = $avg_marks_raw > 0 ? number_format((float)$avg_marks_raw, 0) : 0;
+        } catch (Exception $e) {
+            $avg_marks = 0;
+        }
         
         return $this->view('dashboard/index', [
-            'total_points' => number_format((float)$points, 2)
+            'total_points' => number_format((float)$points, 2),
+            'avg_marks' => $avg_marks
         ]);
     }
 

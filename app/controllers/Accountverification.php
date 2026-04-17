@@ -26,6 +26,7 @@ class Accountverification extends Controller
 
         $login_services = new LoginServices;
         $errors = $login_services->validate($user_data);
+        // show($user_data);
 
         if(!empty($errors))
         {

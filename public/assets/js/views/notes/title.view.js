@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function apiPinTopic(topicId) {
         try {
-            const response = await fetch(`${ROOT}/topics/api/pin/${topicId}`, {
+            const response = await fetch(`${ROOT}topics/api/pin/${topicId}`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function apiUnpinTopic(topicId) {
         try {
-            const response = await fetch(`${ROOT}/topics/api/unpin/${topicId}`, {
+            const response = await fetch(`${ROOT}topics/api/unpin/${topicId}`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Using search mechanism or load_more 
-            const response = await fetch(`${ROOT}/topics/api/load_more?offset=${offset}&filter=${encodeURIComponent(filterName)}`);
+            const response = await fetch(`${ROOT}topics/api/load_more?offset=${offset}&filter=${encodeURIComponent(filterName)}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -101,23 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /** Creates the HTML structure for a single topic item. */
-<<<<<<< HEAD
-    function createSubjectItem(topic) {
-        // Structure: <div class="topic-item" data-id="ID"><a ...>NAME <span class="pin-icon">pin</span></a></div>
-=======
+    /** Creates the HTML structure for a single topic item. */
     function createTopicItem(topic) {
-        // Structure: 
-        // <div class="topic-item" data-id="ID">
-        //     <a href="..." class="topic-info">
-        //         <span class="topic-name">Name</span>
-        //         <span class="note-count">X Notes</span>
-        //     </a>
-        //     <div class="topic-actions">
-        //         <button class="action-btn pin-btn" ...><svg>...</svg></button>
-        //     </div>
-        // </div>
-
->>>>>>> 722602b8e55498b4465975156cb745f7c3dfbf94
         const item = document.createElement('div');
         item.classList.add('topic-item');
         item.dataset.id = topic.id;
@@ -179,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.topics.length === 0 && offset === 0) {
                 listContainer.innerHTML = '<div class="loading">No topics found.</div>';
             } else {
-                response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
+                response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
 
                 // Update offset
                 currentOffset = offset + response.topics.length;
@@ -207,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await mockFetchTopics(currentOffset, filterName);
 
-            response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
+            response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
 
             // Update offset
             currentOffset += response.topics.length;

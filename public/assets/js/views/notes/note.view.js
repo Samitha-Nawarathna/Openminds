@@ -52,80 +52,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- MOCK AJAX function ---
-    function mockFetchNotes(tabType, offset, filterTerm) {
-        console.log(`[MOCK AJAX] Fetching ${tabType} notes from offset ${offset} with filter: "${filterTerm}"`);
+    // --- REAL API function ---
+    async function fetchNotes(tabType, offset, filterTerm) {
+        console.log(`[API CALL] Fetching ${tabType} notes from offset ${offset} with filter: "${filterTerm}"`);
 
-        return new Promise(resolve => {
-            setTimeout(() => {
-                let mockNotes = [];
-                let hasMore = true;
+        try {
+            // Get topic_id from URL if available
+            const urlPath = window.location.pathname;
+            const topicIdMatch = urlPath.match(/\/notes\/list\/(\d+)/);
+            const topicId = topicIdMatch ? topicIdMatch[1] : '';
 
-                // Simplified mock logic based on tab and offset
-                if (tabType === 'created') {
-                    if (offset === 0) {
-                        // Simulating a fresh load after filter/tab change
-                        mockNotes = [
-                            { id: 11, title: 'Calculus Basics', tag: 'Maths' },
-                            { id: 12, title: 'Quantum Fields', tag: 'Physics' }
-                        ];
-                        hasMore = true;
-                    } else if (offset === 10) {
-                        // Simulating the 'Load More' action
-                        mockNotes = [
-                            { id: 13, title: '11th Created Note (Lazy Load)', tag: 'Test' }
-                        ];
-                        hasMore = false;
-                    }
-                } else if (tabType === 'shared') {
-                    // Shared notes, usually a smaller list, less frequent lazy load
-                    mockNotes = [
-                        { id: 14, title: 'Shared: General Relativity', tag: 'Physics' },
-                        { id: 15, title: 'Shared: Python Tips', tag: 'CS' }
-                    ];
-                    hasMore = false;
-                }
+            const response = await fetch(`${ROOT}notes/api/load_more?type=${tabType}&offset=${offset}&filter=${encodeURIComponent(filterTerm)}&topic_id=${topicId}`);
+            if (!response.ok) throw new Error('Network response was not ok');
 
-                // Apply filter locally for mock visual check (backend would do this)
-                if (filterTerm) {
-                    const term = filterTerm.toLowerCase();
-                    mockNotes = mockNotes.filter(n => n.title.toLowerCase().includes(term));
-                }
-
-                resolve({
-                    notes: mockNotes,
-                    has_more: hasMore
-                });
-            }, 400);
-        });
+            const data = await response.json();
+            return {
+                notes: data.notes || [],
+                has_more: data.has_more
+            };
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+            return { notes: [], has_more: false };
+        }
     }
 
     // --- RENDERING FUNCTIONS ---
 
     /** Navigates to a note view (mock) */
     function viewNote(noteId) {
-
-        window.location.href = ROOT + `/notes/view/${noteId}`;
+        window.location.href = ROOT + `notes/view/${noteId}`;
     }
 
     /** Creates the HTML structure for a single note item. */
     function createNoteItem(note, tabType) {
         const item = document.createElement('div');
-        // item.classList.add('note-item');
         item.dataset.id = note.id;
 
+        const ownerBadge = (tabType === 'shared' && note.owner_name) ? `<span class="tag-pill">by ${note.owner_name}</span>` : '';
+
         item.innerHTML = `
-        <a href="${ROOT}/notes/view/${note.id}" class="no-style-link note-item">
+        <a href="${ROOT}notes/view/${note.id}" class="no-style-link note-item">
           <span class="note-title-list">${note.title}</span>
           <div class="icons">
-            ${tabType === 'shared' ? `<span class="tag-pill">by ${note.creator_id}</span>` : ''}
+            ${ownerBadge}
             <span class="pin-icon" data-id="${note.id}">pin</span>
           </div>
         </a>
       `;
-
-        // Add event listener (handled by delegation ideally, but keeping this for link behavior)
-        // item.addEventListener('click', () => viewNote(note.id));
 
         return item;
     }
@@ -137,7 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update active tab styling
         tabButtons.forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.tab-button[data-tab="${tabType}"]`).classList.add('active');
+        const activeTab = document.querySelector(`.tab-button[data-tab="${tabType}"]`);
+        if (activeTab) activeTab.classList.add('active');
 
         listContainer.innerHTML = '<div class="loading">Loading notes...</div>';
         loadMoreBtn.style.display = 'none';
@@ -145,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterTerm = filterInput.value.trim();
 
         try {
-            const response = await mockFetchNotes(tabType, offset, filterTerm);
+            const response = await fetchNotes(tabType, offset, filterTerm);
             listContainer.innerHTML = '';
 
             if (response.notes.length === 0) {
@@ -174,9 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadMoreBtn.disabled = true;
 
         try {
-            const response = await mockFetchNotes(currentTab, currentOffset, filterTerm);
+            const response = await fetchNotes(currentTab, currentOffset, filterTerm);
 
-            response.notes.forEach(n => listContainer.appendChild(createNoteItem(n, tabType)));
+            response.notes.forEach(n => listContainer.appendChild(createNoteItem(n, currentTab)));
 
             currentOffset += response.notes.length;
 

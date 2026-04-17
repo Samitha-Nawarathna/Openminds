@@ -1,7 +1,7 @@
 /* General Body Styles for the modal background */
 body {
     font-family: var(--font-body);
-    background-color: var(--color-secondary-background); 
+    background-color: var(--color-secondary-background);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -38,7 +38,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    min-height: 40px; /* Ensure visibility */
+    min-height: 40px;
+    /* Ensure visibility */
     margin-bottom: 25px;
 }
 
@@ -54,12 +55,35 @@ body {
 }
 
 /* Pill Color Schemes (Matching image examples) */
-.user-pill-red { background-color: #ff9999; color: #cc0000; }
-.user-pill-blue { background-color: #a0e0ff; color: #0056b3; }
-.user-pill-green { background-color: #99ff99; color: #008000; }
-.user-pill-pink { background-color: #ffccff; color: #cc00cc; }
-.user-pill-purple { background-color: #ccccff; color: #6600cc; }
-.user-pill-orange { background-color: #ffcc99; color: #cc6600; }
+.user-pill-red {
+    background-color: #ff9999;
+    color: #cc0000;
+}
+
+.user-pill-blue {
+    background-color: #a0e0ff;
+    color: #0056b3;
+}
+
+.user-pill-green {
+    background-color: #99ff99;
+    color: #008000;
+}
+
+.user-pill-pink {
+    background-color: #ffccff;
+    color: #cc00cc;
+}
+
+.user-pill-purple {
+    background-color: #ccccff;
+    color: #6600cc;
+}
+
+.user-pill-orange {
+    background-color: #ffcc99;
+    color: #cc6600;
+}
 
 
 .remove-user {
@@ -91,7 +115,8 @@ body {
 
 .user-suggestions-list {
     position: absolute;
-    top: 100%; /* Position right below the input */
+    top: 100%;
+    /* Position right below the input */
     left: 0;
     right: 0;
     z-index: 10;
@@ -113,6 +138,36 @@ body {
 
 .user-suggestions-list li:hover {
     background-color: #f0f0f0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.suggestion-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.suggestion-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.suggestion-username {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.suggestion-displayname {
+    font-size: 0.8rem;
+    color: #888;
 }
 
 /* --- Submit Button --- */

@@ -658,10 +658,21 @@
                 <span class="nav-link-text">Dashboard</span>
             </a>
             
-            <a href="<?=ROOT?>/notes" class="nav-link" data-tooltip="Notes">
+            <a href="#" class="nav-link dropdown-toggle" data-tooltip="Notes" data-dropdown-target="notes-submenu">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span class="nav-link-text">Notes</span>
+                <svg class="dropdown-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
             </a>
+            <div class="submenu" id="notes-submenu">
+                <a href="<?=ROOT?>/notes" class="nav-link sub-link" data-tooltip="My Notes">
+                    <span class="nav-link-text">My Notes</span>
+                </a>
+                <a href="<?=ROOT?>/notes/shared_with_me" class="nav-link sub-link" data-tooltip="Shared with me">
+                    <span class="nav-link-text">Shared with me</span>
+                </a>
+            </div>
             
             <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>

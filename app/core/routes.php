@@ -13,7 +13,7 @@ App::post('notes/delete/{id}', 'Notes@delete');
 //note module api
 App::get('notes/api/search_by_tags', 'Notes@api_search_notes_by_tags');
 App::get('notes/api/get_by_id/{note_id}', 'Notes@api_get_note_by_id');
-App::get('notes/api/share', 'Notes@api_share');
+App::post('notes/api/share', 'Notes@api_share');
 //api endpoints for pinning and unpinning notes.
 App::post('notes/api/pin/{id}', 'Notes@api_pin_note');
 App::post('notes/api/unpin/{id}', 'Notes@api_unpin_note');
@@ -52,7 +52,7 @@ App::post('tags/api/search_by_name', 'TagController@api_search_tags_by_name');
 
 
 //user module api
-App::post('users/api/search_by_name', 'Users@api_search_users_by_name');
+App::post('users/api/search_by_name', 'Profile@api_search_users_by_name');
 
 
 //question module api

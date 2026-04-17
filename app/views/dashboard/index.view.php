@@ -127,7 +127,7 @@
                 <div class="stat-content">
                     <div>
                         <div class="kpi-title">Avg. Exercise Mark</div>
-                        <div class="kpi-value" id="stat-marks">0%</div>
+                        <div class="kpi-value" id="stat-marks"><?= $data['avg_marks'] ?>%</div>
                     </div>
                     <div class="stat-sub" id="stat-marks-sub" style="display:none;">...</div>
                 </div>

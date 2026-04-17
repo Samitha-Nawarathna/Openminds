@@ -105,16 +105,12 @@ class Profile extends Controller
         $data = $this->json_request();
         $user_model = new User();
 
-        $results = $user_model->filter_by_name($data['query'], 'username');
-
-
+        $results = $user_model->search_by_name($data['query'], 'username');
 
         if ($results) {
-            
-
-            $this->json_response(['success' => true, 'results' => $results]);
+            $this->json_response(['success' => true, 'users' => $results]);
         } else {
-            $this->json_response(['success' => false, 'message' => 'No topics found.']);
+            $this->json_response(['success' => false, 'message' => 'No users found.']);
         }
     }        
 }
