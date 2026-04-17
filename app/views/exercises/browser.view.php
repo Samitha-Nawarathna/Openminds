@@ -83,7 +83,9 @@
                         ? $statusRaw
                         : 'draft';
                     $statusLabel = $statusRaw === 'approved' ? 'published' : $statusRaw;
-                    $voteCount = 0;
+                    $voteCount = isset($exercise['vote_count'])
+                        ? (int)$exercise['vote_count']
+                        : ((int)($exercise['upvotes'] ?? 0) - (int)($exercise['downvotes'] ?? 0));
 
                     echo '<a class="no-style-link" href="' . ROOT . '/exercises/attempt?id=' . $exerciseId . '">';
                     echo '  <div class="exercise-item" data-id="' . $exerciseId . '">';

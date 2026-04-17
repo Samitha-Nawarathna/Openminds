@@ -33,7 +33,16 @@ class ExercisesModel
         $limit = $limit > 0 ? $limit : 5;
         $offset = $offset >= 0 ? $offset : 0;
 
-        $joins = " LEFT JOIN subjects s ON s.id = e.subject_id LEFT JOIN user u ON u.id = e.creator_id";
+        $joins = " LEFT JOIN subjects s ON s.id = e.subject_id"
+            . " LEFT JOIN user u ON u.id = e.creator_id"
+            . " LEFT JOIN ("
+            . "   SELECT exercise_id, COALESCE(SUM(CASE"
+            . "     WHEN votetype = 'upvote' THEN 1"
+            . "     WHEN votetype = 'downvote' THEN -1"
+            . "     ELSE 0 END), 0) AS vote_count"
+            . "   FROM uservoteexercise"
+            . "   GROUP BY exercise_id"
+            . " ) uv ON uv.exercise_id = e.id";
         $where = [];
         $bind = [];
 
@@ -172,7 +181,7 @@ class ExercisesModel
             $where_sql = ' WHERE ' . implode(' AND ', $where);
         }
 
-        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name";
+        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name, COALESCE(uv.vote_count, 0) AS vote_count";
         $from_sql = " FROM exercises e" . $attempt_join . $joins;
         $order_sql = " ORDER BY {$order_by} {$order_dir}";
 
