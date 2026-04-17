@@ -8,7 +8,26 @@ class ExercisesModel
 
     public function get_exercise_attempt_stats(int $exercise_id): array
     {
-        $sql = "SELECT COUNT(*) AS attempt_count, COALESCE(AVG(score), 0) AS average_score FROM exercise_attempt WHERE exe_id = :exercise_id";
+        $sql = "SELECT
+                    COUNT(*) AS attempt_count,
+                    COALESCE(
+                        AVG(
+                            CASE
+                                WHEN IFNULL(q.max_score, 0) <= 0 THEN 0
+                                -- Legacy rows may already store percentage values.
+                                WHEN ea.score > q.max_score THEN LEAST(ea.score, 100)
+                                ELSE (ea.score / q.max_score) * 100
+                            END
+                        ),
+                        0
+                    ) AS average_score
+                FROM exercise_attempt ea
+                LEFT JOIN (
+                    SELECT exercise_id, COALESCE(SUM(weight), 0) AS max_score
+                    FROM exercisequestion
+                    GROUP BY exercise_id
+                ) q ON q.exercise_id = ea.exe_id
+                WHERE ea.exe_id = :exercise_id";
         $rows = $this->query($sql, [':exercise_id' => $exercise_id]);
         $row = $rows[0] ?? null;
 
