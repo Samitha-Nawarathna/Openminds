@@ -12,7 +12,6 @@ class Roles
         if ($results === false || !isset($results->name)) {
             return null;
         }
-
         return $results->name;
     } 
 

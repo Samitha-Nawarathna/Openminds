@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 06, 2026 at 04:02 AM
+-- Generation Time: Apr 12, 2026 at 04:05 AM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -20,6 +20,89 @@ SET time_zone = "+00:00";
 --
 -- Database: `openminds`
 --
+
+DELIMITER $$
+--
+-- Functions
+--
+DROP FUNCTION IF EXISTS `CalculateUserPoints`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `CalculateUserPoints` (`target_user_id` INT) RETURNS DECIMAL(12,6) DETERMINISTIC BEGIN
+    DECLARE total_points DECIMAL(12,6) DEFAULT 0;
+
+    SELECT SUM(points_per_event) INTO total_points FROM (
+        -- Points for actions the user PERFORMED (from events table)
+        SELECT 
+            (CASE 
+                WHEN event_type = 'question_answered' THEN 0.2
+                WHEN event_type = 'question_asked' THEN 0.2
+                WHEN event_type = 'note_created' THEN 0.2
+                WHEN event_type = 'exercise_attempted' THEN 0.1
+                WHEN event_type = 'exercise_created' THEN 0.5
+                WHEN event_type = 'exercise_approved' THEN 0.2
+                WHEN event_type = 'exercise_rejected' THEN -0.1
+                WHEN event_type = 'content_banned' THEN -0.2 * IFNULL(JSON_UNQUOTE(JSON_EXTRACT(data, '$.N')), 1)
+                WHEN event_type = 'vote_given' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.direction')) = 'upvote' THEN 0.2
+                WHEN event_type = 'vote_given' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.direction')) = 'downvote' THEN 0.1
+                ELSE 0
+            END) * EXP(-(CASE 
+                WHEN event_type IN ('question_answered', 'question_asked', 'note_created') THEN 0.1115718
+                WHEN event_type IN ('exercise_attempted', 'vote_given') THEN 0.1785148
+                WHEN event_type = 'exercise_created' THEN 0.0557859
+                WHEN event_type = 'exercise_approved' THEN 0.0781002
+                WHEN event_type = 'exercise_rejected' THEN 0.2231436
+                WHEN event_type = 'content_banned' THEN 0.0200830
+                ELSE 0
+            END) * DATEDIFF(CURRENT_TIMESTAMP, event_time) / 30) as points_per_event
+        FROM events WHERE user_id = target_user_id
+
+        UNION ALL
+
+        -- Gain an Upvote/Downvote (received) on Question
+        SELECT 
+            (CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.2 ELSE -0.2 END) * 
+            EXP(-(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.0892574 ELSE 0.2231436 END) * DATEDIFF(CURRENT_TIMESTAMP, e.event_time) / 30)
+        FROM events e
+        JOIN question q ON e.entity_id = q.id AND e.entity_type = 'Question'
+        WHERE e.event_type = 'vote_given'
+          AND q.creator_id = target_user_id AND e.user_id != target_user_id
+
+        UNION ALL
+
+        -- Gain an Upvote/Downvote (received) on Answer
+        SELECT 
+            (CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.2 ELSE -0.2 END) * 
+            EXP(-(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.0892574 ELSE 0.2231436 END) * DATEDIFF(CURRENT_TIMESTAMP, e.event_time) / 30)
+        FROM events e
+        JOIN answer a ON e.entity_id = a.id AND e.entity_type = 'Answer'
+        WHERE e.event_type = 'vote_given'
+          AND a.creator_id = target_user_id AND e.user_id != target_user_id
+
+        UNION ALL
+
+        -- Gain an Upvote/Downvote (received) on Note
+        SELECT 
+            (CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.2 ELSE -0.2 END) * 
+            EXP(-(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.direction')) = 'upvote' THEN 0.0892574 ELSE 0.2231436 END) * DATEDIFF(CURRENT_TIMESTAMP, e.event_time) / 30)
+        FROM events e
+        JOIN notes n ON e.entity_id = n.id AND e.entity_type = 'Note'
+        WHERE e.event_type = 'vote_given'
+          AND n.owner_id = target_user_id AND e.user_id != target_user_id
+
+        UNION ALL
+
+        -- An attempt in created exercise (someone attempts your created ex)
+        SELECT 
+            0.05 * EXP(-0.2231436 * DATEDIFF(CURRENT_TIMESTAMP, e.event_time) / 30)
+        FROM events e
+        JOIN exercises ex ON e.entity_id = ex.id AND e.entity_type = 'Exercise'
+        WHERE e.event_type = 'exercise_attempted'
+          AND ex.creator_id = target_user_id AND e.user_id != target_user_id
+    ) AS all_points;
+
+    RETURN IFNULL(total_points, 0);
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -39,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `announcements` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_announcement_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `announcements`
@@ -50,7 +133,8 @@ INSERT INTO `announcements` (`id`, `title`, `content`, `creator_id`, `style`, `i
 (3, 'New Note Topics Added', 'Exciting news! We have added new topics for Notes in Historical Linguistics and Quantum Physics. Start exploring!', 1, 'info', 0, '2025-11-20 02:31:21', '2025-11-30 03:52:33'),
 (4, 'Old Announcement (Hidden)', 'This is an old test announcement that should be hidden from the public feeds.', 2, 'default', 0, '2025-10-27 02:31:21', '2025-11-30 03:52:18'),
 (5, 'title', 'contenteb', 102, 'warning', 1, '2025-11-30 06:49:57', '2025-11-30 07:25:55'),
-(6, 'new title', 'content', 102, 'info', 1, '2025-11-30 07:25:18', '2025-11-30 07:25:18');
+(6, 'new title', 'content', 102, 'info', 1, '2025-11-30 07:25:18', '2025-11-30 07:25:18'),
+(8, 'title', 'content', 97, 'warning', 1, '2026-04-06 09:04:40', '2026-04-06 09:04:40');
 
 -- --------------------------------------------------------
 
@@ -61,7 +145,7 @@ INSERT INTO `announcements` (`id`, `title`, `content`, `creator_id`, `style`, `i
 DROP TABLE IF EXISTS `answer`;
 CREATE TABLE IF NOT EXISTS `answer` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text NOT NULL,
   `creator_id` int DEFAULT NULL,
   `q_id` int NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -69,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   PRIMARY KEY (`id`),
   KEY `q_id` (`q_id`),
   KEY `fk_answer_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `answer`
@@ -87,7 +171,8 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (15, '{\"ops\":[{\"insert\":\"answer\\n\\n\"}]}', 102, 27, '2026-02-06 22:59:16', 1),
 (16, '{\"ops\":[{\"insert\":\"abswer\\n\"}]}', 102, 27, '2026-02-19 00:49:16', 0),
 (17, '{\"ops\":[{\"insert\":\"answer2\\n\"}]}', 102, 29, '2026-04-04 05:14:52', 0),
-(18, '{\"ops\":[{\"insert\":\"dcfd\\n\"}]}', 102, 26, '2026-04-04 05:15:50', 0);
+(18, '{\"ops\":[{\"insert\":\"dcfd\\n\"}]}', 102, 26, '2026-04-04 05:15:50', 0),
+(20, '{\"ops\":[{\"insert\":\"my_answer\\n\"}]}', 105, 31, '2026-04-10 21:30:15', 1);
 
 -- --------------------------------------------------------
 
@@ -100,125 +185,17 @@ CREATE TABLE IF NOT EXISTS `attempt_answer` (
   `id` int NOT NULL AUTO_INCREMENT,
   `attempt_id` int NOT NULL COMMENT 'Foreign Key to exercise_attempt table',
   `question_id` int NOT NULL COMMENT 'Foreign Key to question table',
-  `user_response` text COLLATE utf8mb4_general_ci NOT NULL COMMENT 'The user''s submitted answer, choice ID, or response text',
+  `user_response` text NOT NULL COMMENT 'The user''s submitted answer, choice ID, or response text',
   `is_correct` tinyint(1) DEFAULT NULL COMMENT '1 if the response was correct, 0 if incorrect',
   `score_earned` decimal(5,2) DEFAULT NULL COMMENT 'Points earned for this specific question',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_attempt_question` (`attempt_id`,`question_id`),
   KEY `fk_answer_question` (`question_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores the user''s response for each question within an exercise attempt';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores the user''s response for each question within an exercise attempt';
 
 --
 -- Dumping data for table `attempt_answer`
 --
-
-INSERT INTO `attempt_answer` (`id`, `attempt_id`, `question_id`, `user_response`, `is_correct`, `score_earned`) VALUES
-(6, 7, 24, '[222,225]', 1, 2.00),
-(7, 7, 25, '[226,227,229]', 1, 3.00),
-(8, 7, 26, '[230,232]', 1, 3.00),
-(9, 8, 24, '[222,225]', 1, 2.00),
-(10, 8, 25, '[226,229]', 0, 0.00),
-(11, 8, 26, '[230,232]', 1, 3.00),
-(12, 9, 27, '[1]', 1, 1.00),
-(13, 10, 28, '[246]', 1, 2.00),
-(14, 10, 29, '[250]', 1, 1.00),
-(15, 10, 30, '[254]', 1, 1.00),
-(16, 11, 28, '[246]', 1, 2.00),
-(17, 11, 29, '[250]', 1, 1.00),
-(18, 11, 30, '[254]', 1, 1.00),
-(19, 12, 28, '[247]', 0, 0.00),
-(20, 12, 29, '[250]', 1, 1.00),
-(21, 12, 30, '[254]', 1, 1.00),
-(22, 13, 31, '[258]', 1, 2.00),
-(23, 13, 32, '[262]', 1, 2.00),
-(24, 13, 33, '[266]', 1, 1.00),
-(25, 14, 28, '[246]', 1, 2.00),
-(26, 14, 29, '[250]', 1, 1.00),
-(27, 14, 30, '[254]', 1, 1.00),
-(28, 15, 28, '[246]', 1, 2.00),
-(29, 15, 29, '[251]', 0, 0.00),
-(30, 15, 30, '[254]', 1, 1.00),
-(31, 16, 31, '[260]', 0, 0.00),
-(32, 16, 32, '[262]', 1, 2.00),
-(33, 16, 33, '[266]', 1, 1.00),
-(34, 17, 31, '[258]', 1, 2.00),
-(35, 17, 32, '[262]', 1, 2.00),
-(36, 17, 33, '[266]', 1, 1.00),
-(37, 18, 31, '[259]', 0, 0.00),
-(38, 18, 32, '[263]', 0, 0.00),
-(39, 18, 33, '[266]', 1, 1.00),
-(40, 19, 31, '[258]', 1, 2.00),
-(41, 19, 32, '[262]', 1, 2.00),
-(42, 19, 33, '[266]', 1, 1.00),
-(43, 20, 27, '[1]', 1, 1.00),
-(44, 21, 28, '[246]', 1, 2.00),
-(45, 21, 29, '[250]', 1, 1.00),
-(46, 21, 30, '[254]', 1, 1.00),
-(47, 22, 34, '[234]', 0, 0.00),
-(48, 22, 35, '[238]', 1, 1.00),
-(49, 22, 36, '[242]', 0, 0.00),
-(50, 23, 24, '[222]', 0, 0.00),
-(51, 23, 25, '[226]', 0, 0.00),
-(52, 23, 26, '[230]', 0, 0.00),
-(53, 24, 27, '[1]', 1, 1.00),
-(54, 25, 24, '[222]', 0, 0.00),
-(55, 25, 25, '[227,229]', 0, 0.00),
-(56, 25, 26, '[230,232]', 1, 3.00),
-(57, 26, 24, '[222,225]', 1, 2.00),
-(58, 26, 25, '[226,227,229]', 1, 3.00),
-(59, 26, 26, '[230,232]', 1, 3.00),
-(60, 27, 24, '[]', 0, 0.00),
-(61, 27, 25, '[226,227,229]', 1, 3.00),
-(62, 27, 26, '[230,232]', 1, 3.00),
-(63, 28, 34, '[234]', 0, 0.00),
-(64, 28, 35, '[238]', 1, 1.00),
-(65, 28, 36, '[242]', 0, 0.00),
-(66, 29, 37, '[270]', 0, 0.00),
-(67, 29, 38, '[274]', 1, 1.00),
-(68, 29, 39, '[278]', 1, 1.00),
-(69, 30, 40, '[282]', 1, 1.00),
-(70, 30, 41, '[286]', 1, 2.00),
-(71, 30, 42, '[290]', 1, 1.00),
-(72, 31, 28, '[246]', 1, 2.00),
-(73, 31, 29, '[250]', 1, 1.00),
-(74, 31, 30, '[254]', 1, 1.00),
-(75, 32, 43, '[]', 0, 0.00),
-(76, 32, 44, '[300]', 0, 0.00),
-(77, 32, 45, '[304]', 0, 0.00),
-(78, 33, 46, '[306]', 1, 1.00),
-(79, 33, 47, '[310,311]', 1, 1.00),
-(80, 33, 48, '[317]', 0, 0.00),
-(81, 34, 46, '[306]', 1, 1.00),
-(82, 34, 47, '[310,311]', 1, 1.00),
-(83, 34, 48, '[314]', 1, 1.00),
-(84, 35, 43, '[294]', 1, 1.00),
-(85, 35, 44, '[298]', 1, 1.00),
-(86, 35, 45, '[302]', 1, 1.00),
-(87, 36, 49, '[]', 0, 0.00),
-(88, 37, 31, '[261]', 0, 0.00),
-(89, 37, 32, '[264]', 0, 0.00),
-(90, 37, 33, '[266]', 1, 1.00),
-(91, 38, 40, '[282]', 1, 1.00),
-(92, 38, 41, '[286]', 1, 2.00),
-(93, 38, 42, '[290]', 1, 1.00),
-(94, 39, 40, '[282]', 1, 1.00),
-(95, 39, 41, '[286]', 1, 2.00),
-(96, 39, 42, '[290]', 1, 1.00),
-(97, 40, 40, '[282]', 1, 1.00),
-(98, 40, 41, '[289]', 0, 0.00),
-(99, 40, 42, '[290]', 1, 1.00),
-(100, 41, 43, '[294]', 1, 1.00),
-(101, 41, 44, '[298]', 1, 1.00),
-(102, 41, 45, '[302]', 1, 1.00),
-(103, 42, 50, '[326]', 1, 1.00),
-(104, 42, 51, '[330]', 0, 0.00),
-(105, 42, 52, '[334]', 1, 1.00),
-(106, 43, 50, '[326]', 1, 1.00),
-(107, 43, 51, '[330]', 0, 0.00),
-(108, 43, 52, '[334]', 1, 1.00),
-(109, 44, 34, '[234,235]', 1, 2.00),
-(110, 44, 35, '[239]', 0, 0.00),
-(111, 44, 36, '[242,243]', 0, 0.00);
 
 -- --------------------------------------------------------
 
@@ -231,14 +208,14 @@ CREATE TABLE IF NOT EXISTS `events` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL COMMENT 'The ID of the user who initiated the event (FK to user.id)',
   `event_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The exact time the event occurred',
-  `event_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'e.g., note_created, question_asked, exercise_attempted, vote_given',
-  `entity_type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'The type of entity involved (e.g., Note, Question, Exercise, Answer)',
+  `event_type` varchar(50) NOT NULL COMMENT 'e.g., note_created, question_asked, exercise_attempted, vote_given',
+  `entity_type` varchar(50) NOT NULL COMMENT 'The type of entity involved (e.g., Note, Question, Exercise, Answer)',
   `entity_id` int DEFAULT NULL COMMENT 'The ID of the related entity in its respective table',
   `data` json DEFAULT NULL COMMENT 'Flexible storage for metric-critical data (e.g., score, subject_id, vote_direction)',
   PRIMARY KEY (`id`),
   KEY `idx_user_time_type` (`user_id`,`event_time`,`event_type`),
   KEY `idx_entity` (`entity_type`,`entity_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `events`
@@ -294,7 +271,11 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 (47, 102, '2026-04-04 05:14:52', 'question_answered', 'Answer', 17, '{\"question_id\": 29}'),
 (48, 102, '2026-04-04 05:15:50', 'question_answered', 'Answer', 18, '{\"question_id\": 26}'),
 (49, 102, '2026-04-05 16:49:23', 'note_created', 'Note', 49, '{\"title\": \"test note\", \"subject_id\": 1}'),
-(50, 102, '2026-04-05 16:49:41', 'note_updated', 'Note', 49, '{\"subject_id\": 1}');
+(50, 102, '2026-04-05 16:49:41', 'note_updated', 'Note', 49, '{\"subject_id\": 1}'),
+(51, 102, '2026-04-06 00:33:03', 'question_asked', 'Question', 30, '{\"subject_id\": 1}'),
+(52, 102, '2026-04-06 03:05:52', 'question_asked', 'Question', 31, '{\"subject_id\": 1}'),
+(53, 102, '2026-04-06 03:06:44', 'question_answered', 'Answer', 19, '{\"question_id\": 31}'),
+(54, 105, '2026-04-10 21:30:15', 'question_answered', 'Answer', 20, '{\"question_id\": 31}');
 
 --
 -- Triggers `events`
@@ -332,120 +313,17 @@ DELIMITER ;
 DROP TABLE IF EXISTS `exerciseanswer`;
 CREATE TABLE IF NOT EXISTS `exerciseanswer` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `answer_text` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL,
+  `answer_text` varchar(1000) NOT NULL,
   `is_correct` tinyint(1) DEFAULT '0',
   `display_order` int NOT NULL,
   `question_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `question_id` (`question_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=338 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exerciseanswer`
 --
-
-INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`, `question_id`) VALUES
-(1, 'x = 2', 1, 0, 1),
-(222, 'x = 4', 1, 0, 82),
-(223, 'x = (13 − 5) / 2', 0, 1, 82),
-(224, 'x2= (13 − 5) / 2', 0, 2, 82),
-(225, 'x = 3', 1, 3, 82),
-(226, 'x² + 3x + 3', 1, 0, 83),
-(227, '(x + 3)(x + 3)', 1, 1, 83),
-(228, 'x² + 9', 0, 2, 83),
-(229, 'x² + 6x + 9', 1, 3, 83),
-(230, 'sin²θ + cos²θ = 1', 1, 0, 84),
-(231, 'tanθ = cosθ / sinθ', 0, 1, 84),
-(232, 'tanθ = sinθ / cosθ', 1, 2, 84),
-(233, 'sin 0° = 1', 0, 3, 84),
-(234, 'op1', 1, 0, 85),
-(235, 'op2', 1, 1, 85),
-(236, 'op3', 0, 2, 85),
-(237, 'op4', 0, 3, 85),
-(238, 'op1', 1, 0, 86),
-(239, 'op3', 0, 1, 86),
-(240, 'op3', 0, 2, 86),
-(241, 'op1', 0, 3, 86),
-(242, 'op1', 1, 0, 87),
-(243, 'op2', 0, 1, 87),
-(244, 'op3', 0, 2, 87),
-(245, 'op1', 1, 3, 87),
-(246, 'op1', 1, 0, 88),
-(247, 'op2', 0, 1, 88),
-(248, 'op3', 0, 2, 88),
-(249, 'op4', 0, 3, 88),
-(250, 'op1', 1, 0, 89),
-(251, 'op2', 0, 1, 89),
-(252, 'op3', 0, 2, 89),
-(253, 'op4', 0, 3, 89),
-(254, 'op1', 1, 0, 90),
-(255, 'op3', 0, 1, 90),
-(256, 'op3', 0, 2, 90),
-(257, 'op3', 0, 3, 90),
-(258, 'op1', 1, 0, 91),
-(259, 'op2', 0, 1, 91),
-(260, 'op3', 0, 2, 91),
-(261, 'op4', 0, 3, 91),
-(262, 'op1', 1, 0, 92),
-(263, 'op2', 0, 1, 92),
-(264, 'op3', 0, 2, 92),
-(265, 'op4', 0, 3, 92),
-(266, 'op1', 1, 0, 93),
-(267, 'op2', 0, 1, 93),
-(268, 'op3', 0, 2, 93),
-(269, 'op4', 0, 3, 93),
-(270, 'op1', 1, 0, 94),
-(271, 'op2', 1, 1, 94),
-(272, 'op3', 0, 2, 94),
-(273, 'op4', 0, 3, 94),
-(274, 'op1', 1, 0, 95),
-(275, 'op2', 0, 1, 95),
-(276, 'op3', 0, 2, 95),
-(277, 'op5', 0, 3, 95),
-(278, 'op1', 1, 0, 96),
-(279, 'op2', 0, 1, 96),
-(280, 'op3', 0, 2, 96),
-(281, 'op4', 0, 3, 96),
-(282, 'op1', 1, 0, 97),
-(283, 'op2', 0, 1, 97),
-(284, 'op3', 0, 2, 97),
-(285, 'op4', 0, 3, 97),
-(286, 'op1', 1, 0, 98),
-(287, 'op2', 0, 1, 98),
-(288, 'op3', 0, 2, 98),
-(289, 'op4', 0, 3, 98),
-(290, 'op1', 1, 0, 99),
-(291, 'op2', 0, 1, 99),
-(292, 'op3', 0, 2, 99),
-(293, 'op4', 0, 3, 99),
-(294, 'op1', 1, 0, 100),
-(295, 'op2', 0, 1, 100),
-(296, 'op3', 0, 2, 100),
-(297, 'op4', 0, 3, 100),
-(298, 'op1', 1, 0, 101),
-(299, 'op2', 0, 1, 101),
-(300, 'op3', 0, 2, 101),
-(301, 'op4', 0, 3, 101),
-(302, 'op1', 1, 0, 102),
-(303, 'op2', 0, 1, 102),
-(304, 'op3', 0, 2, 102),
-(305, 'op4', 0, 3, 102),
-(322, 'op1', 1, 0, 107),
-(323, 'op2', 0, 1, 107),
-(324, 'op3', 0, 2, 107),
-(325, 'op4', 0, 3, 107),
-(326, 'op1', 1, 0, 108),
-(327, 'op2', 0, 1, 108),
-(328, 'op3', 0, 2, 108),
-(329, 'op4', 0, 3, 108),
-(330, 'op1', 1, 0, 109),
-(331, 'op2', 1, 1, 109),
-(332, 'op3', 0, 2, 109),
-(333, 'op4', 0, 3, 109),
-(334, 'op1', 1, 0, 110),
-(335, 'op2', 0, 1, 110),
-(336, 'op3', 0, 2, 110),
-(337, 'op4', 0, 3, 110);
 
 -- --------------------------------------------------------
 
@@ -456,47 +334,18 @@ INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`
 DROP TABLE IF EXISTS `exercisequestion`;
 CREATE TABLE IF NOT EXISTS `exercisequestion` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `question_text` text COLLATE utf8mb4_general_ci NOT NULL,
-  `explanation` text COLLATE utf8mb4_general_ci NOT NULL,
+  `question_text` text NOT NULL,
+  `explanation` text NOT NULL,
   `weight` int NOT NULL DEFAULT '1',
   `exercise_id` int NOT NULL,
   `display_order` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `exercise_id` (`exercise_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exercisequestion`
 --
-
-INSERT INTO `exercisequestion` (`id`, `question_text`, `explanation`, `weight`, `exercise_id`, `display_order`) VALUES
-(1, 'What is the solution of 2x + 3 = 7?', '', 1, 1, 0),
-(2, 'Which law states that for every action, there is an equal and opposite reaction?', '', 1, 2, 0),
-(82, 'Solve the equation:    2x + 5 = 13', '2x + 5 = 13 ⇒ 2x = 8 ⇒ x = 4\nOption C simplifies to the same value.', 2, 45, 0),
-(83, 'Which of the following expressions are equivalent to (x + 3)² ?', '(x + 3)² = (x + 3)(x + 3) = x² + 6x + 9', 3, 45, 1),
-(84, 'Which of the following trigonometric identities are correct?', 'Which of the following trigonometric identities are correct?', 3, 45, 2),
-(85, 'q1', 'ex', 2, 46, 0),
-(86, 'q2', 'ex', 1, 46, 1),
-(87, 'q3', 'ex', 1, 46, 2),
-(88, 'q1', 'ex', 2, 47, 0),
-(89, 'q1', 'ex', 1, 47, 1),
-(90, 'q2', 'exxx', 1, 47, 2),
-(91, 'q1', 'ex', 2, 48, 0),
-(92, 'q2', 'ex', 2, 48, 1),
-(93, 'q3', 'ex', 1, 48, 2),
-(94, 'q1', 'ex1', 2, 49, 0),
-(95, 'q2', 'ex2', 1, 49, 1),
-(96, 'q3', 'ex3', 1, 49, 2),
-(97, 'q1', 'expla', 1, 50, 0),
-(98, 'q2', 'ex', 2, 50, 1),
-(99, 'q3', 'ex', 1, 50, 2),
-(100, 'q1', 'exx', 1, 51, 0),
-(101, 'q2', 'ex', 1, 51, 1),
-(102, 'q3', 'ex', 1, 51, 2),
-(107, 'q1', '', 1, 53, 0),
-(108, 'q1', 'ex', 1, 52, 0),
-(109, 'q2', 'ex', 1, 52, 1),
-(110, 'q3', 'ex', 1, 52, 2);
 
 -- --------------------------------------------------------
 
@@ -508,39 +357,23 @@ DROP TABLE IF EXISTS `exercises`;
 CREATE TABLE IF NOT EXISTS `exercises` (
   `id` int NOT NULL AUTO_INCREMENT,
   `subject_id` int NOT NULL,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `creator_id` int NOT NULL,
-  `status` enum('pending','approved','draft','rejected') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'pending',
-  `feedback` text COLLATE utf8mb4_general_ci,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `feedback` text,
   `reviewed_by` int DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
+  `description` text,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `subject_id` (`subject_id`),
   KEY `creator_id` (`creator_id`),
   KEY `reviewed_by` (`reviewed_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exercises`
 --
-
-INSERT INTO `exercises` (`id`, `subject_id`, `title`, `created_at`, `creator_id`, `status`, `feedback`, `reviewed_by`, `description`, `updated_at`) VALUES
-(1, 1, 'Basic Algebra Practice', '2025-10-17 22:06:22', 1, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
-(2, 2, 'Newton Laws Challenge', '2025-10-17 22:06:22', 5, 'approved', NULL, 3, NULL, '2025-11-19 03:34:17'),
-(4, 3, 'Python Loop Exercises', '2025-10-17 22:06:22', 40, 'approved', NULL, NULL, NULL, '2025-12-23 06:00:54'),
-(14, 2, 'Test exercise', '2025-10-21 01:48:59', 91, 'approved', NULL, NULL, NULL, '2025-12-23 06:01:11'),
-(15, 2, 'Test exercise', '2025-10-21 01:51:23', 91, 'approved', NULL, NULL, NULL, '2025-12-23 06:01:23'),
-(45, 8, 'Mathematics MCQ Quiz – Algebra & Calculus Basics', '2026-01-02 03:12:55', 2, 'draft', NULL, 103, 'This exercise is designed to test students’ understanding of basic algebraic expressions, linear equations, trigonometric identities, and introductory calculus concepts.\nEach question may have multiple correct answers, includes mathematical expressions, and is assigned a weight to evaluate difficulty and scoring.', '2026-04-02 14:55:01'),
-(46, 7, 'electronics laws', '2026-01-12 09:46:59', 2, 'approved', 'hiiii', 103, 'des', '2026-02-04 06:11:51'),
-(47, 7, 'electronics laws', '2026-01-20 04:20:32', 2, 'approved', 'hiiib  bhvuhvjvudszxdcfvgbhj', 103, 'des', '2026-02-04 05:55:43'),
-(48, 7, 'electronics laws', '2026-01-31 09:52:00', 103, 'approved', NULL, NULL, 'ex', '2026-03-04 23:32:53'),
-(49, 7, 'electronics laws', '2026-02-11 12:20:29', 104, 'approved', NULL, NULL, 'des', '2026-03-04 23:32:18'),
-(50, 7, 'electronics laws', '2026-02-18 22:42:31', 105, 'approved', NULL, NULL, 'des', '2026-03-04 23:22:18'),
-(51, 7, 'Mathematics MCQ Quiz – Algebra & Calculus Basics', '2026-03-05 11:50:19', 107, 'approved', NULL, 105, 'cvbn', '2026-03-05 17:21:52'),
-(52, 7, 'quiz -electro', '2026-04-02 09:39:59', 107, 'approved', '__HIDDEN_BY_MENTOR__', 109, NULL, '2026-04-04 05:59:19'),
-(53, 3, 'ti', '2026-04-03 09:11:57', 107, 'draft', NULL, NULL, NULL, '2026-04-03 09:12:17');
 
 -- --------------------------------------------------------
 
@@ -560,24 +393,6 @@ CREATE TABLE IF NOT EXISTS `exercisetag` (
 -- Dumping data for table `exercisetag`
 --
 
-INSERT INTO `exercisetag` (`exercise_id`, `tag_id`) VALUES
-(4, 8),
-(1, 9),
-(46, 53),
-(47, 53),
-(48, 53),
-(49, 53),
-(50, 53),
-(51, 53),
-(52, 53),
-(45, 55),
-(45, 56),
-(45, 57),
-(45, 58),
-(45, 59),
-(45, 60),
-(45, 61);
-
 -- --------------------------------------------------------
 
 --
@@ -595,51 +410,11 @@ CREATE TABLE IF NOT EXISTS `exercise_attempt` (
   PRIMARY KEY (`id`),
   KEY `idx_exe_u_latest` (`exe_id`,`u_id`,`latest`),
   KEY `fk_attempt_user` (`u_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores each attempt a user makes on an exercise';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores each attempt a user makes on an exercise';
 
 --
 -- Dumping data for table `exercise_attempt`
 --
-
-INSERT INTO `exercise_attempt` (`id`, `exe_id`, `date`, `u_id`, `score`, `latest`) VALUES
-(7, 45, '2026-01-12 18:56:23', 2, 8.00, 0),
-(8, 45, '2026-01-12 18:57:06', 2, 5.00, 1),
-(9, 1, '2026-01-20 09:48:16', 2, 1.00, 1),
-(10, 47, '2026-01-20 09:53:48', 2, 4.00, 1),
-(11, 47, '2026-01-31 15:14:32', 103, 4.00, 0),
-(12, 47, '2026-02-01 02:53:16', 103, 2.00, 0),
-(13, 48, '2026-02-01 11:42:24', 103, 5.00, 0),
-(14, 47, '2026-02-01 12:02:27', 103, 4.00, 0),
-(15, 47, '2026-02-01 12:13:45', 103, 3.00, 0),
-(16, 48, '2026-02-01 12:41:05', 103, 3.00, 0),
-(17, 48, '2026-02-01 12:42:11', 103, 5.00, 0),
-(18, 48, '2026-02-01 12:42:35', 103, 1.00, 0),
-(19, 48, '2026-02-01 12:45:39', 103, 5.00, 1),
-(20, 1, '2026-02-02 09:57:58', 103, 1.00, 1),
-(21, 47, '2026-02-04 06:02:47', 103, 4.00, 1),
-(22, 46, '2026-02-04 06:19:24', 103, 1.00, 0),
-(23, 45, '2026-02-04 16:54:02', 103, 0.00, 0),
-(24, 1, '2026-02-09 09:35:19', 104, 1.00, 1),
-(25, 45, '2026-02-19 04:24:13', 103, 3.00, 0),
-(26, 45, '2026-02-19 04:24:53', 103, 8.00, 0),
-(27, 45, '2026-02-19 04:25:31', 103, 6.00, 1),
-(28, 46, '2026-02-19 04:54:11', 103, 1.00, 1),
-(29, 49, '2026-03-05 17:17:18', 108, 2.00, 1),
-(30, 50, '2026-03-30 06:16:52', 105, 4.00, 1),
-(31, 47, '2026-03-30 06:38:44', 105, 4.00, 1),
-(32, 51, '2026-04-01 06:29:27', 107, 0.00, 0),
-(33, 52, '2026-04-02 15:11:50', 109, 2.00, 0),
-(34, 52, '2026-04-02 15:23:39', 108, 3.00, 1),
-(35, 51, '2026-04-03 05:26:34', 107, 3.00, 1),
-(36, 2, '2026-04-03 09:34:44', 107, 0.00, 1),
-(37, 48, '2026-04-04 02:33:06', 107, 1.00, 1),
-(38, 50, '2026-04-04 02:34:21', 107, 4.00, 1),
-(39, 50, '2026-04-04 02:48:17', 108, 4.00, 0),
-(40, 50, '2026-04-04 02:49:46', 108, 2.00, 1),
-(41, 51, '2026-04-04 02:51:34', 109, 3.00, 1),
-(42, 52, '2026-04-04 03:04:19', 109, 2.00, 0),
-(43, 52, '2026-04-04 03:23:29', 109, 2.00, 1),
-(44, 46, '2026-04-04 04:48:10', 108, 2.00, 1);
 
 -- --------------------------------------------------------
 
@@ -679,7 +454,8 @@ CREATE TABLE IF NOT EXISTS `experts` (
 INSERT INTO `experts` (`user_id`, `subject_id`) VALUES
 (3, 1),
 (3, 4),
-(102, 6);
+(102, 6),
+(105, 9);
 
 -- --------------------------------------------------------
 
@@ -690,8 +466,8 @@ INSERT INTO `experts` (`user_id`, `subject_id`) VALUES
 DROP TABLE IF EXISTS `notes`;
 CREATE TABLE IF NOT EXISTS `notes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci,
+  `title` varchar(255) NOT NULL,
+  `content` text,
   `topic_id` int DEFAULT NULL,
   `owner_id` int NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -735,7 +511,7 @@ INSERT INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_
 (45, 'title', '{\"ops\":[{\"insert\":\"con\\n\"}]}', 9, 102, '2026-02-19 11:46:12', '2026-02-19 11:46:12', 0),
 (47, 'uy', '{\"ops\":[{\"insert\":\"jhg\\n\"}]}', 5, 102, '2026-03-06 12:45:35', '2026-03-06 12:45:35', 0),
 (48, 'title', '{\"ops\":[{\"insert\":\"content\\n\"}]}', 9, 102, '2026-04-02 10:32:02', '2026-04-02 10:32:02', 0),
-(49, 'test note', '{\"ops\":[{\"attributes\":{\"underline\":true},\"insert\":\"content\"},{\"insert\":\" \"},{\"attributes\":{\"bold\":true},\"insert\":\"content\"},{\"insert\":\"\\n\"}]}', 25, 102, '2026-04-06 03:49:23', '2026-04-05 22:19:40', 0);
+(49, 'test note', '{\"ops\":[{\"attributes\":{\"underline\":true},\"insert\":\"content\"},{\"insert\":\" \"},{\"attributes\":{\"bold\":true},\"insert\":\"content\"},{\"insert\":\"\\n\"}]}', 25, 102, '2026-04-06 03:49:23', '2026-04-06 09:15:03', 0);
 
 -- --------------------------------------------------------
 
@@ -856,11 +632,11 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sender_id` int NOT NULL,
   `receiver_id` int NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text NOT NULL,
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notifications`
@@ -930,8 +706,15 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 (61, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:21:49'),
 (62, 102, 102, 'Your user role has been changed to student.', 0, '2025-12-02 06:22:29'),
 (63, 102, 102, 'Your user role has been changed to expert.', 0, '2025-12-02 06:22:44'),
-(64, 103, 2, 'Your exercise #47 received feedback: hiiib  bhvuhvjvudszxdcfvgbhj', 0, '2026-01-25 16:16:36'),
-(65, 103, 2, 'Your exercise #46 received feedback: hiiii', 0, '2026-02-04 05:56:28');
+(64, 102, 97, 'Your user role has been changed to expert.', 0, '2026-03-22 02:12:51'),
+(65, 0, 102, 'You have successfully logged in.', 0, '2026-04-05 02:39:25'),
+(66, 0, 92, 'You have successfully logged in.', 0, '2026-04-05 23:40:35'),
+(67, 0, 97, 'You have successfully logged in.', 0, '2026-04-05 23:42:19'),
+(68, 0, 92, 'You have successfully logged in.', 0, '2026-04-06 02:53:02'),
+(69, 0, 91, 'You have successfully logged in.', 0, '2026-04-06 02:54:55'),
+(70, 0, 92, 'You have successfully logged in.', 0, '2026-04-06 04:16:25'),
+(71, 0, 92, 'You have successfully logged in.', 0, '2026-04-06 04:23:29'),
+(72, 97, 105, 'Your expert request has been approved. You can now access expert features on our platform.', 0, '2026-04-06 09:01:26');
 
 -- --------------------------------------------------------
 
@@ -942,15 +725,15 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 DROP TABLE IF EXISTS `otp_codes`;
 CREATE TABLE IF NOT EXISTS `otp_codes` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `code` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `type` enum('registration','login','change_password','accountverification') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'registration',
+  `username` varchar(50) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `code` varchar(10) DEFAULT NULL,
+  `type` enum('registration','login','change_password','accountverification') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'registration',
   `is_used` tinyint(1) DEFAULT '0',
   `expires_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=234 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `otp_codes`
@@ -1189,7 +972,15 @@ INSERT INTO `otp_codes` (`id`, `username`, `email`, `code`, `type`, `is_used`, `
 (230, 'samitha', 'samithanawarathna528@gmail.com', '197768', 'change_password', 0, '2025-11-25 08:35:14', '2025-11-25 14:00:28'),
 (231, 'samitha', 'samithanawarathna528@gmail.com', '768274', 'change_password', 0, '2025-11-25 08:36:25', '2025-11-25 14:01:37'),
 (232, 'samitha', 'samithanawarathna528@gmail.com', '649159', 'change_password', 0, '2025-11-25 08:38:22', '2025-11-25 14:03:29'),
-(233, 'samitha', 'Samithanawarathna528@gmail.com', '114459', 'login', 0, '2026-04-05 02:43:02', '2026-04-05 08:08:12');
+(233, 'samitha', 'Samithanawarathna528@gmail.com', '114459', 'login', 0, '2026-04-05 02:43:02', '2026-04-05 08:08:12'),
+(234, 'expert_test', 'samithanawarathna322@gmail.com', '211133', 'login', 0, '2026-04-05 23:44:14', '2026-04-06 05:09:25'),
+(235, 'admin_test', '2023cs120@stu.ucsc.cmb.ac.lk', '719123', 'login', 0, '2026-04-05 23:46:32', '2026-04-06 05:11:40'),
+(236, 'expert_test', 'samithanawarathna322@gmail.com', '964393', 'login', 0, '2026-04-06 02:55:50', '2026-04-06 08:21:00'),
+(237, 'student_test', 'animelearnin528@gmail.com', '536158', 'login', 0, '2026-04-06 02:59:33', '2026-04-06 08:24:40'),
+(238, 'expert_test', 'samithanawarathna322@gmail.com', '952087', 'login', 0, '2026-04-06 04:21:02', '2026-04-06 09:46:09'),
+(239, 'expert_test', 'samithanawarathna322@gmail.com', '945179', 'login', 0, '2026-04-06 04:25:06', '2026-04-06 09:50:12'),
+(240, 'expert_test', 'samithanawarathna322@gmail.com', '203866', 'login', 0, '2026-04-06 04:28:03', '2026-04-06 09:53:09'),
+(241, 'student_test_1', 'samithanawarathna322@gmail.com', '699278', 'registration', 0, '2026-04-06 04:30:56', '2026-04-06 09:56:02');
 
 -- --------------------------------------------------------
 
@@ -1207,7 +998,7 @@ CREATE TABLE IF NOT EXISTS `profile_summary` (
 ,`created_at` timestamp
 ,`subject_name` varchar(50)
 ,`profile_picture` varchar(200)
-,`banned` tinyint
+,`banned` tinyint(1)
 );
 
 -- --------------------------------------------------------
@@ -1219,14 +1010,14 @@ CREATE TABLE IF NOT EXISTS `profile_summary` (
 DROP TABLE IF EXISTS `question`;
 CREATE TABLE IF NOT EXISTS `question` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
   `creator_id` int DEFAULT NULL,
   `is_deleted` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_question_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `question`
@@ -1242,9 +1033,9 @@ INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `c
 (7, 'q', '1', NULL, 0, '2025-10-18 17:50:22'),
 (8, 'a', 'q', NULL, 0, '2025-10-18 18:15:38'),
 (9, 'q1', 'content', NULL, 0, '2025-10-20 05:42:17'),
-(10, 'title', 'content', 92, 0, '2025-10-20 23:41:04'),
-(11, 'title', 'content', 92, 0, '2025-10-20 23:43:22'),
-(12, 'title', 'content', 92, 0, '2025-10-20 23:43:50'),
+(10, 'title', 'content', NULL, 0, '2025-10-20 23:41:04'),
+(11, 'title', 'content', NULL, 0, '2025-10-20 23:43:22'),
+(12, 'title', 'content', NULL, 0, '2025-10-20 23:43:50'),
 (13, 'question', 'description', 91, 0, '2025-10-21 01:45:12'),
 (14, 'question', 'description', 91, 0, '2025-10-21 01:46:39'),
 (15, 'jhvdf', '\'odhfag', 91, 0, '2025-10-22 03:30:21'),
@@ -1255,35 +1046,13 @@ INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `c
 (20, 'ti', 'con', 94, 0, '2025-10-23 02:35:08'),
 (21, 'ti', 'con', 94, 0, '2025-10-23 02:56:52'),
 (22, 'ti', 'contet', 94, 0, '2025-10-23 04:03:38'),
-(24, 'Exercise 45 - Q82', 'Solve the equation:    2x + 5 = 13', 2, 0, '2026-01-12 18:56:23'),
-(25, 'Exercise 45 - Q83', 'Which of the following expressions are equivalent to (x + 3)² ?', 2, 0, '2026-01-12 18:56:23'),
-(26, 'Exercise 45 - Q84', 'Which of the following trigonometric identities are correct?', 2, 0, '2026-01-12 18:56:23'),
-(27, 'Exercise 1 - Q1', 'What is the solution of 2x + 3 = 7?', 2, 0, '2026-01-20 09:48:16'),
-(28, 'Exercise 47 - Q88', 'q1', 2, 0, '2026-01-20 09:53:48'),
-(29, 'Exercise 47 - Q89', 'q1', 2, 0, '2026-01-20 09:53:48'),
-(30, 'Exercise 47 - Q90', 'q2', 2, 0, '2026-01-20 09:53:48'),
-(31, 'Exercise 48 - Q91', 'q1', 103, 0, '2026-02-01 11:42:24'),
-(32, 'Exercise 48 - Q92', 'q2', 103, 0, '2026-02-01 11:42:24'),
-(33, 'Exercise 48 - Q93', 'q3', 103, 0, '2026-02-01 11:42:24'),
-(34, 'Exercise 46 - Q85', 'q1', 103, 0, '2026-02-04 06:19:24'),
-(35, 'Exercise 46 - Q86', 'q2', 103, 0, '2026-02-04 06:19:24'),
-(36, 'Exercise 46 - Q87', 'q3', 103, 0, '2026-02-04 06:19:24'),
-(37, 'Exercise 49 - Q94', 'q1', 108, 0, '2026-03-05 17:17:18'),
-(38, 'Exercise 49 - Q95', 'q2', 108, 0, '2026-03-05 17:17:18'),
-(39, 'Exercise 49 - Q96', 'q3', 108, 0, '2026-03-05 17:17:18'),
-(40, 'Exercise 50 - Q97', 'q1', 105, 0, '2026-03-30 06:16:52'),
-(41, 'Exercise 50 - Q98', 'q2', 105, 0, '2026-03-30 06:16:52'),
-(42, 'Exercise 50 - Q99', 'q3', 105, 0, '2026-03-30 06:16:52'),
-(43, 'Exercise 51 - Q100', 'q1', 107, 0, '2026-04-01 06:29:27'),
-(44, 'Exercise 51 - Q101', 'q2', 107, 0, '2026-04-01 06:29:27'),
-(45, 'Exercise 51 - Q102', 'q3', 107, 0, '2026-04-01 06:29:27'),
-(46, 'Exercise 52 - Q103', 'q1', 109, 0, '2026-04-02 15:11:50'),
-(47, 'Exercise 52 - Q104', 'q2', 109, 0, '2026-04-02 15:11:50'),
-(48, 'Exercise 52 - Q105', 'q3', 109, 0, '2026-04-02 15:11:50'),
-(49, 'Exercise 2 - Q2', 'Which law states that for every action, there is an equal and opposite reaction?', 107, 0, '2026-04-03 09:34:44'),
-(50, 'Exercise 52 - Q108', 'q1', 109, 0, '2026-04-04 03:04:19'),
-(51, 'Exercise 52 - Q109', 'q2', 109, 0, '2026-04-04 03:04:19'),
-(52, 'Exercise 52 - Q110', 'q3', 109, 0, '2026-04-04 03:04:19');
+(25, 'question', 'content', 103, 0, '2026-01-22 23:31:13'),
+(26, 'title', 'content', 103, 0, '2026-01-23 04:54:24'),
+(27, 'what is block chain?', 'what is block chain?', 102, 0, '2026-02-06 22:59:01'),
+(28, 'Exercise 1 - Q1', 'What is the solution of 2x + 3 = 7?', 102, 0, '2026-03-06 07:05:18'),
+(29, 'test1', 'testw', 102, 0, '2026-04-04 04:55:12'),
+(30, 'test_1', 'content', 102, 0, '2026-04-06 00:33:03'),
+(31, 'dsp', 'what arfe sinosodial waves', 102, 0, '2026-04-06 03:05:52');
 
 -- --------------------------------------------------------
 
@@ -1320,6 +1089,7 @@ INSERT INTO `questiontag` (`question_id`, `tag_id`) VALUES
 (13, 18),
 (14, 18),
 (15, 18),
+(30, 18),
 (7, 21),
 (8, 22),
 (9, 24),
@@ -1328,6 +1098,7 @@ INSERT INTO `questiontag` (`question_id`, `tag_id`) VALUES
 (11, 27),
 (25, 27),
 (26, 27),
+(31, 27),
 (10, 29),
 (20, 30),
 (22, 30),
@@ -1352,14 +1123,14 @@ CREATE TABLE IF NOT EXISTS `request` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
   `time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `subject` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `proof_link` text COLLATE utf8mb4_general_ci,
-  `review` enum('pending','approved','rejected') COLLATE utf8mb4_general_ci DEFAULT 'pending',
-  `feedback` text COLLATE utf8mb4_general_ci,
+  `subject` varchar(50) NOT NULL,
+  `description` text,
+  `proof_link` text,
+  `review` enum('pending','approved','rejected') DEFAULT 'pending',
+  `feedback` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=76 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `request`
@@ -1420,8 +1191,16 @@ INSERT INTO `request` (`id`, `user_id`, `time`, `subject`, `description`, `proof
 (63, 101, '2025-11-14 08:12:37', 'subject', 'd', '', 'approved', NULL),
 (64, 102, '2025-11-25 10:28:02', 'theology', 'something', NULL, 'approved', NULL),
 (65, 102, '2025-11-25 10:30:21', 'theology', 'something', NULL, 'approved', NULL),
-(66, 102, '2025-12-02 05:31:17', 'psychology', 'desc', '', 'pending', NULL),
-(67, 109, '2026-04-02 15:02:42', 'Electronics', 'sdfghjkdfghjkwertyuiosdfghj', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/109/request.pdf', 'approved', NULL);
+(66, 102, '2025-12-02 05:31:17', 'psychology', 'desc', '', 'rejected', 'f'),
+(67, 103, '2026-01-27 03:18:17', 'psychology', 'I have a Phd on human psychology', NULL, 'pending', NULL),
+(68, 103, '2026-01-27 05:30:50', 'subject', 'desc', NULL, 'pending', NULL),
+(69, 103, '2026-01-27 06:05:59', 'psychology', 'f', NULL, 'pending', NULL),
+(70, NULL, '2026-01-27 08:17:29', 'A', 'b', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests//request_69787499d1f8e.pdf', 'pending', NULL),
+(71, 102, '2026-01-27 08:18:28', 'A', 'ss', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/request_697874d40bc36.pdf', 'pending', NULL),
+(72, 102, '2026-01-28 00:21:04', 'A', 'desc', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_69795670c288c/CV.pdf', 'pending', NULL),
+(73, 102, '2026-01-28 00:27:53', 'A', 'sub', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_697958097c4b3/CV.pdf', 'pending', NULL),
+(74, 102, '2026-02-19 06:27:56', 'psychology', 'des', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_6996ad6c3371b/CV.pdf', 'pending', NULL),
+(75, 105, '2026-04-06 08:57:53', 'sci', 'desc', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/105/req_69d3759114698/CV.pdf', 'approved', NULL);
 
 -- --------------------------------------------------------
 
@@ -1432,7 +1211,7 @@ INSERT INTO `request` (`id`, `user_id`, `time`, `subject`, `description`, `proof
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` int NOT NULL,
-  `name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -1455,9 +1234,9 @@ INSERT INTO `roles` (`role_id`, `name`) VALUES
 DROP TABLE IF EXISTS `subjects`;
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `subjects`
@@ -1470,8 +1249,9 @@ INSERT INTO `subjects` (`id`, `name`) VALUES
 (4, 'Computer Science'),
 (5, 'Art History'),
 (6, 'theology'),
-(7, 'Electronics'),
-(8, 'Calculus');
+(7, 'zxczcx'),
+(8, 'science'),
+(9, 'sci');
 
 -- --------------------------------------------------------
 
@@ -1482,10 +1262,10 @@ INSERT INTO `subjects` (`id`, `name`) VALUES
 DROP TABLE IF EXISTS `tags`;
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tags`
@@ -1495,11 +1275,8 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (27, ''),
 (55, '22\\'),
 (21, '4'),
-(56, 'algebra'),
-(53, 'beginer'),
-(60, 'beginner'),
 (48, 'biology'),
-(57, 'calculus'),
+(57, 'blockchain'),
 (26, 'chem'),
 (28, 'chemistry'),
 (36, 'computer'),
@@ -1512,7 +1289,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (3, 'Databases'),
 (49, 'design'),
 (33, 'e'),
-(61, 'expressions'),
+(59, 'f'),
 (23, 'fff'),
 (20, 'field theory'),
 (45, 'gdyt'),
@@ -1522,12 +1299,9 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (38, 'jogiy'),
 (40, 'jyf'),
 (1, 'Machine Learning'),
-(55, 'math'),
 (25, 'maths'),
-(58, 'mcq'),
 (10, 'Mechanics'),
 (35, 'motion'),
-(59, 'multiple-answer'),
 (5, 'Networking'),
 (46, 'p'),
 (19, 'particle physics'),
@@ -1567,7 +1341,7 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 DROP TABLE IF EXISTS `topics`;
 CREATE TABLE IF NOT EXISTS `topics` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(255) NOT NULL,
   `creator_id` int NOT NULL,
   `pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if the topic is pinned, 0 otherwise',
   PRIMARY KEY (`id`)
@@ -1613,95 +1387,89 @@ INSERT INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(75) COLLATE utf8mb4_general_ci NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `email` varchar(75) NOT NULL,
   `role` int NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `banned` tinyint(1) DEFAULT '0',
-  `profile_pic` text COLLATE utf8mb4_general_ci,
+  `profile_pic` text,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `profile_picture` varchar(200) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '\\uploads\\\\0\\profile.avif',
-  `display_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `profile_picture` varchar(200) NOT NULL DEFAULT '\\uploads\\\\0\\profile.avif',
+  `display_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `points` decimal(12,6) NOT NULL DEFAULT '0.000000',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`, `banned`, `profile_pic`, `is_deleted`, `profile_picture`, `display_name`) VALUES
-(1, 'alice', 'hashed_pw1', 'abc@gmail.com', 3, '2025-07-29 10:58:45', 1, NULL, 0, './uploads/1/profile.png', 'alice'),
-(2, 'bob_mentor', 'hashed_pw2', 'bob@example.com', 2, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(3, 'carol_expert', 'hashed_pw3', 'carol@example.com', 3, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(4, 'dave_admin', 'hashed_pw4', 'dave@example.com', 4, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(5, 'eva_student', 'hashed_pw5', 'eva@example.com', 1, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', ''),
-(40, 'user1', 'pw1', 'user1@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alice Wonder'),
-(41, 'user2', 'pw2', 'user2@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Bob Stone'),
-(42, 'user3', 'pw3', 'user3@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Charlie Kim'),
-(43, 'user4', 'pw4', 'user4@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Diana Ray'),
-(44, 'user5', 'pw5', 'user5@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Edward Blake'),
-(45, 'user6', 'pw6', 'user6@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Frank Yu'),
-(46, 'user7', 'pw7', 'user7@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Grace Li'),
-(47, 'user8', 'pw8', 'user8@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harry West'),
-(48, 'user9', 'pw9', 'user9@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Irene Cho'),
-(49, 'user10', 'pw10', 'user10@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'John Doe'),
-(50, 'user11', 'pw11', 'user11@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Sophia Lane'),
-(51, 'user12', 'pw12', 'user12@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Michael Cruz'),
-(52, 'user13', 'pw13', 'user13@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Emma Patel'),
-(53, 'user14', 'pw14', 'user14@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Daniel Green'),
-(54, 'user15', 'pw15', 'user15@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Olivia Brooks'),
-(55, 'user16', 'pw16', 'user16@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ethan Hayes'),
-(56, 'user17', 'pw17', 'user17@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ava Carter'),
-(57, 'user18', 'pw18', 'user18@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Noah James'),
-(58, 'user19', 'pw19', 'user19@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mia Flores'),
-(59, 'user20', 'pw20', 'user20@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lucas Turner'),
-(60, 'user21', 'pw21', 'user21@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Chloe Adams'),
-(61, 'user22', 'pw22', 'user22@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mason Hill'),
-(62, 'user23', 'pw23', 'user23@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Isabella Wright'),
-(63, 'user24', 'pw24', 'user24@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Liam Scott'),
-(64, 'user25', 'pw25', 'user25@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Amelia Reed'),
-(65, 'user26', 'pw26', 'user26@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Benjamin Clark'),
-(66, 'user27', 'pw27', 'user27@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harper Ross'),
-(67, 'user28', 'pw28', 'user28@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jacob Lee'),
-(68, 'user29', 'pw29', 'user29@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lily Parker'),
-(69, 'user30', 'pw30', 'user30@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Samuel Young'),
-(70, 'user31', 'pw31', 'user31@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Victoria Ward'),
-(71, 'user32', 'pw32', 'user32@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alexander Hall'),
-(72, 'user33', 'pw33', 'user33@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Zoe Fisher'),
-(73, 'user34', 'pw34', 'user34@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Matthew Price'),
-(74, 'user35', 'pw35', 'user35@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Natalie Howard'),
-(75, 'user36', 'pw36', 'user36@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ryan Morgan'),
-(76, 'user37', 'pw37', 'user37@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ella Bennett'),
-(77, 'user38', 'pw38', 'user38@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jack Hughes'),
-(78, 'user39', 'pw39', 'user39@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Aria Rivera'),
-(79, 'user40', 'pw40', 'user40@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Gabriel Collins'),
-(80, 'user41', 'pw41', 'user41@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Hannah Mitchell'),
-(81, 'user42', 'pw42', 'user42@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'David Kelly'),
-(82, 'user43', 'pw43', 'user43@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Scarlett Long'),
-(83, 'user44', 'pw44', 'user44@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Andrew Cooper'),
-(84, 'user45', 'pw45', 'user45@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Leah Torres'),
-(85, 'user46', 'pw46', 'user46@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Joseph Gray'),
-(86, 'user47', 'pw47', 'user47@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Stella Watson'),
-(87, 'user48', 'pw48', 'user48@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'William Sanders'),
-(88, 'user49', 'pw49', 'user49@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Layla Ramirez'),
-(89, 'user50', 'pw50', 'user50@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'James Foster'),
-(91, 'student_test', '$2y$10$4mbTnYhM0RpIJelv1iB3IurJTtlvXlpaQIi0f6hlz6u4Vu.1LCu/a', 'animelearnin528@gmail.com', 2, '2025-10-21 00:22:59', 0, NULL, 0, './uploads/91/profile.', 'mentor_test'),
-(92, 'expert_test', '$2y$10$jBvl192tUZr0DDxlWPUwoeyZnoxU7Fg0CKG/z2XmWx.Ya49Rqshuq', 'samithanawarathna322@gmail.com', 3, '2025-10-21 00:34:01', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'expert_test'),
-(94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test'),
-(97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test'),
-(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3'),
-(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha'),
-(103, 'navodya', '$2y$10$R.0zgSctspJmZPWq8MMwW.6/6fo2x151wvbpBwHrjGO2OBTB9qQEW', 'navodyamethmali5@gmail.com', 3, '2026-01-20 09:57:07', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'navodya'),
-(104, 'Expert', '$2y$10$6OLp.UuWXwgugFRusnNRpuhIPO3iBem3I3m3Ts2AOMCvPPCO6WESq', 'methmalidissanayake@gmail.com', 3, '2026-02-09 09:29:39', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Expert'),
-(105, 'Expert1', '$2y$10$a3hHef98P5UWtPjMh45EkucE4X5.hMnZWRk/FsvgMFJkx//eAhC2a', 'expert1@gmail.com', 3, '2026-02-19 03:42:34', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Expert1'),
-(106, 'Mentor1', '$2y$10$G04gIJPAhG9ptPfJ2drO.eHtCfFIB7LDqZgShr087fc/G1KEapsJ.', 'mentor1@gmail.com', 2, '2026-02-19 04:14:30', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mentor1'),
-(107, 'mentor3', '$2y$10$LWGgvi667zMlOREAU3VgOOCEiI4nAZqURqwCp7rnOLIPPp2AAIELe', 'mentor1@gmai.com', 2, '2026-03-04 23:40:55', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'mentor3'),
-(108, 'student1', '$2y$10$0FeTNXcHxlkazIpMdyEVb.F6r5yyvFszEfoAMtLX7AL5K/zlCoiU6', 'student1@gmail.com', 1, '2026-03-05 00:48:36', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student1'),
-(109, 'student001', '$2y$10$pS9fnbrmR8420iFDA4zyxO.fG7Mv3lFLT4WWAbOklSL/yqipwf2vS', 'stu@gmail.com', 3, '2026-03-30 07:06:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student001'),
-(110, 'mentor2', '$2y$10$wz29mCUervG3bBezcWEQguu2JPmke8tv6xdhpv2p0wyeNq1IY921u', 'mentor_2@gmail.com', 1, '2026-04-06 03:28:23', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'mentor2');
+INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`, `banned`, `profile_pic`, `is_deleted`, `profile_picture`, `display_name`, `points`) VALUES
+(1, 'alice', 'hashed_pw1', 'abc@gmail.com', 4, '2025-07-29 10:58:45', 1, NULL, 0, './uploads/1/profile.png', 'alice', 1.472134),
+(2, 'bob_mentor', 'hashed_pw2', 'bob@example.com', 2, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(3, 'carol_expert', 'hashed_pw3', 'carol@example.com', 3, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(4, 'dave_admin', 'hashed_pw4', 'dave@example.com', 4, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(5, 'eva_student', 'hashed_pw5', 'eva@example.com', 1, '2025-07-29 10:58:45', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', '', 0.000000),
+(40, 'user1', 'pw1', 'user1@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alice Wonder', 0.000000),
+(41, 'user2', 'pw2', 'user2@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Bob Stone', 0.000000),
+(42, 'user3', 'pw3', 'user3@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Charlie Kim', 0.000000),
+(43, 'user4', 'pw4', 'user4@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Diana Ray', 0.000000),
+(44, 'user5', 'pw5', 'user5@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Edward Blake', 0.000000),
+(45, 'user6', 'pw6', 'user6@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Frank Yu', 0.000000),
+(46, 'user7', 'pw7', 'user7@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Grace Li', 0.000000),
+(47, 'user8', 'pw8', 'user8@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harry West', 0.000000),
+(48, 'user9', 'pw9', 'user9@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Irene Cho', 0.000000),
+(49, 'user10', 'pw10', 'user10@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'John Doe', 0.000000),
+(50, 'user11', 'pw11', 'user11@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Sophia Lane', 0.000000),
+(51, 'user12', 'pw12', 'user12@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Michael Cruz', 0.000000),
+(52, 'user13', 'pw13', 'user13@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Emma Patel', 0.000000),
+(53, 'user14', 'pw14', 'user14@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Daniel Green', 0.000000),
+(54, 'user15', 'pw15', 'user15@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Olivia Brooks', 0.000000),
+(55, 'user16', 'pw16', 'user16@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ethan Hayes', 0.000000),
+(56, 'user17', 'pw17', 'user17@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ava Carter', 0.000000),
+(57, 'user18', 'pw18', 'user18@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Noah James', 0.000000),
+(58, 'user19', 'pw19', 'user19@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mia Flores', 0.000000),
+(59, 'user20', 'pw20', 'user20@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lucas Turner', 0.000000),
+(60, 'user21', 'pw21', 'user21@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Chloe Adams', 0.000000),
+(61, 'user22', 'pw22', 'user22@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Mason Hill', 0.000000),
+(62, 'user23', 'pw23', 'user23@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Isabella Wright', 0.000000),
+(63, 'user24', 'pw24', 'user24@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Liam Scott', 0.000000),
+(64, 'user25', 'pw25', 'user25@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Amelia Reed', 0.000000),
+(65, 'user26', 'pw26', 'user26@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Benjamin Clark', 0.000000),
+(66, 'user27', 'pw27', 'user27@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Harper Ross', 0.000000),
+(67, 'user28', 'pw28', 'user28@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jacob Lee', 0.000000),
+(68, 'user29', 'pw29', 'user29@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Lily Parker', 0.000000),
+(69, 'user30', 'pw30', 'user30@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Samuel Young', 0.000000),
+(70, 'user31', 'pw31', 'user31@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Victoria Ward', 0.000000),
+(71, 'user32', 'pw32', 'user32@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Alexander Hall', 0.000000),
+(72, 'user33', 'pw33', 'user33@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Zoe Fisher', 0.000000),
+(73, 'user34', 'pw34', 'user34@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Matthew Price', 0.000000),
+(74, 'user35', 'pw35', 'user35@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Natalie Howard', 0.000000),
+(75, 'user36', 'pw36', 'user36@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ryan Morgan', 0.000000),
+(76, 'user37', 'pw37', 'user37@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Ella Bennett', 0.000000),
+(77, 'user38', 'pw38', 'user38@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Jack Hughes', 0.000000),
+(78, 'user39', 'pw39', 'user39@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Aria Rivera', 0.000000),
+(79, 'user40', 'pw40', 'user40@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Gabriel Collins', 0.000000),
+(80, 'user41', 'pw41', 'user41@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Hannah Mitchell', 0.000000),
+(81, 'user42', 'pw42', 'user42@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'David Kelly', 0.000000),
+(82, 'user43', 'pw43', 'user43@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Scarlett Long', 0.000000),
+(83, 'user44', 'pw44', 'user44@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Andrew Cooper', 0.000000),
+(84, 'user45', 'pw45', 'user45@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Leah Torres', 0.000000),
+(85, 'user46', 'pw46', 'user46@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Joseph Gray', 0.000000),
+(86, 'user47', 'pw47', 'user47@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Stella Watson', 0.000000),
+(87, 'user48', 'pw48', 'user48@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'William Sanders', 0.000000),
+(88, 'user49', 'pw49', 'user49@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Layla Ramirez', 0.000000),
+(89, 'user50', 'pw50', 'user50@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'James Foster', 0.000000),
+(91, 'student_test', '$2y$10$4mbTnYhM0RpIJelv1iB3IurJTtlvXlpaQIi0f6hlz6u4Vu.1LCu/a', 'animelearnin528@gmail.com', 2, '2025-10-21 00:22:59', 0, NULL, 0, './uploads/91/profile.jpg', 'mentor_test', 0.000000),
+(94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 1, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test', 0.000000),
+(97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test', 0.000000),
+(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3', 0.000000),
+(102, 'samitha', '$2y$10$Kb/kVnoKUc2ExeNMRSJf4.Tz/HwjQi/9RgGcETNPbsuPosUCmxshS', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 2.607793),
+(103, 'samitha2', '$2y$10$WB3LwrkyincnJO/do15tQuph4uACw2RsaWn10lI3idK4i8O7rWn86', 'eva2@example.com', 1, '2026-01-23 04:38:07', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha2', 0.994072),
+(105, 'student_test_2', '$2y$10$PjaeAzz4f0deIpwyPRV6rOs3pPH4JnztOUbEejPhDuUWSnY6EUg6i', 'samithanawarathna322@gmail.com', 3, '2026-04-06 08:10:12', 1, NULL, 0, './uploads/105/profile.', 'student', 0.200000);
 
 -- --------------------------------------------------------
 
@@ -1713,7 +1481,7 @@ DROP TABLE IF EXISTS `uservoteanswer`;
 CREATE TABLE IF NOT EXISTS `uservoteanswer` (
   `a_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
+  `votetype` enum('upvote','downvote') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`a_id`,`u_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1742,7 +1510,7 @@ DROP TABLE IF EXISTS `uservoteexercise`;
 CREATE TABLE IF NOT EXISTS `uservoteexercise` (
   `exercise_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
+  `votetype` enum('upvote','downvote') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`exercise_id`,`u_id`),
   KEY `u_id` (`u_id`)
@@ -1755,19 +1523,9 @@ CREATE TABLE IF NOT EXISTS `uservoteexercise` (
 INSERT INTO `uservoteexercise` (`exercise_id`, `u_id`, `votetype`, `created_at`) VALUES
 (1, 44, 'upvote', '2025-10-17 22:06:22'),
 (1, 45, 'upvote', '2025-10-17 22:06:22'),
-(1, 104, 'upvote', '2026-02-09 09:35:23'),
+(1, 102, 'upvote', '2026-03-06 07:07:43'),
 (2, 46, 'upvote', '2025-10-17 22:06:22'),
-(4, 48, 'upvote', '2025-10-17 22:06:22'),
-(45, 103, 'upvote', '2026-02-04 16:54:10'),
-(46, 103, 'upvote', '2026-02-04 06:19:28'),
-(47, 103, 'upvote', '2026-02-01 12:30:03'),
-(47, 105, 'upvote', '2026-03-30 06:38:50'),
-(48, 103, 'upvote', '2026-02-01 12:41:11'),
-(50, 105, 'upvote', '2026-03-30 06:32:44'),
-(51, 107, 'upvote', '2026-04-01 06:29:32'),
-(51, 109, 'downvote', '2026-04-04 02:52:58'),
-(52, 108, 'upvote', '2026-04-02 15:23:43'),
-(52, 109, 'upvote', '2026-04-02 15:11:54');
+(4, 48, 'upvote', '2025-10-17 22:06:22');
 
 -- --------------------------------------------------------
 
@@ -1779,7 +1537,7 @@ DROP TABLE IF EXISTS `uservotequestion`;
 CREATE TABLE IF NOT EXISTS `uservotequestion` (
   `q_id` int NOT NULL,
   `u_id` int NOT NULL,
-  `votetype` enum('upvote','downvote') COLLATE utf8mb4_general_ci NOT NULL,
+  `votetype` enum('upvote','downvote') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`q_id`,`u_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1877,7 +1635,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `profile_summary`;
 
 DROP VIEW IF EXISTS `profile_summary`;
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `profile_summary`  AS SELECT `u`.`id` AS `profile_id`, `us`.`subject_id` AS `subject_id`, `u`.`username` AS `username`, `u`.`display_name` AS `display_name`, `r`.`name` AS `role_name`, `u`.`created_at` AS `created_at`, `s`.`name` AS `subject_name`, coalesce(`u`.`profile_picture`,'uploads\\0profile.avif') AS `profile_picture`, `u`.`banned` AS `banned` FROM (((`user` `u` join `roles` `r` on((`u`.`role` = `r`.`role_id`))) join `experts` `us` on((`u`.`id` = `us`.`user_id`))) join `subjects` `s` on((`us`.`subject_id` = `s`.`id`))) WHERE (`r`.`name` = 'expert')union all select `u`.`id` AS `profile_id`,NULL AS `subject_id`,`u`.`username` AS `username`,`u`.`display_name` AS `display_name`,`r`.`name` AS `role_name`,`u`.`created_at` AS `created_at`,NULL AS `subject_name`,NULL AS `profile_picture`,`u`.`banned` AS `banned` from (`user` `u` join `roles` `r` on((`u`.`role` = `r`.`role_id`))) where (`r`.`name` <> 'expert')  ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `profile_summary`  AS SELECT `u`.`id` AS `profile_id`, `us`.`subject_id` AS `subject_id`, `u`.`username` AS `username`, `u`.`display_name` AS `display_name`, `r`.`name` AS `role_name`, `u`.`created_at` AS `created_at`, `s`.`name` AS `subject_name`, coalesce(nullif(`u`.`profile_picture`,''),'uploads\\0\\profile.avif') AS `profile_picture`, `u`.`banned` AS `banned` FROM (((`user` `u` left join `roles` `r` on((`u`.`role` = `r`.`role_id`))) left join `experts` `us` on((`u`.`id` = `us`.`user_id`))) left join `subjects` `s` on((`us`.`subject_id` = `s`.`id`))) ;
 
 -- --------------------------------------------------------
 
@@ -2026,95 +1784,516 @@ ALTER TABLE `uservoteexercise`
 --
 ALTER TABLE `uservotequestion`
   ADD CONSTRAINT `uservotequestion_ibfk_1` FOREIGN KEY (`q_id`) REFERENCES `question` (`id`) ON DELETE CASCADE;
-
--- --------------------------------------------------------
--- DATA: DEMO MOCK CONTENT SEEDING
--- --------------------------------------------------------
-
-INSERT IGNORE INTO `tags` (`id`, `name`) VALUES 
-(1001, 'Machine Learning'), (1002, 'API Design'), (1003, 'Linear Algebra'), (1004, 'ReactJS'), (1005, 'Cloud Computing');
-
-INSERT IGNORE INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
-(1001, 'Advanced Machine Learning', 97, 0),
-(1002, 'System Architecture', 101, 1),
-(1003, 'Modern Web Development', 102, 0);
-
-INSERT IGNORE INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `created_at`) VALUES
-(1001, 'What is the difference between supervised and unsupervised learning?', 'I am getting started with data science. Could someone explain the core difference between supervised and unsupervised learning with an example?', 103, 1, '2026-04-01 10:00:00'),
-(1002, 'How to handle JWT token expiration securely?', 'In a typical React and Node.js REST API, how should I handle the refresh token cycle securely to prevent XSS?', 94, 0, '2026-04-02 12:30:00'),
-(1003, 'Understanding the Time Complexity of QuickSort', 'Why is QuickSort O(N^2) in the worst case when MergeSort is O(N log N)? Should I always prefer MergeSort?', 102, 1, '2026-04-03 09:15:00'),
-(1004, 'What is a closure in JavaScript?', 'I hear the term "closure" thrown around a lot in JS tutorials. What does it actually mean in practice?', 101, 0, '2026-04-04 14:20:00'),
-(1005, 'Explain eigenvectors and eigenvalues simply', 'I am studying Linear Algebra for my graphics class. What exactly are eigenvectors scaling?', 103, 1, '2026-04-05 16:45:00');
-
-INSERT IGNORE INTO `questiontag` (`question_id`, `tag_id`) VALUES
-(1001, 1001), (1002, 1002), (1002, 1004), (1003, 1001), (1004, 1004), (1005, 1003);
-
-INSERT IGNORE INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chosen`) VALUES
-(1001, '{"ops":[{"insert":"Supervised learning uses labeled datasets to train algorithms that classify data or predict outcomes accurately. Unsupervised learning analyzes and clusters unlabeled datasets.\n"}]}', 97, 1001, '2026-04-01 11:15:00', 1),
-(1002, '{"ops":[{"insert":"Store your JWT access token in memory or an HttpOnly secure cookie. Never store it in LocalStorage!\n"}]}', 101, 1002, '2026-04-02 13:00:00', 0),
-(1003, '{"ops":[{"insert":"QuickSort worst-case happens when the pivot chosen is consistently the smallest or largest element (e.g., already sorted array). Randomizing the pivot mitigates this significantly.\n"}]}', 94, 1003, '2026-04-03 10:00:00', 1),
-(1004, '{"ops":[{"insert":"An eigenvector of a linear transformation is a non-zero vector that changes at most by a scalar factor when that linear transformation is applied to it. The scalar is the eigenvalue!\n"}]}', 97, 1005, '2026-04-05 18:00:00', 1),
-(1005, '{"ops":[{"insert":"A closure gives you access to an outer function\'s scope from an inner function. In JavaScript, closures are created every time a function is created, at function creation time.\n"}]}', 102, 1004, '2026-04-05 10:00:00', 0);
-
-INSERT IGNORE INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_at`, `updated_at`, `is_pinned`) VALUES
-(1001, 'Introduction to Neural Networks', '{"ops":[{"insert":"Neural networks are computing systems with interconnected nodes that work much like neurons in the human brain.\n"}]}', 1001, 97, '2026-04-01 08:00:00', '2026-04-01 08:00:00', 1),
-(1002, 'Microservices vs Monoliths', '{"ops":[{"insert":"Microservices offer independent deployment and scaling, whereas monoliths are simpler to debug and orchestrate initially.\n"}]}', 1002, 101, '2026-04-02 09:30:00', '2026-04-02 09:30:00', 0),
-(1003, 'React Hooks Lifecycle', '{"ops":[{"insert":"useEffect runs after every render by default. By passing a dependency array, you explicitly define when it should sync.\n"}]}', 1003, 102, '2026-04-03 14:00:00', '2026-04-03 14:00:00', 1);
-
-INSERT IGNORE INTO `uservotequestion` (`u_id`, `q_id`, `votetype`, `created_at`) VALUES
-(97, 1001, 'upvote', '2026-04-01 12:00:00'),
-(101, 1001, 'upvote', '2026-04-01 12:05:00'),
-(94, 1003, 'upvote', '2026-04-03 09:30:00'),
-(102, 1005, 'upvote', '2026-04-05 17:00:00');
-
-INSERT IGNORE INTO `uservoteanswer` (`u_id`, `a_id`, `votetype`, `created_at`) VALUES
-(103, 1001, 'upvote', '2026-04-01 11:30:00'),
-(102, 1001, 'upvote', '2026-04-01 13:00:00'),
-(101, 1003, 'upvote', '2026-04-03 11:00:00');
-
-INSERT IGNORE INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`, `entity_id`, `data`) VALUES
-(1001, 103, '2026-04-01 10:00:00', 'question_asked', 'Question', 1001, '{"subject_id": 1}'),
-(1002, 94, '2026-04-02 12:30:00', 'question_asked', 'Question', 1002, '{"subject_id": 1}'),
-(1003, 102, '2026-04-03 09:15:00', 'question_asked', 'Question', 1003, '{"subject_id": 1}'),
-(1004, 101, '2026-04-04 14:20:00', 'question_asked', 'Question', 1004, '{"subject_id": 1}'),
-(1005, 103, '2026-04-05 16:45:00', 'question_asked', 'Question', 1005, '{"subject_id": 1}'),
-(1006, 97, '2026-04-01 11:15:00', 'question_answered', 'Answer', 1001, '{"question_id": 1001}'),
-(1007, 101, '2026-04-02 13:00:00', 'question_answered', 'Answer', 1002, '{"question_id": 1002}'),
-(1008, 94, '2026-04-03 10:00:00', 'question_answered', 'Answer', 1003, '{"question_id": 1003}'),
-(1009, 97, '2026-04-05 18:00:00', 'question_answered', 'Answer', 1004, '{"question_id": 1005}'),
-(1010, 102, '2026-04-05 10:00:00', 'question_answered', 'Answer', 1005, '{"question_id": 1004}'),
-(1011, 97, '2026-04-01 08:00:00', 'note_created', 'Note', 1001, '{"subject_id": 1}'),
-(1012, 101, '2026-04-02 09:30:00', 'note_created', 'Note', 1002, '{"subject_id": 1}'),
-(1013, 102, '2026-04-03 14:00:00', 'note_created', 'Note', 1003, '{"subject_id": 1}'),
-(1014, 97, '2026-04-01 12:00:00', 'vote_given', 'Question', 1001, '{"direction": "upvote"}'),
-(1015, 101, '2026-04-01 12:05:00', 'vote_given', 'Question', 1001, '{"direction": "upvote"}'),
-(1016, 94, '2026-04-03 09:30:00', 'vote_given', 'Question', 1003, '{"direction": "upvote"}'),
-(1017, 102, '2026-04-05 17:00:00', 'vote_given', 'Question', 1005, '{"direction": "upvote"}'),
-(1018, 103, '2026-04-01 11:30:00', 'vote_given', 'Answer', 1001, '{"direction": "upvote"}'),
-(1019, 102, '2026-04-01 13:00:00', 'vote_given', 'Answer', 1001, '{"direction": "upvote"}'),
-(1020, 101, '2026-04-03 11:00:00', 'vote_given', 'Answer', 1003, '{"direction": "upvote"}');
-
--- --------------------------------------------------------
--- VIEW: `profile_summary` (Unified Left Join structural correction)
--- --------------------------------------------------------
-CREATE OR REPLACE VIEW `profile_summary` AS 
-SELECT 
-  `u`.`id` AS `profile_id`,
-  `us`.`subject_id` AS `subject_id`,
-  `u`.`username` AS `username`,
-  `u`.`display_name` AS `display_name`,
-  `r`.`name` AS `role_name`,
-  `u`.`created_at` AS `created_at`,
-  `s`.`name` AS `subject_name`,
-  COALESCE(NULLIF(`u`.`profile_picture`, ''), 'uploads\\0\\profile.avif') AS `profile_picture`,
-  `u`.`banned` AS `banned` 
-FROM `user` `u` 
-LEFT JOIN `roles` `r` ON `u`.`role` = `r`.`role_id`
-LEFT JOIN `experts` `us` ON `u`.`id` = `us`.`user_id`
-LEFT JOIN `subjects` `s` ON `us`.`subject_id` = `s`.`id`;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- ---------- SEED DATA GENERATED EXPERIMENTALLY ----------
+
+-- Dumping data for table `exercises`
+INSERT INTO `exercises` (`id`, `subject_id`, `title`, `created_at`, `creator_id`, `status`, `feedback`, `reviewed_by`, `description`, `updated_at`) VALUES
+('1', '1', 'Introduction to Algorithm Efficiency', '2026-04-12 10:07:30', '97', 'approved', NULL, NULL, 'A fundamental test evaluating your understanding of Big O notation and time complexity.', '2026-04-12 10:07:30'),
+('2', '1', 'Advanced Database Normalization', '2026-04-12 10:07:30', '91', 'approved', NULL, NULL, 'Test your understanding of logical database design, foreign keys, and normal forms.', '2026-04-12 10:07:30'),
+('3', '1', 'JavaScript Core Principles', '2026-04-12 10:07:30', '97', 'approved', NULL, NULL, 'Test your knowledge on modern JavaScript concepts like closures, promises, and the event loop.', '2026-04-12 10:07:30'),
+('4', '1', 'Foundations of Cloud Computing', '2026-04-12 10:07:30', '91', 'approved', NULL, NULL, 'Assess your familiarity with core cloud platforms, IaaS, PaaS, and deployment models.', '2026-04-12 10:07:30'),
+('5', '1', 'Cybersecurity Essentials', '2026-04-12 10:07:30', '101', 'approved', NULL, NULL, 'Evaluate your readiness on basic security protocols, encryption, and attack vectors.', '2026-04-12 10:07:30');
+
+-- Dumping data for table `exercisequestion`
+INSERT INTO `exercisequestion` (`id`, `question_text`, `explanation`, `weight`, `exercise_id`, `display_order`) VALUES
+('1', 'What is the time complexity of searching in an unsorted array?', 'Refer to class material for more details.', '1', '1', '0'),
+('2', 'Which data structure offers the fastest average-case search time?', 'Refer to class material for more details.', '1', '1', '1'),
+('3', 'What is the worst-case time complexity of QuickSort?', 'Refer to class material for more details.', '1', '1', '2'),
+('4', 'Binary search trees provide average time complexity of what for insertions?', 'Refer to class material for more details.', '1', '1', '3'),
+('5', 'A loop inside a loop usually indicates what time complexity?', 'Refer to class material for more details.', '1', '1', '4'),
+('6', 'Which normal form deals with eliminating transitive dependencies?', 'Refer to class material for more details.', '1', '2', '0'),
+('7', 'In a 1-to-many relationship, where does the foreign key go?', 'Refer to class material for more details.', '1', '2', '1'),
+('8', 'What type of key uniquely identifies a record within a table?', 'Refer to class material for more details.', '1', '2', '2'),
+('9', 'A table with columns (Order_ID, Product_ID, Product_Name) violates which Normal Form?', 'Refer to class material for more details.', '1', '2', '3'),
+('10', 'What SQL keyword is used to ensure all rows from exactly one table are returned even if there are no matches in the related table?', 'Refer to class material for more details.', '1', '2', '4'),
+('11', 'Which of these violates 1NF?', 'Refer to class material for more details.', '1', '2', '5'),
+('12', 'Which keyword allows you to declare a block-level scoped variable?', 'Refer to class material for more details.', '1', '3', '0'),
+('13', 'What mechanism allows a function to remember the environment in which it was created?', 'Refer to class material for more details.', '1', '3', '1'),
+('14', 'The Event Loop works by pulling tasks from the Callback Queue and pushing them to:', 'Refer to class material for more details.', '1', '3', '2'),
+('15', 'Which function is used to handle a Promise rejection?', 'Refer to class material for more details.', '1', '3', '3'),
+('16', 'What does \"typeof null\" return in JavaScript?', 'Refer to class material for more details.', '1', '3', '4'),
+('17', 'What will `[1] == [1]` evaluate to?', 'Refer to class material for more details.', '1', '3', '5'),
+('18', 'Which cloud model delivers software over the internet on demand?', 'Refer to class material for more details.', '1', '4', '0'),
+('19', 'Which AWS service is used primarily for object storage?', 'Refer to class material for more details.', '1', '4', '1'),
+('20', 'What does scaling \"horizontally\" mean?', 'Refer to class material for more details.', '1', '4', '2'),
+('21', 'A cloud environment exclusively used by a single organization is called:', 'Refer to class material for more details.', '1', '4', '3'),
+('22', 'Which feature ensures applications continue to run even if a server fails?', 'Refer to class material for more details.', '1', '4', '4'),
+('23', 'What attack involves injecting malicious scripts into trusted websites?', 'Refer to class material for more details.', '1', '5', '0'),
+('24', 'Which of these is a widely-used symmetric encryption algorithm?', 'Refer to class material for more details.', '1', '5', '1'),
+('25', 'What does \"phishing\" primarily try to exploit?', 'Refer to class material for more details.', '1', '5', '2'),
+('26', 'What type of malware demands payment to restore access to data?', 'Refer to class material for more details.', '1', '5', '3'),
+('27', 'A Firewall generally operates at which OSI layer?', 'Refer to class material for more details.', '1', '5', '4'),
+('28', 'Which protocol is secure for web browsing?', 'Refer to class material for more details.', '1', '5', '5'),
+('29', 'What secures passwords in a database against rainbow table attacks?', 'Refer to class material for more details.', '1', '5', '6');
+
+-- Dumping data for table `exerciseanswer`
+INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`, `question_id`) VALUES
+('1', 'O(1)', '0', '0', '1'),
+('2', 'O(log n)', '0', '1', '1'),
+('3', 'O(n)', '1', '2', '1'),
+('4', 'O(n^2)', '0', '3', '1'),
+('5', 'Array', '0', '0', '2'),
+('6', 'Linked List', '0', '1', '2'),
+('7', 'Hash Table', '1', '2', '2'),
+('8', 'Tree', '0', '3', '2'),
+('9', 'O(n)', '0', '0', '3'),
+('10', 'O(n log n)', '0', '1', '3'),
+('11', 'O(n^2)', '1', '2', '3'),
+('12', 'O(1)', '0', '3', '3'),
+('13', 'O(n)', '0', '0', '4'),
+('14', 'O(log n)', '1', '1', '4'),
+('15', 'O(n^2)', '0', '2', '4'),
+('16', 'O(1)', '0', '3', '4'),
+('17', 'O(n)', '0', '0', '5'),
+('18', 'O(log n)', '0', '1', '5'),
+('19', 'O(n^2)', '1', '2', '5'),
+('20', 'O(2^n)', '0', '3', '5'),
+('21', '1NF', '0', '0', '6'),
+('22', '2NF', '0', '1', '6'),
+('23', '3NF', '1', '2', '6'),
+('24', 'BCNF', '0', '3', '6'),
+('25', 'On the 1 side', '0', '0', '7'),
+('26', 'On the many side', '1', '1', '7'),
+('27', 'In a separate junction table', '0', '2', '7'),
+('28', 'It doesn\'t matter', '0', '3', '7'),
+('29', 'Foreign Key', '0', '0', '8'),
+('30', 'Primary Key', '1', '1', '8'),
+('31', 'Composite Key', '0', '2', '8'),
+('32', 'Surrogate Key', '0', '3', '8'),
+('33', '1NF', '0', '0', '9'),
+('34', '2NF', '0', '1', '9'),
+('35', '3NF', '1', '2', '9'),
+('36', '4NF', '0', '3', '9'),
+('37', 'INNER JOIN', '0', '0', '10'),
+('38', 'LEFT JOIN', '1', '1', '10'),
+('39', 'CROSS JOIN', '0', '2', '10'),
+('40', 'UNION', '0', '3', '10'),
+('41', 'Non-atomic attributes', '1', '0', '11'),
+('42', 'Null values', '0', '1', '11'),
+('43', 'Composite keys', '0', '2', '11'),
+('44', 'Duplicate primary keys', '0', '3', '11'),
+('45', 'var', '0', '0', '12'),
+('46', 'let', '1', '1', '12'),
+('47', 'global', '0', '2', '12'),
+('48', 'None of these', '0', '3', '12'),
+('49', 'Hoisting', '0', '0', '13'),
+('50', 'Callbacks', '0', '1', '13'),
+('51', 'Closures', '1', '2', '13'),
+('52', 'Promises', '0', '3', '13'),
+('53', 'Web APIs', '0', '0', '14'),
+('54', 'The Call Stack', '1', '1', '14'),
+('55', 'The Microtask Queue', '0', '2', '14'),
+('56', 'The Memory Heap', '0', '3', '14'),
+('57', '.then()', '0', '0', '15'),
+('58', '.finally()', '0', '1', '15'),
+('59', '.catch()', '1', '2', '15'),
+('60', 'try()', '0', '3', '15'),
+('61', '\"null\"', '0', '0', '16'),
+('62', '\"undefined\"', '0', '1', '16'),
+('63', '\"object\"', '1', '2', '16'),
+('64', '\"boolean\"', '0', '3', '16'),
+('65', 'true', '0', '0', '17'),
+('66', 'false', '1', '1', '17'),
+('67', 'undefined', '0', '2', '17'),
+('68', 'TypeError', '0', '3', '17'),
+('69', 'IaaS', '0', '0', '18'),
+('70', 'PaaS', '0', '1', '18'),
+('71', 'SaaS', '1', '2', '18'),
+('72', 'FaaS', '0', '3', '18'),
+('73', 'EC2', '0', '0', '19'),
+('74', 'S3', '1', '1', '19'),
+('75', 'RDS', '0', '2', '19'),
+('76', 'Lambda', '0', '3', '19'),
+('77', 'Adding more CPU/RAM to a server', '0', '0', '20'),
+('78', 'Adding more server instances', '1', '1', '20'),
+('79', 'Changing to a better database engine', '0', '2', '20'),
+('80', 'Moving to another geographical region', '0', '3', '20'),
+('81', 'Public Cloud', '0', '0', '21'),
+('82', 'Private Cloud', '1', '1', '21'),
+('83', 'Hybrid Cloud', '0', '2', '21'),
+('84', 'Multi-Cloud', '0', '3', '21'),
+('85', 'Auto-scaling', '0', '0', '22'),
+('86', 'High Availability (HA)', '1', '1', '22'),
+('87', 'Latency Routing', '0', '2', '22'),
+('88', 'CDN Cache', '0', '3', '22'),
+('89', 'SQL Injection', '0', '0', '23'),
+('90', 'CSRF', '0', '1', '23'),
+('91', 'XSS', '1', '2', '23'),
+('92', 'Phishing', '0', '3', '23'),
+('93', 'RSA', '0', '0', '24'),
+('94', 'AES', '1', '1', '24'),
+('95', 'DSA', '0', '2', '24'),
+('96', 'SHA-256', '0', '3', '24'),
+('97', 'Unpatched servers', '0', '0', '25'),
+('98', 'Human vulnerability', '1', '1', '25'),
+('99', 'Weak passwords', '0', '2', '25'),
+('100', 'Open firewall ports', '0', '3', '25'),
+('101', 'Trojan', '0', '0', '26'),
+('102', 'Spyware', '0', '1', '26'),
+('103', 'Ransomware', '1', '2', '26'),
+('104', 'Rootkit', '0', '3', '26'),
+('105', 'Physical (1)', '0', '0', '27'),
+('106', 'Network (3)', '0', '1', '27'),
+('107', 'Transport (4)', '0', '2', '27'),
+('108', 'Both 3 and 4', '1', '3', '27'),
+('109', 'HTTP', '0', '0', '28'),
+('110', 'FTP', '0', '1', '28'),
+('111', 'HTTPS', '1', '2', '28'),
+('112', 'Telnet', '0', '3', '28'),
+('113', 'Salting', '1', '0', '29'),
+('114', 'Encoding', '0', '1', '29'),
+('115', 'Compression', '0', '2', '29'),
+('116', 'Firewalls', '0', '3', '29');
+
+-- Dumping data for table `exercise_attempt`
+INSERT INTO `exercise_attempt` (`id`, `exe_id`, `date`, `u_id`, `score`, `latest`) VALUES
+('1', '1', '2026-03-24 10:07:30', '101', '80.00', '1'),
+('2', '1', '2026-04-09 10:07:30', '97', '80.00', '1'),
+('3', '1', '2026-03-17 10:07:30', '102', '60.00', '1'),
+('4', '1', '2026-04-09 10:07:30', '97', '60.00', '1'),
+('5', '1', '2026-04-07 10:07:30', '91', '80.00', '1'),
+('6', '1', '2026-03-16 10:07:30', '102', '60.00', '1'),
+('7', '1', '2026-03-14 10:07:30', '101', '100.00', '1'),
+('8', '1', '2026-03-16 10:07:30', '105', '80.00', '1'),
+('9', '1', '2026-04-04 10:07:30', '105', '100.00', '1'),
+('10', '1', '2026-03-15 10:07:30', '105', '60.00', '1'),
+('11', '2', '2026-03-17 10:07:30', '102', '100.00', '1'),
+('12', '2', '2026-04-05 10:07:30', '97', '100.00', '1'),
+('13', '2', '2026-03-19 10:07:30', '101', '100.00', '1'),
+('14', '2', '2026-04-10 10:07:30', '91', '83.33', '1'),
+('15', '2', '2026-03-20 10:07:30', '101', '83.33', '1'),
+('16', '2', '2026-03-31 10:07:30', '102', '100.00', '1'),
+('17', '2', '2026-03-22 10:07:30', '91', '83.33', '1'),
+('18', '2', '2026-04-05 10:07:30', '102', '83.33', '1'),
+('19', '2', '2026-03-28 10:07:30', '91', '66.67', '1'),
+('20', '2', '2026-04-11 10:07:30', '101', '100.00', '1'),
+('21', '3', '2026-04-07 10:07:30', '97', '100.00', '1'),
+('22', '3', '2026-04-02 10:07:30', '102', '100.00', '1'),
+('23', '3', '2026-03-17 10:07:30', '102', '100.00', '1'),
+('24', '3', '2026-04-09 10:07:30', '101', '83.33', '1'),
+('25', '3', '2026-04-07 10:07:30', '101', '100.00', '1'),
+('26', '3', '2026-04-10 10:07:30', '105', '83.33', '1'),
+('27', '3', '2026-03-29 10:07:30', '97', '83.33', '1'),
+('28', '3', '2026-03-16 10:07:30', '101', '100.00', '1'),
+('29', '3', '2026-04-03 10:07:30', '105', '66.67', '1'),
+('30', '3', '2026-03-25 10:07:30', '91', '50.00', '1'),
+('31', '4', '2026-04-08 10:07:30', '97', '100.00', '1'),
+('32', '4', '2026-03-16 10:07:30', '91', '80.00', '1'),
+('33', '4', '2026-04-01 10:07:30', '105', '100.00', '1'),
+('34', '4', '2026-04-06 10:07:30', '105', '80.00', '1'),
+('35', '4', '2026-03-16 10:07:30', '102', '100.00', '1'),
+('36', '4', '2026-04-10 10:07:30', '102', '100.00', '1'),
+('37', '4', '2026-03-25 10:07:30', '91', '100.00', '1'),
+('38', '4', '2026-04-07 10:07:30', '97', '80.00', '1'),
+('39', '4', '2026-04-08 10:07:30', '105', '80.00', '1'),
+('40', '4', '2026-04-09 10:07:30', '101', '80.00', '1'),
+('41', '5', '2026-04-06 10:07:30', '91', '71.43', '1'),
+('42', '5', '2026-03-19 10:07:30', '102', '71.43', '1'),
+('43', '5', '2026-03-18 10:07:30', '91', '85.71', '1'),
+('44', '5', '2026-03-24 10:07:30', '102', '57.14', '1'),
+('45', '5', '2026-04-10 10:07:30', '102', '71.43', '1'),
+('46', '5', '2026-04-06 10:07:30', '97', '85.71', '1'),
+('47', '5', '2026-04-01 10:07:30', '91', '85.71', '1'),
+('48', '5', '2026-04-10 10:07:30', '102', '71.43', '1'),
+('49', '5', '2026-03-17 10:07:30', '105', '100.00', '1'),
+('50', '5', '2026-04-04 10:07:30', '91', '100.00', '1');
+
+-- Dumping data for table `attempt_answer`
+INSERT INTO `attempt_answer` (`id`, `attempt_id`, `question_id`, `user_response`, `is_correct`, `score_earned`) VALUES
+('1', '1', '1', '[1]', '0', '0.00'),
+('2', '1', '2', '[7]', '1', '1.00'),
+('3', '1', '3', '[11]', '1', '1.00'),
+('4', '1', '4', '[14]', '1', '1.00'),
+('5', '1', '5', '[19]', '1', '1.00'),
+('6', '2', '1', '[3]', '1', '1.00'),
+('7', '2', '2', '[6]', '0', '0.00'),
+('8', '2', '3', '[11]', '1', '1.00'),
+('9', '2', '4', '[14]', '1', '1.00'),
+('10', '2', '5', '[19]', '1', '1.00'),
+('11', '3', '1', '[3]', '1', '1.00'),
+('12', '3', '2', '[7]', '1', '1.00'),
+('13', '3', '3', '[10]', '0', '0.00'),
+('14', '3', '4', '[14]', '1', '1.00'),
+('15', '3', '5', '[17]', '0', '0.00'),
+('16', '4', '1', '[3]', '1', '1.00'),
+('17', '4', '2', '[8]', '0', '0.00'),
+('18', '4', '3', '[11]', '1', '1.00'),
+('19', '4', '4', '[13]', '0', '0.00'),
+('20', '4', '5', '[19]', '1', '1.00'),
+('21', '5', '1', '[3]', '1', '1.00'),
+('22', '5', '2', '[7]', '1', '1.00'),
+('23', '5', '3', '[11]', '1', '1.00'),
+('24', '5', '4', '[15]', '0', '0.00'),
+('25', '5', '5', '[19]', '1', '1.00'),
+('26', '6', '1', '[3]', '1', '1.00'),
+('27', '6', '2', '[8]', '0', '0.00'),
+('28', '6', '3', '[11]', '1', '1.00'),
+('29', '6', '4', '[14]', '1', '1.00'),
+('30', '6', '5', '[17]', '0', '0.00'),
+('31', '7', '1', '[3]', '1', '1.00'),
+('32', '7', '2', '[7]', '1', '1.00'),
+('33', '7', '3', '[11]', '1', '1.00'),
+('34', '7', '4', '[14]', '1', '1.00'),
+('35', '7', '5', '[19]', '1', '1.00'),
+('36', '8', '1', '[3]', '1', '1.00'),
+('37', '8', '2', '[7]', '1', '1.00'),
+('38', '8', '3', '[10]', '0', '0.00'),
+('39', '8', '4', '[14]', '1', '1.00'),
+('40', '8', '5', '[19]', '1', '1.00'),
+('41', '9', '1', '[3]', '1', '1.00'),
+('42', '9', '2', '[7]', '1', '1.00'),
+('43', '9', '3', '[11]', '1', '1.00'),
+('44', '9', '4', '[14]', '1', '1.00'),
+('45', '9', '5', '[19]', '1', '1.00'),
+('46', '10', '1', '[3]', '1', '1.00'),
+('47', '10', '2', '[7]', '1', '1.00'),
+('48', '10', '3', '[10]', '0', '0.00'),
+('49', '10', '4', '[15]', '0', '0.00'),
+('50', '10', '5', '[19]', '1', '1.00'),
+('51', '11', '6', '[23]', '1', '1.00'),
+('52', '11', '7', '[26]', '1', '1.00'),
+('53', '11', '8', '[30]', '1', '1.00'),
+('54', '11', '9', '[35]', '1', '1.00'),
+('55', '11', '10', '[38]', '1', '1.00'),
+('56', '11', '11', '[41]', '1', '1.00'),
+('57', '12', '6', '[23]', '1', '1.00'),
+('58', '12', '7', '[26]', '1', '1.00'),
+('59', '12', '8', '[30]', '1', '1.00'),
+('60', '12', '9', '[35]', '1', '1.00'),
+('61', '12', '10', '[38]', '1', '1.00'),
+('62', '12', '11', '[41]', '1', '1.00'),
+('63', '13', '6', '[23]', '1', '1.00'),
+('64', '13', '7', '[26]', '1', '1.00'),
+('65', '13', '8', '[30]', '1', '1.00'),
+('66', '13', '9', '[35]', '1', '1.00'),
+('67', '13', '10', '[38]', '1', '1.00'),
+('68', '13', '11', '[41]', '1', '1.00'),
+('69', '14', '6', '[23]', '1', '1.00'),
+('70', '14', '7', '[26]', '1', '1.00'),
+('71', '14', '8', '[30]', '1', '1.00'),
+('72', '14', '9', '[33]', '0', '0.00'),
+('73', '14', '10', '[38]', '1', '1.00'),
+('74', '14', '11', '[41]', '1', '1.00'),
+('75', '15', '6', '[23]', '1', '1.00'),
+('76', '15', '7', '[26]', '1', '1.00'),
+('77', '15', '8', '[30]', '1', '1.00'),
+('78', '15', '9', '[34]', '0', '0.00'),
+('79', '15', '10', '[38]', '1', '1.00'),
+('80', '15', '11', '[41]', '1', '1.00'),
+('81', '16', '6', '[23]', '1', '1.00'),
+('82', '16', '7', '[26]', '1', '1.00'),
+('83', '16', '8', '[30]', '1', '1.00'),
+('84', '16', '9', '[35]', '1', '1.00'),
+('85', '16', '10', '[38]', '1', '1.00'),
+('86', '16', '11', '[41]', '1', '1.00'),
+('87', '17', '6', '[23]', '1', '1.00'),
+('88', '17', '7', '[26]', '1', '1.00'),
+('89', '17', '8', '[30]', '1', '1.00'),
+('90', '17', '9', '[35]', '1', '1.00'),
+('91', '17', '10', '[40]', '0', '0.00'),
+('92', '17', '11', '[41]', '1', '1.00'),
+('93', '18', '6', '[23]', '1', '1.00'),
+('94', '18', '7', '[28]', '0', '0.00'),
+('95', '18', '8', '[30]', '1', '1.00'),
+('96', '18', '9', '[35]', '1', '1.00'),
+('97', '18', '10', '[38]', '1', '1.00'),
+('98', '18', '11', '[41]', '1', '1.00'),
+('99', '19', '6', '[23]', '1', '1.00'),
+('100', '19', '7', '[25]', '0', '0.00'),
+('101', '19', '8', '[30]', '1', '1.00'),
+('102', '19', '9', '[35]', '1', '1.00'),
+('103', '19', '10', '[38]', '1', '1.00'),
+('104', '19', '11', '[42]', '0', '0.00'),
+('105', '20', '6', '[23]', '1', '1.00'),
+('106', '20', '7', '[26]', '1', '1.00'),
+('107', '20', '8', '[30]', '1', '1.00'),
+('108', '20', '9', '[35]', '1', '1.00'),
+('109', '20', '10', '[38]', '1', '1.00'),
+('110', '20', '11', '[41]', '1', '1.00'),
+('111', '21', '12', '[46]', '1', '1.00'),
+('112', '21', '13', '[51]', '1', '1.00'),
+('113', '21', '14', '[54]', '1', '1.00'),
+('114', '21', '15', '[59]', '1', '1.00'),
+('115', '21', '16', '[63]', '1', '1.00'),
+('116', '21', '17', '[66]', '1', '1.00'),
+('117', '22', '12', '[46]', '1', '1.00'),
+('118', '22', '13', '[51]', '1', '1.00'),
+('119', '22', '14', '[54]', '1', '1.00'),
+('120', '22', '15', '[59]', '1', '1.00'),
+('121', '22', '16', '[63]', '1', '1.00'),
+('122', '22', '17', '[66]', '1', '1.00'),
+('123', '23', '12', '[46]', '1', '1.00'),
+('124', '23', '13', '[51]', '1', '1.00'),
+('125', '23', '14', '[54]', '1', '1.00'),
+('126', '23', '15', '[59]', '1', '1.00'),
+('127', '23', '16', '[63]', '1', '1.00'),
+('128', '23', '17', '[66]', '1', '1.00'),
+('129', '24', '12', '[46]', '1', '1.00'),
+('130', '24', '13', '[51]', '1', '1.00'),
+('131', '24', '14', '[54]', '1', '1.00'),
+('132', '24', '15', '[57]', '0', '0.00'),
+('133', '24', '16', '[63]', '1', '1.00'),
+('134', '24', '17', '[66]', '1', '1.00'),
+('135', '25', '12', '[46]', '1', '1.00'),
+('136', '25', '13', '[51]', '1', '1.00'),
+('137', '25', '14', '[54]', '1', '1.00'),
+('138', '25', '15', '[59]', '1', '1.00'),
+('139', '25', '16', '[63]', '1', '1.00'),
+('140', '25', '17', '[66]', '1', '1.00'),
+('141', '26', '12', '[46]', '1', '1.00'),
+('142', '26', '13', '[51]', '1', '1.00'),
+('143', '26', '14', '[54]', '1', '1.00'),
+('144', '26', '15', '[59]', '1', '1.00'),
+('145', '26', '16', '[63]', '1', '1.00'),
+('146', '26', '17', '[65]', '0', '0.00'),
+('147', '27', '12', '[46]', '1', '1.00'),
+('148', '27', '13', '[51]', '1', '1.00'),
+('149', '27', '14', '[54]', '1', '1.00'),
+('150', '27', '15', '[58]', '0', '0.00'),
+('151', '27', '16', '[63]', '1', '1.00'),
+('152', '27', '17', '[66]', '1', '1.00'),
+('153', '28', '12', '[46]', '1', '1.00'),
+('154', '28', '13', '[51]', '1', '1.00'),
+('155', '28', '14', '[54]', '1', '1.00'),
+('156', '28', '15', '[59]', '1', '1.00'),
+('157', '28', '16', '[63]', '1', '1.00'),
+('158', '28', '17', '[66]', '1', '1.00'),
+('159', '29', '12', '[47]', '0', '0.00'),
+('160', '29', '13', '[51]', '1', '1.00'),
+('161', '29', '14', '[54]', '1', '1.00'),
+('162', '29', '15', '[60]', '0', '0.00'),
+('163', '29', '16', '[63]', '1', '1.00'),
+('164', '29', '17', '[66]', '1', '1.00'),
+('165', '30', '12', '[45]', '0', '0.00'),
+('166', '30', '13', '[52]', '0', '0.00'),
+('167', '30', '14', '[54]', '1', '1.00'),
+('168', '30', '15', '[59]', '1', '1.00'),
+('169', '30', '16', '[61]', '0', '0.00'),
+('170', '30', '17', '[66]', '1', '1.00'),
+('171', '31', '18', '[71]', '1', '1.00'),
+('172', '31', '19', '[74]', '1', '1.00'),
+('173', '31', '20', '[78]', '1', '1.00'),
+('174', '31', '21', '[82]', '1', '1.00'),
+('175', '31', '22', '[86]', '1', '1.00'),
+('176', '32', '18', '[71]', '1', '1.00'),
+('177', '32', '19', '[74]', '1', '1.00'),
+('178', '32', '20', '[79]', '0', '0.00'),
+('179', '32', '21', '[82]', '1', '1.00'),
+('180', '32', '22', '[86]', '1', '1.00'),
+('181', '33', '18', '[71]', '1', '1.00'),
+('182', '33', '19', '[74]', '1', '1.00'),
+('183', '33', '20', '[78]', '1', '1.00'),
+('184', '33', '21', '[82]', '1', '1.00'),
+('185', '33', '22', '[86]', '1', '1.00'),
+('186', '34', '18', '[71]', '1', '1.00'),
+('187', '34', '19', '[76]', '0', '0.00'),
+('188', '34', '20', '[78]', '1', '1.00'),
+('189', '34', '21', '[82]', '1', '1.00'),
+('190', '34', '22', '[86]', '1', '1.00'),
+('191', '35', '18', '[71]', '1', '1.00'),
+('192', '35', '19', '[74]', '1', '1.00'),
+('193', '35', '20', '[78]', '1', '1.00'),
+('194', '35', '21', '[82]', '1', '1.00'),
+('195', '35', '22', '[86]', '1', '1.00'),
+('196', '36', '18', '[71]', '1', '1.00'),
+('197', '36', '19', '[74]', '1', '1.00'),
+('198', '36', '20', '[78]', '1', '1.00'),
+('199', '36', '21', '[82]', '1', '1.00'),
+('200', '36', '22', '[86]', '1', '1.00'),
+('201', '37', '18', '[71]', '1', '1.00'),
+('202', '37', '19', '[74]', '1', '1.00'),
+('203', '37', '20', '[78]', '1', '1.00'),
+('204', '37', '21', '[82]', '1', '1.00'),
+('205', '37', '22', '[86]', '1', '1.00'),
+('206', '38', '18', '[71]', '1', '1.00'),
+('207', '38', '19', '[74]', '1', '1.00'),
+('208', '38', '20', '[78]', '1', '1.00'),
+('209', '38', '21', '[82]', '1', '1.00'),
+('210', '38', '22', '[88]', '0', '0.00'),
+('211', '39', '18', '[71]', '1', '1.00'),
+('212', '39', '19', '[74]', '1', '1.00'),
+('213', '39', '20', '[79]', '0', '0.00'),
+('214', '39', '21', '[82]', '1', '1.00'),
+('215', '39', '22', '[86]', '1', '1.00'),
+('216', '40', '18', '[70]', '0', '0.00'),
+('217', '40', '19', '[74]', '1', '1.00'),
+('218', '40', '20', '[78]', '1', '1.00'),
+('219', '40', '21', '[82]', '1', '1.00'),
+('220', '40', '22', '[86]', '1', '1.00'),
+('221', '41', '23', '[92]', '0', '0.00'),
+('222', '41', '24', '[94]', '1', '1.00'),
+('223', '41', '25', '[98]', '1', '1.00'),
+('224', '41', '26', '[103]', '1', '1.00'),
+('225', '41', '27', '[108]', '1', '1.00'),
+('226', '41', '28', '[111]', '1', '1.00'),
+('227', '41', '29', '[114]', '0', '0.00'),
+('228', '42', '23', '[91]', '1', '1.00'),
+('229', '42', '24', '[94]', '1', '1.00'),
+('230', '42', '25', '[100]', '0', '0.00'),
+('231', '42', '26', '[103]', '1', '1.00'),
+('232', '42', '27', '[108]', '1', '1.00'),
+('233', '42', '28', '[112]', '0', '0.00'),
+('234', '42', '29', '[113]', '1', '1.00'),
+('235', '43', '23', '[91]', '1', '1.00'),
+('236', '43', '24', '[96]', '0', '0.00'),
+('237', '43', '25', '[98]', '1', '1.00'),
+('238', '43', '26', '[103]', '1', '1.00'),
+('239', '43', '27', '[108]', '1', '1.00'),
+('240', '43', '28', '[111]', '1', '1.00'),
+('241', '43', '29', '[113]', '1', '1.00'),
+('242', '44', '23', '[91]', '1', '1.00'),
+('243', '44', '24', '[94]', '1', '1.00'),
+('244', '44', '25', '[100]', '0', '0.00'),
+('245', '44', '26', '[103]', '1', '1.00'),
+('246', '44', '27', '[107]', '0', '0.00'),
+('247', '44', '28', '[112]', '0', '0.00'),
+('248', '44', '29', '[113]', '1', '1.00'),
+('249', '45', '23', '[91]', '1', '1.00'),
+('250', '45', '24', '[94]', '1', '1.00'),
+('251', '45', '25', '[98]', '1', '1.00'),
+('252', '45', '26', '[103]', '1', '1.00'),
+('253', '45', '27', '[106]', '0', '0.00'),
+('254', '45', '28', '[112]', '0', '0.00'),
+('255', '45', '29', '[113]', '1', '1.00'),
+('256', '46', '23', '[91]', '1', '1.00'),
+('257', '46', '24', '[94]', '1', '1.00'),
+('258', '46', '25', '[98]', '1', '1.00'),
+('259', '46', '26', '[103]', '1', '1.00'),
+('260', '46', '27', '[108]', '1', '1.00'),
+('261', '46', '28', '[109]', '0', '0.00'),
+('262', '46', '29', '[113]', '1', '1.00'),
+('263', '47', '23', '[91]', '1', '1.00'),
+('264', '47', '24', '[94]', '1', '1.00'),
+('265', '47', '25', '[98]', '1', '1.00'),
+('266', '47', '26', '[103]', '1', '1.00'),
+('267', '47', '27', '[106]', '0', '0.00'),
+('268', '47', '28', '[111]', '1', '1.00'),
+('269', '47', '29', '[113]', '1', '1.00'),
+('270', '48', '23', '[91]', '1', '1.00'),
+('271', '48', '24', '[96]', '0', '0.00'),
+('272', '48', '25', '[100]', '0', '0.00'),
+('273', '48', '26', '[103]', '1', '1.00'),
+('274', '48', '27', '[108]', '1', '1.00'),
+('275', '48', '28', '[111]', '1', '1.00'),
+('276', '48', '29', '[113]', '1', '1.00'),
+('277', '49', '23', '[91]', '1', '1.00'),
+('278', '49', '24', '[94]', '1', '1.00'),
+('279', '49', '25', '[98]', '1', '1.00'),
+('280', '49', '26', '[103]', '1', '1.00'),
+('281', '49', '27', '[108]', '1', '1.00'),
+('282', '49', '28', '[111]', '1', '1.00'),
+('283', '49', '29', '[113]', '1', '1.00'),
+('284', '50', '23', '[91]', '1', '1.00'),
+('285', '50', '24', '[94]', '1', '1.00'),
+('286', '50', '25', '[98]', '1', '1.00'),
+('287', '50', '26', '[103]', '1', '1.00'),
+('288', '50', '27', '[108]', '1', '1.00'),
+('289', '50', '28', '[111]', '1', '1.00'),
+('290', '50', '29', '[113]', '1', '1.00');
+

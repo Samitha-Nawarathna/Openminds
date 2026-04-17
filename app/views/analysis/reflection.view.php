@@ -42,13 +42,7 @@ include_once '../app/views/partials/header.view.php';
                 <div id="popular-tags-chart-container"></div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Attention Drift by Tag (Last 4 Weeks)</h3>
-                </div>
-                <div id="attention-drift-container" class="attention-drift-grid">
-                    </div>
-            </div>
+
         </div>
 
     </main>

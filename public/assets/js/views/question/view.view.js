@@ -129,11 +129,11 @@ async function handleAction(action, data) {
             payload = { id: data.answer_id, content: data.content };
             break;
         case 'delete_question':
-            endpoint = 'question/api_delete_question';
+            endpoint = 'question/api/delete'; // Fixed path
             payload = { id: data.question_id };
             break;
         case 'delete_answer':
-            endpoint = 'question/api_delete_answer';
+            endpoint = 'question/api/delete_answer'; // Fixed path
             payload = { id: data.answer_id };
             break;
         case 'accept_answer':

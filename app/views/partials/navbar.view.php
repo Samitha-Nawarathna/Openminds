@@ -1,3 +1,5 @@
+
+
 <!-- <div class="nav-trigger">
         ☰
 </div>
@@ -23,7 +25,12 @@
                
                <?php 
                
-               $nav_role = $_SESSION['role'] ?? null;
+               //take user id from the session and then user it to take role from database
+               $user_id = $_SESSION['user_id'];
+               $user_model = new User();
+               $role_model = new Roles();
+               $nav_role = $user_model->first(['id'=>$user_id])->role;
+               $nav_role = $role_model->get_role($nav_role);
 
                if ($nav_role && $nav_role === "admin"){
                     echo '<li class="dropdown">
@@ -730,7 +737,8 @@
                 <span class="nav-link-text">Log out</span>
             </a>
 
-            <?php if ($nav_role === "expert"): ?>
+            
+            <?php if ($nav_role === "admin"): ?>
                 <div class="admin-divider">
                     <div class="nav-header">Admin Privileges</div>
                     <a href="<?=ROOT?>/expertrequestadmin" class="nav-link" data-tooltip="Expert Requests (Admin)">
@@ -758,9 +766,13 @@
 
     <a href="<?=ROOT?>/profile" class="sidebar-footer" data-tooltip="Profile">
         <?php 
+
         $nav_user_id = $_SESSION['user_id'] ?? 0;
-        $nav_role_display = $_SESSION['role'] ?? 'User';
-        $nav_username = $_SESSION['user_data']['username'] ?? $_SESSION['user_name'] ?? 'My Profile'; 
+        // $nav_role_display = $_SESSION['role'] ?? 'User';
+        //session does not contain username only id, so we need to get username from database
+        $user_model = new User();
+        $nav_username = $user_model->first(['id'=>$nav_user_id])->username;
+        // show($nav_user_id);
         
         // Try .avif first, fallback to generic avatar
         $profile_img_path = ROOT . "/uploads/" . $nav_user_id . "/profile.avif";
@@ -770,7 +782,7 @@
              alt="Profile" class="profile-avatar">
         <div class="profile-info">
             <span class="profile-name"><?= htmlspecialchars($nav_username) ?></span>
-            <span class="profile-role"><?= htmlspecialchars($nav_role_display) ?></span>
+            <span class="profile-role"><?= htmlspecialchars($nav_role) ?></span>
         </div>
     </a>
 </aside>

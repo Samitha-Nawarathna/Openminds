@@ -112,7 +112,7 @@ class Question extends Controller
                 if ($vote->votetype === 'upvote') $q_up++;
                 elseif ($vote->votetype === 'downvote') $q_down++;
                 
-                if ($current_user && $vote->user_id == $current_user) {
+                if ($current_user && $vote->u_id == $current_user) {
                     $q_user_voted = true;
                     $q_user_vote_type = ($vote->votetype === 'upvote') ? 'up' : 'down';
                 }
@@ -147,7 +147,7 @@ class Question extends Controller
                         if ($vote->votetype === 'upvote') $a_up++;
                         elseif ($vote->votetype === 'downvote') $a_down++;
 
-                        if ($current_user && $vote->user_id == $current_user) {
+                        if ($current_user && $vote->u_id == $current_user) {
                             $a_user_voted = true;
                             $a_user_vote_type = ($vote->votetype === 'upvote') ? 'up' : 'down';
                         }
@@ -425,7 +425,7 @@ class Question extends Controller
         $user_vote_question = new Uservotequestion;
 
         // Check if user has already voted
-        $existing_vote = $user_vote_question->first(['user_id' => $current_user, 'q_id' => $q_id]);
+        $existing_vote = $user_vote_question->first(['u_id' => $current_user, 'q_id' => $q_id]);
 
         if ($existing_vote) {
             // Update existing vote
@@ -442,7 +442,7 @@ class Question extends Controller
         } else {
             // Insert new vote
             $user_vote_question->insert([
-                'user_id' => $current_user,
+                'u_id' => $current_user,
                 'q_id' => $q_id,
                 'votetype' => $votetype
             ]);
@@ -467,7 +467,7 @@ class Question extends Controller
         $user_vote_answer = new Uservoteanswer;
 
         // Check if user has already voted
-        $existing_vote = $user_vote_answer->first(['user_id' => $current_user, 'q_id' => $q_id]);
+        $existing_vote = $user_vote_answer->first(['u_id' => $current_user, 'q_id' => $q_id]);
 
         if ($existing_vote) {
             // Update existing vote
@@ -484,7 +484,7 @@ class Question extends Controller
         } else {
             // Insert new vote
             $user_vote_answer->insert([
-                'user_id' => $current_user,
+                'u_id' => $current_user,
                 'q_id' => $q_id,
                 'votetype' => $votetype
             ]);

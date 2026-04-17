@@ -102,6 +102,7 @@ class LoginServices
 
 
         $results = $user->first(['username' => $_SESSION['user_data']['username']]);
+        
 
         if ($results === false) {
             header("Location: ".ROOT."login?message=invalid credentials");

@@ -26,6 +26,25 @@ $initialDataJson = json_encode($data ?? []);
         min-height: auto;
         overflow-y: visible; 
     }
+
+    /* Prevent sidebar overlap */
+    #question-page-container {
+        /* margin-left: 280px; Standard sidebar width offset */
+        /* padding: 20px; */
+        /* box-sizing: border-box; */
+    }
+
+    #question-panel{
+        margin-left: 40px;
+        width: calc(50% - 40px);
+    }
+
+    @media (max-width: 768px) {
+        #question-page-container {
+            margin-left: 0;
+            padding: 10px;
+        }
+    }
 </style>
 
 <div id="question-page-container">

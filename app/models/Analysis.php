@@ -27,49 +27,32 @@ class AnalyticsModel
      * Retrieves raw data for Notes Created, Average Scores, and Votes for the Last Week (LW)
      * and Previous Week (PW) based on a calendar week (Mon-Sun).
      */
-    private function getWeeklyComparisonMetricsRaw($user_id = 1): array {
-        // Calculate calendar week boundaries (assuming week starts Monday, mode 1)
-        $lw_end = date('Y-m-d 23:59:59', strtotime('sunday last week'));
-        $lw_start = date('Y-m-d 00:00:00', strtotime('monday last week'));
-        $pw_end = date('Y-m-d 23:59:59', strtotime('-1 day', strtotime($lw_start)));
-        $pw_start = date('Y-m-d 00:00:00', strtotime('-7 days', strtotime($pw_end)));
-        
-        // --- 1. Fetch Notes & Scores LW/PW (Single Query from events) ---
+    private function getAllTimeMetricsRaw($user_id = 1): array {
+        // --- 1. Fetch All-Time Notes & Scores (Single Query from events) ---
         $sql = "
             SELECT 
-                SUM(CASE WHEN event_time BETWEEN :lw_start AND :lw_end THEN 1 ELSE 0 END) AS note_count_lw,
-                SUM(CASE WHEN event_time BETWEEN :pw_start AND :pw_end THEN 1 ELSE 0 END) AS note_count_pw,
-                AVG(CASE WHEN event_time BETWEEN :lw_start AND :lw_end AND event_type = 'exercise_attempted' THEN JSON_UNQUOTE(JSON_EXTRACT(data, '$.score')) ELSE NULL END) AS avg_score_lw,
-                AVG(CASE WHEN event_time BETWEEN :pw_start AND :pw_end AND event_type = 'exercise_attempted' THEN JSON_UNQUOTE(JSON_EXTRACT(data, '$.score')) ELSE NULL END) AS avg_score_pw
+                SUM(CASE WHEN event_type = 'note_created' THEN 1 ELSE 0 END) AS note_count,
+                AVG(CASE WHEN event_type = 'exercise_attempted' THEN JSON_UNQUOTE(JSON_EXTRACT(data, '$.score')) ELSE NULL END) AS avg_score
             FROM events
-            WHERE user_id = :user_id AND event_type IN ('note_created', 'exercise_attempted')
-                AND event_time BETWEEN :pw_start AND :lw_end;
+            WHERE user_id = :user_id AND event_type IN ('note_created', 'exercise_attempted');
         ";
-        $params = [
-            'user_id' => $user_id, 'lw_start' => $lw_start, 'lw_end' => $lw_end, 
-            'pw_start' => $pw_start, 'pw_end' => $pw_end
-        ];
+        $params = ['user_id' => $user_id];
         $data_results = $this->get_row($sql, $params);
         $data = [
-            'notes' => ['LW' => (float) ($data_results->note_count_lw ?? 0), 'PW' => (float) ($data_results->note_count_pw ?? 0)],
-            'scores' => ['LW' => (float) ($data_results->avg_score_lw ?? 0), 'PW' => (float) ($data_results->avg_score_pw ?? 0)],
-            'votes' => ['LW' => 0, 'PW' => 0] // Placeholder, filled below
+            'notes' => ['Total' => (float) ($data_results->note_count ?? 0)],
+            'scores' => ['Total' => (float) ($data_results->avg_score ?? 0)],
+            'votes' => ['Total' => 0] 
         ];
         
-        // --- 2. Fetch Total Votes LW/PW (Joining uservotequestion and uservoteanswer) ---
-        // Note: The original code used subqueries without WHERE creator_id=:user_id which implies system-wide votes.
-        // Assuming votes are system-wide as they don't reference a 'user_id' on the vote table itself in the schema.
+        // --- 2. Fetch All-Time Total Votes ---
         $vote_sql = "
             SELECT 
-                (SELECT COUNT(*) FROM uservotequestion WHERE created_at BETWEEN :lw_start AND :lw_end) +
-                (SELECT COUNT(*) FROM uservoteanswer WHERE created_at BETWEEN :lw_start AND :lw_end) AS total_votes_lw,
-                (SELECT COUNT(*) FROM uservotequestion WHERE created_at BETWEEN :pw_start AND :pw_end) +
-                (SELECT COUNT(*) FROM uservoteanswer WHERE created_at BETWEEN :pw_start AND :pw_end) AS total_votes_pw;
+                (SELECT COUNT(*) FROM uservotequestion) +
+                (SELECT COUNT(*) FROM uservoteanswer) AS total_votes;
         ";
-        $vote_results = $this->get_row($vote_sql, ['lw_start' => $lw_start, 'lw_end' => $lw_end, 'pw_start' => $pw_start, 'pw_end' => $pw_end]);
+        $vote_results = $this->get_row($vote_sql, []);
         
-        $data['votes']['LW'] = (float) ($vote_results->total_votes_lw ?? 0);
-        $data['votes']['PW'] = (float) ($vote_results->total_votes_pw ?? 0);
+        $data['votes']['Total'] = (float) ($vote_results->total_votes ?? 0);
 
         return $data;
     }
@@ -81,7 +64,6 @@ class AnalyticsModel
         $sql = "
             SELECT 
                 YEARWEEK(event_time, 1) as week_id,
-                -- Get start date of the week (Monday)
                 FROM_DAYS(TO_DAYS(DATE_ADD(DATE_SUB(event_time, INTERVAL WEEKDAY(event_time) DAY), INTERVAL 1 DAY))) AS week_start_date,
                 SUM(CASE WHEN event_type = 'note_created' THEN 1 ELSE 0 END) as notes_created,
                 SUM(CASE WHEN event_type = 'question_asked' THEN 1 ELSE 0 END) as questions_asked,
@@ -94,19 +76,42 @@ class AnalyticsModel
 
         $results = $this->query($sql, ['user_id' => $user_id]);
         
-        $formatted_trends = [];
-        foreach ($results as $row) {
-            // Convert MySQL date string to Unix Timestamp (milliseconds for JavaScript)
-            $timestamp = strtotime($row->week_start_date) * 1000;
-            
-            $formatted_trends[] = [
-                'week_start_date' => $timestamp,
-                'notes_created' => (int) $row->notes_created,
-                'questions_asked' => (int) $row->questions_asked,
-                'exercises_attempted' => (int) $row->exercises_attempted
-            ];
+        // Map database results by week_id for fast lookup
+        $results_map = [];
+        if ($results) {
+            foreach ($results as $row) {
+                $results_map[$row->week_id] = $row;
+            }
         }
         
+        $formatted_trends = [];
+        
+        // Generate continuous array of 52 weeks ago up to the current week
+        for ($i = 51; $i >= 0; $i--) {
+            $monday = strtotime('monday this week -' . $i . ' weeks');
+            $week_id = date('oW', $monday); 
+            $timestamp = $monday * 1000;
+            
+            if (isset($results_map[$week_id])) {
+                $row = $results_map[$week_id];
+                $formatted_trends[] = [
+                    'week_start_date' => $timestamp,
+                    'notes_created' => (int) $row->notes_created,
+                    'questions_asked' => (int) $row->questions_asked,
+                    'exercises_attempted' => (int) $row->exercises_attempted
+                ];
+            } else {
+                $formatted_trends[] = [
+                    'week_start_date' => $timestamp,
+                    'notes_created' => 0,
+                    'questions_asked' => 0,
+                    'exercises_attempted' => 0
+                ];
+            }
+        }
+        
+        // Return oldest week to newest week (we iterated backwards from 51)
+        // Wait, $i=51 is 51 weeks ago, so array index 0 is oldest. Line graph requires oldest to newest.
         return $formatted_trends;
     }
 
@@ -466,8 +471,6 @@ class AnalyticsModel
     }
     
     private function getWeeklyNoteActivity($user_id = 1): array {
-        $start_date_52_weeks = 'DATE_SUB(NOW(), INTERVAL 52 WEEK)';
-        
         $sql = "
             SELECT
                 YEARWEEK(event_time, 1) as week_id,
@@ -478,21 +481,45 @@ class AnalyticsModel
             FROM events
             WHERE user_id = :user_id 
               AND entity_type = 'Note' 
-              AND event_time >= $start_date_52_weeks
+              AND event_time >= DATE_SUB(NOW(), INTERVAL 52 WEEK)
             GROUP BY week_id, week_start_date
             ORDER BY week_id ASC
         ";
         
         $results = $this->query($sql, ['user_id' => $user_id]);
         
+        $results_map = [];
+        if ($results) {
+            foreach ($results as $row) {
+                $results_map[$row->week_id] = $row;
+            }
+        }
+        
         $formatted_activity = [];
-        foreach ($results as $row) {
-            $formatted_activity[] = [
-                'date' => strtotime($row->week_start_date) * 1000, 
-                'created' => (int) $row->created,
-                'updated' => (int) $row->updated,
-                'deleted' => (int) $row->deleted,
-            ];
+        
+        // Generate continuous array of 52 weeks ago up to the current week
+        // We push oldest values first for chronological order
+        for ($i = 51; $i >= 0; $i--) {
+            $monday = strtotime('monday this week -' . $i . ' weeks');
+            $week_id = date('oW', $monday); 
+            $timestamp = $monday * 1000;
+            
+            if (isset($results_map[$week_id])) {
+                $row = $results_map[$week_id];
+                $formatted_activity[] = [
+                    'date' => $timestamp, 
+                    'created' => (int) $row->created,
+                    'updated' => (int) $row->updated,
+                    'deleted' => (int) $row->deleted,
+                ];
+            } else {
+                $formatted_activity[] = [
+                    'date' => $timestamp, 
+                    'created' => 0,
+                    'updated' => 0,
+                    'deleted' => 0,
+                ];
+            }
         }
         
         return $formatted_activity;
@@ -772,7 +799,7 @@ class AnalyticsModel
      */
     public function generateAllAnalyticsData($user_id = 1): array {
         // --- 1. Get Raw Data ---
-        $weekly_raw = $this->getWeeklyComparisonMetricsRaw($user_id);
+        $weekly_raw = $this->getAllTimeMetricsRaw($user_id);
         $weekly_trends = $this->get52WeekActivityTrends($user_id);
         $subject_scores = $this->getTopSubjectScores($user_id);
         $tag_usage = $this->getTopTagUsage(); // Note: Assumed system-wide in original code
@@ -800,23 +827,23 @@ class AnalyticsModel
         return [
             "overview" => [
                 "notes_created" => [
-                    "count" => (int) $weekly_raw['notes']['LW'],
-                    "change_percentage" => $this->calculateChangePercentage($weekly_raw['notes']['LW'], $weekly_raw['notes']['PW'])
+                    "count" => (int) ($weekly_raw['notes']['Total'] ?? 0),
+                    "change_percentage" => 0
                 ],
                 "average_exercise_score" => [
-                    "score" => round($weekly_raw['scores']['LW'], 1),
-                    "change_percentage" => $this->calculateChangePercentage($weekly_raw['scores']['LW'], $weekly_raw['scores']['PW'])
+                    "score" => round(($weekly_raw['scores']['Total'] ?? 0), 1),
+                    "change_percentage" => 0
                 ],
                 "all_votes" => [
-                    "count" => (int) $weekly_raw['votes']['LW'],
-                    "change_percentage" => $this->calculateChangePercentage($weekly_raw['votes']['LW'], $weekly_raw['votes']['PW'])
+                    "count" => (int) ($weekly_raw['votes']['Total'] ?? 0),
+                    "change_percentage" => 0
                 ],
                 "learning_consistency" => [
                     "fraction" => "{$consistency_lw}/7",
                     "change_percentage" => $consistency_change
                 ]
             ],
-            "weekly_trends" => array_reverse($weekly_trends), // Reverse to display oldest first (line chart)
+            "weekly_trends" => $weekly_trends, // Already returned oldest to newest
             "top_subjects" => $subject_scores,
             "top_tags" => $tag_usage,
             "activity_heatmap" => $activity_heatmap // <--- ADDED HEATMAP DATA

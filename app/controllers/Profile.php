@@ -50,7 +50,8 @@ class Profile extends Controller
 
         $total_upvotes = $analysis_services->get_total_upvotes($user_id);
 
-        $total_points = $analysis_services->get_total_points($user_id);
+        $total_points = (float)$analysis_services->get_total_points($user_id);
+        // show($total_points);
 
         $experts_model = new Experts;
         $subject_model = new Subjects;

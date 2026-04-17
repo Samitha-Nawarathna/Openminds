@@ -3,6 +3,13 @@
     $title = "Dashboard | Openminds";
     $filename = "dashboard/index";
 
+    $user_id = $_SESSION['user_id'];
+    $user_model = new User();
+    $role_model = new Roles();
+    $user = $user_model->first(['id'=>$user_id]);
+    $user_role = $user->role;
+    $user_role = $role_model->get_role($user_role);
+
     // $no_nav;
 
     include_once "../app/views/partials/header.view.php";
@@ -145,11 +152,13 @@
                     <span>Ask a Question</span>
                 </a>
 
-                <!-- 3. Create an Exercise (Blue Light) -->
-                <a href="<?=ROOT?>exercises/create" class="qa-button btn-light-blue">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell-icon lucide-dumbbell"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg>
-                    <span>Create an Exercise</span>
-                </a>
+                <?php if($user_role === "mentor" || $user_role === "expert" || $user_role === "admin") : ?>
+                    <!-- 3. Create an Exercise (Blue Light) -->
+                    <a href="<?=ROOT?>exercises/create" class="qa-button btn-light-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell-icon lucide-dumbbell"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg>
+                        <span>Create an Exercise</span>
+                    </a>
+                <?php endif; ?>
 
                 <!-- 4. Customizations (Generic) -->
                 <a href="#" class="qa-button btn-generic">
@@ -191,10 +200,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                     Asked Questions
                 </div>
-                <div class="tab" data-tab="created-exercises" data-endpoint="/api/content/created-exercises">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="m14.4 14.4-.2.2c-.38.38-.97.5-1.48.33l-5.87-2.07c-.98-.34-1.45-1.55-.95-2.47l2.84-5.68c.5-.92 1.93-1.12 2.8-.46l1.37 1.03"/><path d="m5.7 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/><path d="m19.6 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/></svg>
-                    Created Exercises
-                </div>
+                <?php if($user_role === "mentor" || $user_role === "expert" || $user_role === "admin") : ?>
+                    <div class="tab" data-tab="created-exercises" data-endpoint="/api/content/created-exercises">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="m14.4 14.4-.2.2c-.38.38-.97.5-1.48.33l-5.87-2.07c-.98-.34-1.45-1.55-.95-2.47l2.84-5.68c.5-.92 1.93-1.12 2.8-.46l1.37 1.03"/><path d="m5.7 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/><path d="m19.6 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/></svg>
+                        Created Exercises
+                    </div>
+                <?php endif; ?>
                 <div class="tab" data-tab="answered-exercises" data-endpoint="/api/content/answered-exercises">
                     <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 2 2 4-4"/></svg>
                     Answered Exercises
