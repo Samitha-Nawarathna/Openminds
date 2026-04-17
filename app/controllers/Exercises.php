@@ -727,6 +727,7 @@ class Exercises extends Controller
                 'id' => $question_id,
                 'question_text' => (string)$question->question_text,
                 'difficulty' => $question_weight,
+                'explanation' => (string)($question->explanation ?? ''),
                 'options' => $answer_options,
             ];
 
