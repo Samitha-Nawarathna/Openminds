@@ -342,18 +342,17 @@ h3 {
 
 .pin-icon {
     top: 50%;
-    right: 40px;
     background-color: var(--color-yellow-400);
     margin-right: var(--space-xs);
     transform: translate(-50%, -50%);
     z-index: 10;
+
 }
 
 .delete-icon {
     top: 50%;
-    right: -10px;
-    background-color: #f44336; /* Red color */
-    margin-right: var(--space-xs);
+    background-color: red;
+    margin-right: calc(var(--space-xs) + 35px);
     transform: translate(-50%, -50%);
     z-index: 10;
 }

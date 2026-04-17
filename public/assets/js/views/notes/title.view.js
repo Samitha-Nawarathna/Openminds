@@ -136,15 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add data-id to helper click detection
         pinSpan.dataset.id = topic.id;
 
-        const delSpan = document.createElement('span');
-        delSpan.className = 'delete-icon';
-        delSpan.textContent = 'del';
-        // Add data-id to helper click detection
-        delSpan.dataset.id = topic.id;
+        const deleteSpan = document.createElement('span');
+        deleteSpan.className = 'delete-icon';
+        deleteSpan.textContent = 'delete';
+        deleteSpan.dataset.id = topic.id;
 
+        link.appendChild(pinSpan);
+        link.appendChild(deleteSpan);
         item.appendChild(link);
-        item.appendChild(pinSpan);
-        item.appendChild(delSpan);
 
         return item;
     }

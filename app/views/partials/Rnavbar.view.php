@@ -587,7 +587,7 @@
     /* Smaller square for target */
     .focus-square.target {
         width: 90px;
-        height: 90px;
+        height: 90px;   
     }
     .focus-square.target .focus-title {
         font-size: 0.7rem;
