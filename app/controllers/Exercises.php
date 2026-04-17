@@ -642,6 +642,8 @@ class Exercises extends Controller
 
         $current_user = (int)($_SESSION['user_id'] ?? 0);
         $average_score = 0;
+        $raw_score = 0;
+        $max_score = 0;
         $user_answers = [];
         $correct_answers = [];
         $selected_by_question = [];
@@ -658,7 +660,7 @@ class Exercises extends Controller
                 $latestAttempt = $attemptStmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($latestAttempt) {
-                    $average_score = (float)$latestAttempt['score'];
+                    $raw_score = (float)$latestAttempt['score'];
 
                     $attemptAnswersStmt = $pdo->prepare("SELECT aa.question_id AS mapped_question_id, aa.user_response, q.title AS mapped_title FROM attempt_answer aa LEFT JOIN question q ON q.id = aa.question_id WHERE aa.attempt_id = :attempt_id");
                     $attemptAnswersStmt->execute([':attempt_id' => (int)$latestAttempt['id']]);
@@ -693,9 +695,12 @@ class Exercises extends Controller
 
         foreach ($questions as $question) {
             $answers = $exerciseanswer->where(['question_id' => $question->id]);
-            $selected_ids = $selected_by_question[(int)$question->id] ?? [];
+            $selected_ids = array_values(array_unique(array_map('intval', $selected_by_question[(int)$question->id] ?? [])));
+            sort($selected_ids);
             $answer_options = [];
             $correct_ids = [];
+            $question_weight = (float)($question->weight ?? 0);
+            $max_score += $question_weight;
 
             foreach ($answers as $ans) {
                 $option_id = (int)$ans->id;
@@ -714,10 +719,14 @@ class Exercises extends Controller
                 ];
             }
 
+            $normalized_correct_ids = array_values(array_unique(array_map('intval', $correct_ids)));
+            sort($normalized_correct_ids);
+
             $question_id = (int)$question->id;
             $question_list[] = [
                 'id' => $question_id,
                 'question_text' => (string)$question->question_text,
+                'difficulty' => $question_weight,
                 'options' => $answer_options,
             ];
 
@@ -728,8 +737,14 @@ class Exercises extends Controller
         error_log('show() user_answers: ' . json_encode($user_answers));
         error_log('show() correct_answers: ' . json_encode($correct_answers));
 
+        if ($max_score > 0) {
+            $average_score = round((min($raw_score, $max_score) / $max_score) * 100, 2);
+        }
+
         $review_data = [
             'average_score' => $average_score,
+            'raw_score' => $raw_score,
+            'max_score' => $max_score,
             'total_questions' => count($question_list),
             'user_answers' => $user_answers,
             'correct_answers' => $correct_answers,
@@ -1563,7 +1578,7 @@ class Exercises extends Controller
             foreach ($answers as $item) {
                 $qid = isset($item['question_id']) ? (int)$item['question_id'] : 0;
                 $selected = isset($item['selected_option_ids']) && is_array($item['selected_option_ids'])
-                    ? array_map('intval', $item['selected_option_ids'])
+                    ? array_values(array_unique(array_map('intval', $item['selected_option_ids'])))
                     : [];
                 if ($qid > 0) {
                     $userSelections[$qid] = $selected;
@@ -1574,15 +1589,15 @@ class Exercises extends Controller
             $totalScore = 0.0;
 
             foreach ($questionMap as $qid => $qData) {
-                $selected = $userSelections[$qid] ?? [];
+                $selected = array_values(array_unique($userSelections[$qid] ?? []));
                 sort($selected);
 
-                $correct = array_map('intval', array_column(array_filter($qData['options'], function ($opt) {
+                $correct = array_values(array_unique(array_map('intval', array_column(array_filter($qData['options'], function ($opt) {
                     return $opt['is_correct'] === true;
-                }), 'option_id'));
+                }), 'option_id'))));
                 sort($correct);
 
-                $isCorrect = !empty($selected) && $selected === $correct;
+                $isCorrect = $selected === $correct;
                 $scoreEarned = $isCorrect ? (float)$qData['weight'] : 0.0;
                 $totalScore += $scoreEarned;
 
@@ -1680,12 +1695,21 @@ class Exercises extends Controller
 
             $pdo->commit();
 
+            if ($maxScore > 0 && abs($totalScore - $maxScore) < 0.0001) {
+                $totalScore = $maxScore;
+            }
+
+            $percentageScore = $maxScore > 0 ? round(($totalScore / $maxScore) * 100, 2) : 0;
+
             $this->json_respond([
                 'success' => true,
                 'attempt_id' => $attemptId,
                 'exercise_id' => $exercise_id,
                 'total_score' => $totalScore,
                 'total_max_score' => $maxScore,
+                'raw_score' => $totalScore,
+                'max_score' => $maxScore,
+                'percentage_score' => $percentageScore,
                 'details' => $details,
             ]);
 
@@ -1846,9 +1870,9 @@ class Exercises extends Controller
                 ],
                 // Score response uses stored attempt score (no recalculation)
                 'raw_score' => (float)$attempt['score'],
-                'average_score' => (float)$attempt['score'],
+                'average_score' => $maxScore > 0 ? round((min((float)$attempt['score'], $maxScore) / $maxScore) * 100, 2) : 0,
                 'max_score' => $maxScore,
-                'percentage_score' => $maxScore > 0 ? round(((float)$attempt['score'] / $maxScore) * 100, 2) : 0,
+                'percentage_score' => $maxScore > 0 ? round((min((float)$attempt['score'], $maxScore) / $maxScore) * 100, 2) : 0,
                 // Keep existing keys for backward compatibility
                 'total_score' => (float)$attempt['score'],
                 'total_max_score' => $maxScore,

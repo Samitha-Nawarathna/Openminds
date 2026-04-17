@@ -15,8 +15,9 @@ class ExercisesModel
                             CASE
                                 WHEN IFNULL(q.max_score, 0) <= 0 THEN 0
                                 -- Legacy rows may already store percentage values.
-                                WHEN ea.score > q.max_score THEN LEAST(ea.score, 100)
-                                ELSE (ea.score / q.max_score) * 100
+                                WHEN ea.score >= q.max_score THEN 100
+                                WHEN ea.score > 100 THEN 100
+                                ELSE ROUND((ea.score / q.max_score) * 100, 2)
                             END
                         ),
                         0

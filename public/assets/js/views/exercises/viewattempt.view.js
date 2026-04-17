@@ -326,7 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
         totalEl.textContent = totalQCount;
         
         // Update score feedback with appropriate styling
-        scoreFeedbackEl.innerHTML = `${qData.user_score || 0} / ${qData.max_weight || 0}`;
+        const currentScore = Math.abs((qData.user_score || 0) - (qData.max_weight || 0)) < 0.0001
+            ? (qData.max_weight || 0)
+            : (qData.user_score || 0);
+        scoreFeedbackEl.innerHTML = `${currentScore} / ${qData.max_weight || 0}`;
         scoreFeedbackEl.className = 'feedback-area';
         
         if (qData.user_score >= qData.max_weight) {
@@ -353,15 +356,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const scoreTextEl = document.getElementById('score-text');
         const rawScore = RESULTS_DATA.raw_score ?? RESULTS_DATA.total_score ?? 0;
         const maxScore = RESULTS_DATA.max_score ?? RESULTS_DATA.total_max_score ?? 0;
+        const displayRawScore = Math.abs(rawScore - maxScore) < 0.0001 ? maxScore : rawScore;
         const percentageScore = RESULTS_DATA.percentage_score ?? (maxScore ? (rawScore / maxScore) * 100 : 0);
 
         if (scoreTextEl) {
-            scoreTextEl.textContent = `${rawScore} out of ${maxScore}`;
+            scoreTextEl.textContent = `${displayRawScore} out of ${maxScore}`;
         }
         
         // Update score badge color based on overall result (e.g., > 50% score)
         const scoreClass = percentageScore >= 50 ? 'passed' : 'failed';
-        finalScoreEl.textContent = `${rawScore} / ${maxScore}`;
+        finalScoreEl.textContent = `${displayRawScore} / ${maxScore}`;
         
         // Clear existing classes and add new ones
         finalScoreEl.className = 'score-badge';
