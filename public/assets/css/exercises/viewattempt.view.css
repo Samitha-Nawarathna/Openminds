@@ -253,7 +253,7 @@ h1 {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 8px 10px;
     background: #fff;
     border: 1px solid #e2e6f0;
     border-radius: 12px;
@@ -280,30 +280,18 @@ h1 {
     font-weight: 500;
 }
 
-.option-badge {
-    margin-left: auto;
-    font-size: 0.85rem;
-    letter-spacing: 1.2px;
-    color: #111827;
-    border: 1px solid #dfe3ef;
-    background: #f7f9fe;
-    padding: 7px 12px;
-    border-radius: 10px;
-    font-weight: 700;
-}
+
 
 .option-card.is-correct {
     border-color: var(--color-success);
     background-color: #f0fff4;
 }
 
-.option-card.is-correct .option-text {
-    font-weight: 700;
-}
+
 
 .option-card.user-wrong {
-    border-color: #c084fc;
-    background-color: #f7efff;
+    border-color: #dc3545;
+    background-color: #ffe0e0;
 }
 
 .option-card.was-selected:not(.is-correct):not(.user-wrong) {
@@ -322,25 +310,20 @@ h1 {
 }
 
 .option-card.user-wrong .state-icon {
-    color: #a855f7;
+    color: #dc3545;
 }
 
 /* Explanation Box */
 .explanation-box {
     margin: 20px 0;
     padding: 20px;
-    border: 1px solid var(--color-gray-400);
-    border-radius: var(--radius-md);
+    background: #ffffff;
+    border: 1px solid #e3e7ef;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.06);
 }
 
-.explain-icon {
-    padding: var(--space-sm);
-    background-color: var(--color-blue-100);
-    border-radius: var(--radius-sm);
-    margin-bottom: var(--space-sm);
-    width: fit-content;
-    font-size: var(--font-size-lg);
-}
+
 
 /* -----------------------------
  *      MODAL STYLES
@@ -530,6 +513,8 @@ h1 {
     font-weight: bold;
     font-size: 1.1em;
     color: var(--color-text);
+    padding-left: 60px;
+
 }
 
 .feedback-area {

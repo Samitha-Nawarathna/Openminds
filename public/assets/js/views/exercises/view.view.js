@@ -255,6 +255,8 @@ function normalizePayload(payload) {
 		const questions = payload.details.map((item, index) => ({
 			id: Number(item.question_id || index + 1),
 			text: String(item.prompt || ""),
+			difficulty: Number(item.difficulty ?? item.max_weight ?? 0),
+			explanation: String(item.explanation || ""),
 			options: (Array.isArray(item.options) ? item.options : []).map((opt) => ({
 				key: String(opt.option_id ?? opt.id ?? opt.text ?? ""),
 				text: String(opt.text || ""),
@@ -332,6 +334,8 @@ function normalizePayload(payload) {
 		return {
 			id: Number(qId),
 			text: String(question.question_text || question.prompt || question.text || ""),
+			difficulty: Number(question.difficulty ?? question.weight ?? question.max_weight ?? 0),
+			explanation: String(question.explanation || ""),
 			options
 		};
 	});
@@ -433,6 +437,14 @@ function renderReview(model, els) {
 		questionTitle.textContent = question.text || `Question ${index + 1}`;
 		titleWrap.appendChild(questionTitle);
 
+		const difficulty = Number(question.difficulty || 0);
+		if (difficulty > 0) {
+			const difficultyEl = document.createElement("p");
+			difficultyEl.className = "question-difficulty";
+			difficultyEl.textContent = `Difficulty: ${difficulty}`;
+			titleWrap.appendChild(difficultyEl);
+		}
+
 		head.appendChild(number);
 		head.appendChild(titleWrap);
 		card.appendChild(head);
@@ -473,6 +485,24 @@ function renderReview(model, els) {
 		});
 
 		card.appendChild(optionGrid);
+
+		if (question.explanation && question.explanation.trim() !== "") {
+			const explanationWrap = document.createElement("div");
+			explanationWrap.className = "explanation-block";
+
+			const explanationTitle = document.createElement("h4");
+			explanationTitle.className = "explanation-title";
+			explanationTitle.textContent = "Explanation";
+
+			const explanationText = document.createElement("p");
+			explanationText.className = "explanation-text";
+			explanationText.textContent = question.explanation;
+
+			explanationWrap.appendChild(explanationTitle);
+			explanationWrap.appendChild(explanationText);
+			card.appendChild(explanationWrap);
+		}
+
 		els.list.appendChild(card);
 	});
 }

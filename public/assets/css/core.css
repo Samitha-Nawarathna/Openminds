@@ -350,7 +350,7 @@ nav .right-side ul .profile-pic {
 .no-style-link {
     text-decoration: none;
     color: inherit;
-    display: flex;
+    
 }
 
 .opacity-low { /* Example for your ${opacityClass} */

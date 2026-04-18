@@ -23,6 +23,8 @@
         'user_answers' => $review_data['user_answers'] ?? [],
         'correct_answers' => $review_data['correct_answers'] ?? [],
         'average_score' => $review_data['average_score'] ?? 0,
+        'raw_score' => $review_data['raw_score'] ?? 0,
+        'max_score' => $review_data['max_score'] ?? 0,
         'total_questions' => $review_data['total_questions'] ?? count($questions),
     ];
 ?>

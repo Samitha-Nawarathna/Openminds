@@ -215,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderQuestion(index) {
         questionIsChecked = false;
         explanationBox.classList.add('hidden');
+        
         feedbackEl.innerHTML = '';
         controlBar.classList.remove('state-correct', 'state-wrong');
         
@@ -238,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!question) return;
         
         const totalQuestions = EXERCISE_DATA.questions.length || 1;
-        const progressPercent = Math.min(100, Math.round((index / totalQuestions) * 100));
+        const progressPercent = Math.min(100, Math.round(((index+1) / totalQuestions) * 100));
         if (progressFill) {
             progressFill.style.width = `${progressPercent}%`;
         }
@@ -419,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPostCheckState() {
         if (isReviewMode) return;
         checkBtn.classList.add('hidden');
-        explainBtn.classList.remove('hidden');
+        // explainBtn.classList.remove('hidden');
         
         // Show Next or Submit button
         if (currentQIndex < EXERCISE_DATA.questions.length - 1) {
@@ -465,8 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showExplanation() {
         const question = EXERCISE_DATA.questions[currentQIndex];
         explanationBox.innerHTML = `
+        <h3>Explanation</h3>
 
             <quill-editor 
+                
                 id="explanation-text"
                 readonly
                 height="fit-content"

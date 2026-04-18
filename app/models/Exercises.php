@@ -8,7 +8,27 @@ class ExercisesModel
 
     public function get_exercise_attempt_stats(int $exercise_id): array
     {
-        $sql = "SELECT COUNT(*) AS attempt_count, COALESCE(AVG(score), 0) AS average_score FROM exercise_attempt WHERE exe_id = :exercise_id";
+        $sql = "SELECT
+                    COUNT(*) AS attempt_count,
+                    COALESCE(
+                        AVG(
+                            CASE
+                                WHEN IFNULL(q.max_score, 0) <= 0 THEN 0
+                                -- Legacy rows may already store percentage values.
+                                WHEN ea.score >= q.max_score THEN 100
+                                WHEN ea.score > 100 THEN 100
+                                ELSE ROUND((ea.score / q.max_score) * 100, 2)
+                            END
+                        ),
+                        0
+                    ) AS average_score
+                FROM exercise_attempt ea
+                LEFT JOIN (
+                    SELECT exercise_id, COALESCE(SUM(weight), 0) AS max_score
+                    FROM exercisequestion
+                    GROUP BY exercise_id
+                ) q ON q.exercise_id = ea.exe_id
+                WHERE ea.exe_id = :exercise_id";
         $rows = $this->query($sql, [':exercise_id' => $exercise_id]);
         $row = $rows[0] ?? null;
 
@@ -33,7 +53,16 @@ class ExercisesModel
         $limit = $limit > 0 ? $limit : 5;
         $offset = $offset >= 0 ? $offset : 0;
 
-        $joins = " LEFT JOIN subjects s ON s.id = e.subject_id LEFT JOIN user u ON u.id = e.creator_id";
+        $joins = " LEFT JOIN subjects s ON s.id = e.subject_id"
+            . " LEFT JOIN user u ON u.id = e.creator_id"
+            . " LEFT JOIN ("
+            . "   SELECT exercise_id, COALESCE(SUM(CASE"
+            . "     WHEN votetype = 'upvote' THEN 1"
+            . "     WHEN votetype = 'downvote' THEN -1"
+            . "     ELSE 0 END), 0) AS vote_count"
+            . "   FROM uservoteexercise"
+            . "   GROUP BY exercise_id"
+            . " ) uv ON uv.exercise_id = e.id";
         $where = [];
         $bind = [];
 
@@ -107,8 +136,10 @@ class ExercisesModel
                 $where[] = "e.status = 'pending'";
                 $where[] = 'e.creator_id != :current_user_id';
                 $bind[':current_user_id'] = $user_id;
-                // Both Experts and Admins only see pending exercises for subjects they are experts in
-                $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
+                // Only apply subject filter if expert has subject assignments; otherwise show all pending
+                if (!empty($expert_subject_ids)) {
+                    $add_in_clause('e.subject_id', $expert_subject_ids, 'subject');
+                }
             } elseif ($tab === 'created') {
                 $where[] = 'e.creator_id = :creator_id';
                 $bind[':creator_id'] = $user_id;
@@ -170,7 +201,7 @@ class ExercisesModel
             $where_sql = ' WHERE ' . implode(' AND ', $where);
         }
 
-        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name";
+        $select_sql = "SELECT DISTINCT e.id, e.title, e.status, e.created_at, e.creator_id, s.name AS subject, u.username AS creator_name, COALESCE(uv.vote_count, 0) AS vote_count";
         $from_sql = " FROM exercises e" . $attempt_join . $joins;
         $order_sql = " ORDER BY {$order_by} {$order_dir}";
 

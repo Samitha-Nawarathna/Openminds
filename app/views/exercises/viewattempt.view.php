@@ -113,10 +113,10 @@ $vote_submit_api_url = ROOT . '/exercises/api/vote/' . $exercise_id;
     
     <div id="action-buttons" class="action-buttons">
         <button id="prev-btn" class="btn secondary" disabled aria-label="Go to previous question">
-            ← Previous
+            <  Previous
         </button>
         <button id="next-btn" class="btn primary" aria-label="Go to next question">
-            Next Question →
+            Next Question >
         </button>
     </div>
 </div>

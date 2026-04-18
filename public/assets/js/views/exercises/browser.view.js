@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (r === 'expert') {
             // Can see both pendingTab and createBtn/createdTab
         } else if (r === 'admin') {
+            hideEl(createdTab);
+            hideEl(pendingTab);
+            hideEl(createBtn);
             // Can see both pendingTab and createBtn/createdTab
         }
 
@@ -66,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const limit = typeof INITIAL_LIMIT !== 'undefined' ? INITIAL_LIMIT : 5;
 
     const roleFromDom = (roleHost?.dataset?.userRole || USER_ROLE || 'student').trim().toLowerCase();
-    const canViewPending = roleFromDom === 'expert' || roleFromDom === 'admin';
+    const canViewPending = roleFromDom === 'expert' ;
 
     if (!canViewPending && pendingTab) {
         pendingTab.remove();
@@ -183,6 +186,64 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatRelativeTime(value) {
+        if (!value) return 'just now';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'just now';
+
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMinutes = Math.floor(diffMs / 60000);
+        if (diffMinutes < 1) return 'just now';
+        if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 30) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+
+        const diffMonths = Math.floor(diffDays / 30);
+        if (diffMonths < 12) return `${diffMonths} month${diffMonths === 1 ? '' : 's'} ago`;
+
+        const diffYears = Math.floor(diffMonths / 12);
+        return `${diffYears} year${diffYears === 1 ? '' : 's'} ago`;
+    }
+
+    function getVoteCount(exercise) {
+        if (typeof exercise.vote_count === 'number') return exercise.vote_count;
+        if (exercise.vote_count !== undefined && exercise.vote_count !== null && exercise.vote_count !== '') {
+            return Number(exercise.vote_count) || 0;
+        }
+
+        const up = Number(exercise.upvotes || 0);
+        const down = Number(exercise.downvotes || 0);
+        return up - down;
+    }
+
+    function getStatusMeta(status) {
+        const normalized = String(status || '').toLowerCase();
+        if (normalized === 'approved' || normalized === 'published') {
+            return { label: 'Published', className: 'status-published', icon: '○' };
+        }
+        if (normalized === 'pending') {
+            return { label: 'Pending', className: 'status-pending', icon: '○' };
+        }
+        if (normalized === 'reject' || normalized === 'rejected') {
+            return { label: 'Rejected', className: 'status-reject', icon: '○' };
+        }
+        return { label: 'Draft', className: 'status-draft', icon: '○' };
+    }
+
     function renderExercises(exercises) {
         if (!Array.isArray(exercises) || exercises.length === 0) {
             if (offset === 0) {
@@ -209,18 +270,40 @@ document.addEventListener('DOMContentLoaded', () => {
             link.href = `${ROOT}/exercises/${endpoint}?id=${exercise.id}`;
 
             const statusText = String(exercise.status || '').toLowerCase();
-            const showStatusTag = currentTab === 'created' && currentCreatedSubtab === 'created_draft';
+            const showStatusTag = statusText !== '';
+            const statusMeta = getStatusMeta(statusText);
             const statusTag = showStatusTag
-                ? `<span class="status-pill status-${statusText || 'draft'}">${statusText || 'draft'}</span>`
+                ? `<span class="status-pill ${statusMeta.className}"><span class="status-icon" aria-hidden="true">${statusMeta.icon}</span><span>${statusMeta.label}</span></span>`
                 : '';
+
+            const subjectText = escapeHtml(exercise.subject || 'General');
+            const titleText = escapeHtml(exercise.title || 'Untitled Exercise');
+            const creatorText = escapeHtml(exercise.creator_name || 'Unknown');
+            const relativeTime = formatRelativeTime(exercise.created_at);
+            const voteCount = getVoteCount(exercise);
 
             link.innerHTML = `
                 <div class="exercise-item" data-id="${exercise.id}">
-                    <span class="exercise-title-list">${exercise.title}</span>
-                    <span class="subject-pill" data-subject="${exercise.subject}">
-                        ${exercise.subject}
-                    </span>
-                    ${statusTag}
+                    <div class="exercise-vote-column" aria-hidden="true">
+                        <span class="vote-icon">&#128077;&#127997;</span>
+                        <span class="vote-count">${voteCount}</span>
+                        <span class="vote-label">Votes</span>
+                    </div>
+                    <div class="exercise-main-column">
+                        <h3 class="exercise-title-list">${titleText}</h3>
+                        <div class="exercise-meta-row">
+                            <span class="meta-item">Created by <strong>${creatorText}</strong></span>
+                            <span class="meta-separator" aria-hidden="true">&bull;</span>
+                            <span class="meta-item">${escapeHtml(relativeTime)}</span>
+                        </div>
+                    </div>
+                    <div class="exercise-side-column">
+                        ${statusTag}
+                        <span class="subject-pill" data-subject="${subjectText}">
+                            ${subjectText}
+                        </span>
+                        <span class="menu-dots" aria-hidden="true">&bull;&bull;&bull;</span>
+                    </div>
                 </div>
             `;
             fragment.appendChild(link);
