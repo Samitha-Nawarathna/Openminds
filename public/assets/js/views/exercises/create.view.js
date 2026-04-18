@@ -121,6 +121,11 @@ const submitModal = document.getElementById('submit-modal');
 // NEW DOM ELEMENT REFERENCE
 const editMetadataBtn = document.getElementById('edit-metadata-btn');
 
+document.getElementById('closePopup').onclick = function (e) {
+e.preventDefault();
+window.location.href = ROOT + 'exercises';
+};
+
 async function loadSubjectOptions() {
     const subjectSelect = document.getElementById('exercise-subject-input');
     if (!subjectSelect) return;

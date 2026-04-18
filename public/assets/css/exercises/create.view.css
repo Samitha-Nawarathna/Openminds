@@ -43,13 +43,15 @@
             padding: var(--space-lg); /* Larger padding from view.view.css modal */
             border-radius: var(--radius-lg); /* Larger radius from view.view.css modal */
             min-width: 30vw; /* Aligned with view.view.css modal max-width */
-            box-shadow: var(--shadow-md); 
+            box-shadow: var(--shadow-md);
+            position:relative; 
         }
 
         /* Setup Modal Specific Styling */
         .setup-modal-content {
             max-width: 600px;
             width: 90%;
+            
             
         }
 
@@ -61,7 +63,6 @@
 
         .setup-icon {
             font-size: 3rem;
-            
             display: inline-block;
         }
 
@@ -77,6 +78,27 @@
             color: var(--color-text-muted);
             margin-top: var(--space-xs);
         }
+
+        .popup-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #666;
+    transition: 0.2s;
+}
+
+.popup-close:hover {
+    color: #000;
+    transform: scale(1.1);
+}
+
+        
+
+        
 
         /* Form Styling */
         .setup-form {

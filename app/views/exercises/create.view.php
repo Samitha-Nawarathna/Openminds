@@ -3,7 +3,7 @@
     $is_edit_mode = !empty($data['is_edit_mode']);
     $title = $is_edit_mode ? "Edit Exercise | Openminds" : "Create Exercise | Openminds";
     $filename = "exercises/create";
-    $add_back = true;
+    
 
     // Mock PHP placeholders for root paths (assumes standard framework setup)
     $ROOT = ''; 
@@ -20,8 +20,11 @@
 
 <div id="setup-modal" class="modal">
     <div class="modal-content setup-modal-content">
+        <button class="popup-close" id="closePopup">&times;</button>
         <!-- Header Section -->
         <div class="setup-header">
+            
+
             <div class="setup-icon">🎓</div>
             <h1 class="setup-title">Let's Create an Exercise</h1>
             <p class="setup-subtitle">Enter the basic details to get started.</p>
