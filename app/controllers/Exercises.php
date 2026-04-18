@@ -1625,37 +1625,6 @@ class Exercises extends Controller
             // Persist attempt and answers in one transaction
             $pdo->beginTransaction();
 
-            // Create question table entries for FK constraint (maps exercisequestion IDs to question table IDs)
-            $questionIdMap = [];  // exercisequestion.id => question.id
-            
-            foreach ($bundle['questions'] as $q) {
-                try {
-                    $exerciseQId = (int)$q['question_id'];  // question_id from bundle (which is exercisequestion.id)
-                    $qTitle = 'Exercise ' . $exercise_id . ' - Q' . $exerciseQId;  // Unique identifier
-                    
-                    // Check if this question mapping already exists
-                    $stmtCheck = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
-                    $stmtCheck->execute([':title' => $qTitle]);
-                    $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($existing) {
-                        $questionIdMap[$exerciseQId] = (int)$existing['id'];
-                    } else {
-                        // Create new question entry
-                        $stmtInsert = $pdo->prepare("INSERT INTO question (title, content, creator_id) VALUES (:title, :content, :creator_id)");
-                        $stmtInsert->execute([
-                            ':title' => $qTitle,
-                            ':content' => $q['prompt'],
-                            ':creator_id' => $current_user,
-                        ]);
-                        $questionIdMap[$exerciseQId] = (int)$pdo->lastInsertId();
-                    }
-                } catch (Exception $qError) {
-                    error_log('Error creating question mapping: ' . $qError->getMessage() . "\nQuestion data: " . json_encode($q));
-                    throw $qError;
-                }
-            }
-
             // Mark previous attempts as not latest
             $markOld = $pdo->prepare("UPDATE exercise_attempt SET latest = 0 WHERE exe_id = :exe_id AND u_id = :user_id AND latest = 1");
             $markOld->execute([':exe_id' => $exercise_id, ':user_id' => $current_user]);
@@ -1674,16 +1643,11 @@ class Exercises extends Controller
             foreach ($details as $detail) {
                 try {
                     $exerciseQId = (int)$detail['question_id'];  // exercisequestion.id
-                    $actualQuestionId = $questionIdMap[$exerciseQId] ?? null;  // Get mapped question.id
-                    
-                    if (!$actualQuestionId) {
-                        throw new Exception('No question mapping found for exercisequestion ID ' . $exerciseQId);
-                    }
                     
                     $userResp = $userSelections[$exerciseQId] ?? [];
                     $answerStmt->execute([
                         ':attempt_id' => $attemptId,
-                        ':question_id' => $actualQuestionId,  // Use mapped question.id
+                        ':question_id' => $exerciseQId,  // Use direct exercisequestion.id
                         ':user_response' => json_encode($userResp),
                         ':is_correct' => $detail['user_score'] >= $detail['max_weight'] ? 1 : 0,
                         ':score_earned' => (float)$detail['user_score'],
