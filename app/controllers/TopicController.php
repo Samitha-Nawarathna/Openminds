@@ -231,6 +231,33 @@ class TopicController extends Controller
         ]);
     }
 
+    public function api_rename_topic($id) {
+        $data = $this->json_request();
+        $name = trim($data['name'] ?? '');
+
+        if (empty($name)) {
+            $this->json_respond(["success" => false, "message" => "Name cannot be empty."]);
+            return;
+        }
+
+        $topics_model = new Topics();
+        
+        if (!$topics_model->is_name_available($name)) {
+            $this->json_respond(["success" => false, "message" => "Topic with this name already exists."]);
+            return;
+        }
+
+        if ($topics_model->update($id, ['name' => $name])) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully renamed.",
+                "data" => ["topic_id" => (int)$id, "name" => $name]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to rename topic."]);
+        }
+    }
+
     public function api_load_more() {
         $data = $this->json_request();
         $offset = $data['offset'] ?? $_GET['offset'] ?? 0;

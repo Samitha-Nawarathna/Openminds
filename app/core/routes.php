@@ -32,6 +32,7 @@ App::post('topics/create', 'TopicController@create');
 App::post('topics/api/pin/{id}', 'TopicController@api_pin_topic');
 App::post('topics/api/unpin/{id}', 'TopicController@api_unpin_topic');
 App::post('topics/api/delete/{id}', 'TopicController@api_delete_topic');
+App::post('topics/api/rename/{id}', 'TopicController@api_rename_topic');
 
 
 //topic module api

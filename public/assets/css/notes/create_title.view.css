@@ -214,6 +214,7 @@ label {
 
 .modal-content {
     margin: 0;
+    width: 200%;
     /* width: 95%; */
 }
 
@@ -221,9 +222,9 @@ label {
     display: flex;
     gap: var(--space-md);
     align-items: flex-start;
-    /* Prevents panels from stretching weirdly
-}
-
+    }
+    /* Prevents panels from stretching weirdly*/
+    
 .panel {
     /* Base panel style uses surface and shadow */
     padding: var(--space-md);

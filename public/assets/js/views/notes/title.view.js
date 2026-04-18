@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function apiDeleteTopic(topicId) {
         if (!confirm('Are you sure you want to delete this subject?')) return;
         try {
-            const response = await fetch(`${ROOT}/topics/api/delete/${topicId}`, {
+            const response = await fetch(`${ROOT}topics/api/delete/${topicId}`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -83,6 +83,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error deleting topic:', error);
             alert('An error occurred while deleting the topic.');
+        }
+    }
+
+    async function apiRenameTopic(topicId, currentName) {
+        const newName = prompt('Enter new topic name:', currentName);
+        if (!newName || newName.trim() === '' || newName === currentName) return;
+        
+        try {
+            const response = await fetch(`${ROOT}topics/api/rename/${topicId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: newName.trim() })
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Alternatively, we could just update the DOM element, but reload is consistent with pin/unpin/delete
+                window.location.reload(); 
+            } else {
+                alert('Failed to rename topic: ' + (data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error renaming topic:', error);
+            alert('An error occurred while renaming the topic.');
         }
     }
 
@@ -147,6 +172,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'topic-actions';
 
+        const renameBtn = document.createElement('button');
+        renameBtn.className = 'action-btn rename-btn';
+        renameBtn.title = 'Rename Topic';
+        renameBtn.dataset.id = topic.id;
+        renameBtn.dataset.name = topic.name;
+        renameBtn.style.color = '#666';
+        renameBtn.style.stroke = '#666';
+        renameBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'action-btn delete-btn';
+        deleteBtn.title = 'Delete Topic';
+        deleteBtn.dataset.id = topic.id;
+        deleteBtn.style.color = 'red';
+        deleteBtn.style.stroke = 'red';
+        deleteBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+
         const pinBtn = document.createElement('button');
         pinBtn.className = 'action-btn pin-btn';
         pinBtn.title = 'Pin Topic';
@@ -155,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Pin Icon SVG
         pinBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`;
 
+        actionsDiv.appendChild(renameBtn);
+        actionsDiv.appendChild(deleteBtn);
         actionsDiv.appendChild(pinBtn);
         item.appendChild(actionsDiv);
 
@@ -255,11 +299,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. DELETE ICON CLICK
-        if (e.target.classList.contains('delete-icon')) {
+        if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            const id = e.target.dataset.id || e.target.closest('.topic-item').dataset.id;
+            const btn = e.target.classList.contains('delete-btn') ? e.target : e.target.closest('.delete-btn');
+            const id = btn.dataset.id;
             apiDeleteTopic(id);
+            return;
+        }
+
+        // 4. RENAME ICON CLICK
+        if (e.target.classList.contains('rename-btn') || e.target.closest('.rename-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const btn = e.target.classList.contains('rename-btn') ? e.target : e.target.closest('.rename-btn');
+            const id = btn.dataset.id;
+            const currentName = btn.dataset.name;
+            apiRenameTopic(id, currentName);
             return;
         }
 
