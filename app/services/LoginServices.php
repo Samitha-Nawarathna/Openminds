@@ -15,7 +15,6 @@ class LoginServices
         }
 
         $_SESSION['user_data']['is_email'] = 1;
-        $this->update_session_user_data();
 
 
         if (!filter_var($user_data['username'], FILTER_VALIDATE_EMAIL)) {
@@ -40,6 +39,11 @@ class LoginServices
             $errors[] = "Invalid credentials.";
         }
 
+        if (empty($errors)) {
+            $this->update_session_user_data();
+        }
+
+
         return $errors;
     }
 
@@ -50,14 +54,21 @@ class LoginServices
         if($_SESSION['user_data']['is_email'])
         {
             $_SESSION['user_data']['email'] = $_SESSION['user_data']['username'];
+            // show($_SESSION['user_data']);
             $result = $user->first(['email' => $_SESSION['user_data']['email']]);
-            $_SESSION['user_data']['username'] = $result->username;
+            if ($result) {
+                $_SESSION['user_data']['username'] = $result->username;
+            }
+            // show($_SESSION['user_data']);
         }else
         {
             $result = $user->first(['username' => $_SESSION['user_data']['username']]);
-            $_SESSION['user_data']['email'] = $result->email;
+            if ($result) {
+                $_SESSION['user_data']['email'] = $result->email;
+            }
         }
 
+        // show($_SESSION['user_data']);
         return $_SESSION['user_data'];
 
     }
@@ -79,6 +90,8 @@ class LoginServices
         $user = new User;
         $results = $user->first(['username' => $username]);
         
+        if (!$results) return false;
+
         $hashed_password = $results->password;
 
         return password_verify($password, $hashed_password);
@@ -89,6 +102,8 @@ class LoginServices
         $user = new User;
         $results = $user->first(['email' => $email]);
         
+        if (!$results) return false;
+
         $hashed_password = $results->password;
 
         return password_verify($password, $hashed_password);
@@ -102,9 +117,17 @@ class LoginServices
 
 
         $results = $user->first(['username' => $_SESSION['user_data']['username']]);
+        
 
         if ($results === false) {
             header("Location: ".ROOT."login?message=invalid credentials");
+            exit;
+        }
+
+        if ($results->banned) {
+            $reason = urlencode($results->reason_for_ban);
+            header("Location: " . ROOT . "banned?reason=$reason");
+            exit;
         }
 
         $_SESSION['user_id'] = $results->id;

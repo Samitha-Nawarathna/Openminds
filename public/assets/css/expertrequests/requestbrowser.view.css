@@ -19,11 +19,23 @@
 }
 
 h1 {
-    font-size: var(--font-size-lg); /* Using the new large font size token */
-    font-weight: 600; /* Keeping a strong weight, 800 is often too heavy */
+    font-size: var(--font-size-lg);
+    /* Using the new large font size token */
+    font-weight: 600;
+    /* Keeping a strong weight, 800 is often too heavy */
     text-align: left;
-    margin-bottom: var(--space-md); /* Using space-md for good separation */
-    color: var(--color-text); /* Using the dark text color token */
+    margin-bottom: var(--space-md);
+    /* Using space-md for good separation */
+    color: var(--color-text);
+    /* Using the dark text color token */
+}
+
+.page-description {
+    color: var(--color-gray-400);
+    /* margin-top: 16px; */
+    /* Pull closer to title */
+    margin-bottom: 32px;
+    font-size: 1rem;
 }
 
 /* --- Filter, Tabs, and Buttons (Reused Styles) --- */
@@ -123,7 +135,8 @@ h1 {
     font-weight: 600;
     white-space: nowrap;
     margin-right: 15px;
-    min-width: 70px; /* Gives pills a minimum size for uniformity */
+    min-width: 70px;
+    /* Gives pills a minimum size for uniformity */
     text-align: center;
     background-color: var(--color-green-100);
 }
@@ -145,6 +158,13 @@ h1 {
     transition: background-color 0.2s;
 }
 
+/* Request Info (List Item Content) */
+.request-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .profile-item {
     background-color: white;
     padding: 15px 20px;
@@ -160,21 +180,18 @@ h1 {
     display: flex;
 }
 
-.profile-item .left-align
-{
+.profile-item .left-align {
     flex: 1;
     display: flex;
     gap: var(--space-sm);
     align-items: center;
 }
 
-.profile-item .right-align
-{
-flex: 0;   
+.profile-item .right-align {
+    flex: 0;
 }
 
-.profile-item .icons
-{
+.profile-item .icons {
     display: flex;
     justify-content: end;
 }
@@ -186,8 +203,7 @@ flex: 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.right-align
-{
+.right-align {
     display: flex;
     align-items: center;
 }
@@ -224,7 +240,7 @@ flex: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 1000;
     display: none;
     backdrop-filter: blur(2px);
@@ -233,12 +249,13 @@ flex: 0;
 .side-panel {
     position: fixed;
     top: 0;
-    right: -350px; /* Hidden by default */
+    right: -350px;
+    /* Hidden by default */
     width: 320px;
     height: 100%;
     background: white;
     z-index: 1001;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
     transition: right 0.3s ease-out;
     display: flex;
     flex-direction: column;

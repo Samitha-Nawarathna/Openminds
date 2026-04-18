@@ -1,3 +1,5 @@
+
+
 <!-- <div class="nav-trigger">
         ☰
 </div>
@@ -23,7 +25,12 @@
                
                <?php 
                
-               $nav_role = $_SESSION['role'] ?? null;
+               //take user id from the session and then user it to take role from database
+               $user_id = $_SESSION['user_id'];
+               $user_model = new User();
+               $role_model = new Roles();
+               $nav_role = $user_model->first(['id'=>$user_id])->role;
+               $nav_role = $role_model->get_role($nav_role);
 
                if ($nav_role && $nav_role === "admin"){
                     echo '<li class="dropdown">
@@ -290,7 +297,7 @@
     .sidebar-content {
         padding: 1.5rem 1rem;
         overflow-y: auto;
-        height: calc(100vh - 65px);
+        height: calc(100vh - 65px - 70px);
     }
 
     .nav-section {
@@ -376,7 +383,8 @@
     }
 
     /* Tooltip for collapsed state */
-    .collapsed .nav-link::after {
+    .collapsed .nav-link::after,
+    .collapsed .sidebar-footer::after {
         content: attr(data-tooltip);
         position: absolute;
         left: 100%;
@@ -393,7 +401,8 @@
         z-index: 1001;
     }
 
-    .collapsed .nav-link:hover::after {
+    .collapsed .nav-link:hover::after,
+    .collapsed .sidebar-footer:hover::after {
         opacity: 1;
     }
 
@@ -565,6 +574,68 @@
     .collapsed .notification-dropdown {
         left: 100%; /* Keep it pushed out */
     }
+
+    /* ---------------------------------- */
+    /* Sidebar Footer (Profile Section)   */
+    /* ---------------------------------- */
+    .sidebar-footer {
+        padding: 1rem;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--color-text-dark);
+        transition: all 0.2s;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: white;
+        height: 70px;
+    }
+    
+    .sidebar-footer:hover {
+        background-color: var(--color-gray-100);
+    }
+    
+    .profile-avatar {
+        min-width: 36px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* For truncation */
+        white-space: nowrap;
+        opacity: 1;
+        transition: opacity 0.2s;
+    }
+    
+    .profile-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .profile-role {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        text-transform: capitalize;
+    }
+    
+    .collapsed .profile-info {
+        opacity: 0;
+        width: 0;
+        pointer-events: none;
+    }
+    
+    .collapsed .sidebar-footer {
+        justify-content: center;
+        padding: 1rem 0;
+    }
 </style>
 
 
@@ -587,10 +658,21 @@
                 <span class="nav-link-text">Dashboard</span>
             </a>
             
-            <a href="<?=ROOT?>/notes" class="nav-link" data-tooltip="Notes">
+            <a href="#" class="nav-link dropdown-toggle" data-tooltip="Notes" data-dropdown-target="notes-submenu">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span class="nav-link-text">Notes</span>
+                <svg class="dropdown-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
             </a>
+            <div class="submenu" id="notes-submenu">
+                <a href="<?=ROOT?>/notes" class="nav-link sub-link" data-tooltip="My Notes">
+                    <span class="nav-link-text">My Notes</span>
+                </a>
+                <a href="<?=ROOT?>/notes/shared_with_me" class="nav-link sub-link" data-tooltip="Shared with me">
+                    <span class="nav-link-text">Shared with me</span>
+                </a>
+            </div>
             
             <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
@@ -666,7 +748,8 @@
                 <span class="nav-link-text">Log out</span>
             </a>
 
-            <?php if ($nav_role === "expert"): ?>
+            
+            <?php if ($nav_role === "admin"): ?>
                 <div class="admin-divider">
                     <div class="nav-header">Admin Privileges</div>
                     <a href="<?=ROOT?>/expertrequestadmin" class="nav-link" data-tooltip="Expert Requests (Admin)">
@@ -691,6 +774,28 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <a href="<?=ROOT?>/profile" class="sidebar-footer" data-tooltip="Profile">
+        <?php 
+
+        $nav_user_id = $_SESSION['user_id'] ?? 0;
+        // $nav_role_display = $_SESSION['role'] ?? 'User';
+        //session does not contain username only id, so we need to get username from database
+        $user_model = new User();
+        $nav_username = $user_model->first(['id'=>$nav_user_id])->username;
+        // show($nav_user_id);
+        
+        // Try .avif first, fallback to generic avatar
+        $profile_img_path = ROOT . "/uploads/" . $nav_user_id . "/profile.avif";
+        ?>
+        <img src="<?=$profile_img_path?>" 
+             onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('<?= htmlspecialchars($nav_username) ?>') + '&background=random';" 
+             alt="Profile" class="profile-avatar">
+        <div class="profile-info">
+            <span class="profile-name"><?= htmlspecialchars($nav_username) ?></span>
+            <span class="profile-role"><?= htmlspecialchars($nav_role) ?></span>
+        </div>
+    </a>
 </aside>
 
 

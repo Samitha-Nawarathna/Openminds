@@ -3,6 +3,13 @@
     $title = "Dashboard | Openminds";
     $filename = "dashboard/index";
 
+    $user_id = $_SESSION['user_id'];
+    $user_model = new User();
+    $role_model = new Roles();
+    $user = $user_model->first(['id'=>$user_id]);
+    $user_role = $user->role;
+    $user_role = $role_model->get_role($user_role);
+
     // $no_nav;
 
     include_once "../app/views/partials/header.view.php";
@@ -72,89 +79,112 @@
 
 <div class="dashboard-grid">
     
-
-
-
     <div class="col-left"></div>
-    <main class="col-center">
-        
+    
+    <div class="impact-row">
         <h3 id="welcome-message">Your Impact Summary</h3>
-        <div class="impact-row">
-            <div class="stat-card">
-                <div class="kpi-title">
-                    Consistency (7 Days)
-
+        <div class="impact-cards">
+            <!-- 1. Total Points (New) -->
+            <div class="stat-card points-card">
+                <div class="stat-icon-box">
+                    <img src="<?=ROOT?>/assets/images/points.png" alt="Points">
                 </div>
-                <!-- <div class="heatmap" id="heatmap-container"></div> -->
-                    <div class="kpi-value" id="stat-consistency">5/7</div>
-                <a href="<?=ROOT?>analysis" class="kpi-action-link">View Analysis            
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                </a>
+                <div class="stat-content">
+                    <div>
+                        <div class="kpi-title">Total Points</div>
+                        <div class="kpi-value" id="stat-points"><?= isset($data['total_points']) ? $data['total_points'] : '0.00' ?></div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="stat-points-progress" style="width: <?= isset($data['total_points']) ? $data['total_points'] : '0' / 50 * 100 ?>%"></div>
+                        </div>
+                        <div class="stat-sub" id="stat-points-sub"><?= isset($data['total_points']) ? $data['total_points'] : '0' ?> / 50</div>
+                    </div>
+                </div>
             </div>
 
+            <!-- 2. Consistency (Moved) -->
             <div class="stat-card">
-                <div>
-                    <div class="kpi-title">Answers Shared</div>
-                    <div class="kpi-value" id="stat-answers">0</div>
+                <div class="stat-icon-box">
+                    <img src="<?=ROOT?>/assets/images/streak (2).png" alt="Consistency">
                 </div>
-                <div class="stat-sub" id="stat-answers-change" style="display:none;">...</div>
+                <div class="stat-content">
+                    <div class="kpi-title">
+                        Consistency (7 Days)
+                    </div>
+                    <div class="kpi-value" id="stat-consistency">0/7</div>
+                    <a href="<?=ROOT?>analysis" class="kpi-action-link">View Analysis <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </a>
+                    <!-- Hidden Heatmap container if needed later: <div class="heatmap" id="heatmap-container"></div> -->
+                </div>
             </div>
 
+            <!-- 3. Avg Marks (Existing) -->
             <div class="stat-card">
-                <div>
-                    <div class="kpi-title">Avg. Exercise Mark</div>
-                    <div class="kpi-value" id="stat-marks">0%</div>
+                <div class="stat-icon-box">
+                    <img src="<?=ROOT?>/assets/images/score (2).png" alt="Avg Marks">
                 </div>
-                <div class="stat-sub" id="stat-marks-sub" style="display:none;">...</div>
+                <div class="stat-content">
+                    <div>
+                        <div class="kpi-title">Avg. Exercise Mark</div>
+                        <div class="kpi-value" id="stat-marks"><?= $data['avg_marks'] ?>%</div>
+                    </div>
+                    <div class="stat-sub" id="stat-marks-sub" style="display:none;">...</div>
+                </div>
             </div>
         </div>
+    </div>
 
+    <main class="col-center">
         <div class="quick-actions-card">
             <h3>Quick Actions</h3>
             <div class="quick-actions-buttons">
                 
-                <a href="<?=ROOT?>notes/create" class="qa-large-card create-note-card">
-                    <span class="qa-large-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen-icon lucide-notebook-pen"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>                    </span>
-                    <span class="qa-large-text">Create a Note</span>
+                <!-- 1. Create a Note (Blue Solid) -->
+                <a href="<?=ROOT?>notes/create" class="qa-button btn-solid-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen-icon lucide-notebook-pen"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>
+                    <span>Create a Note</span>
                 </a>
 
-                <a href="<?=ROOT?>question/create" class="qa-large-card ask-question-card">
-                    <span class="qa-large-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                    </span>
-                    <span class="qa-large-text">Ask a Question</span>
+                <!-- 2. Ask a Question (Red Light) -->
+                <a href="<?=ROOT?>question/create" class="qa-button btn-light-red">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    <span>Ask a Question</span>
+                </a>
+
+                <?php if($user_role === "mentor" || $user_role === "expert" || $user_role === "admin") : ?>
+                    <!-- 3. Create an Exercise (Blue Light) -->
+                    <a href="<?=ROOT?>exercises/create" class="qa-button btn-light-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell-icon lucide-dumbbell"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg>
+                        <span>Create an Exercise</span>
+                    </a>
+                <?php endif; ?>
+
+                <!-- 4. Customizations (Generic) -->
+                <a href="#" class="qa-button btn-generic">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.25a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.74v.44a2 2 0 0 1-1 1.74l-.15.08a2 2 0 0 0-.73 2.73l.78 1.25a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.25a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.44a2 2 0 0 1 1-1.74l.15-.08a2 2 0 0 0 .73-2.73l-.78-1.25a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Customizations</span>
                 </a>
                 
-                <div class="qa-stack">
-                    <a href="<?=ROOT?>exercises/create" class="qa-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dumbbell-icon lucide-dumbbell"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg>                        <span>Create a Exercise</span>
+                <!-- 5. More / Dropdown -->
+                <div class="dropdown-container">
+                    <a href="#" class="qa-button btn-generic" style="justify-content: space-between; gap: 0.5rem;">
+                        <span>More</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: inherit;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
-
-                    <a href="#" class="qa-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.78 1.25a2 2 0 0 0 .73 2.73l.15.08a2 2 0 0 1 1 1.74v.44a2 2 0 0 1-1 1.74l-.15.08a2 2 0 0 0-.73 2.73l.78 1.25a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.78-1.25a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.44a2 2 0 0 1 1-1.74l.15-.08a2 2 0 0 0 .73-2.73l-.78-1.25a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                        <span>Customizations</span>
-                    </a>
-                    
-                    <div class="dropdown-container">
-                        <a href="#" class="qa-button" style="justify-content: space-between;">
-                            <span>More...</span>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-light);"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <div class="dropdown-content">
+                        <a href="<?=ROOT?>expertrequest/create">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Become an Expert
                         </a>
-                        <div class="dropdown-content">
-                            <a href="<?=ROOT?>expertrequest/create">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                Become an Expert
-                            </a>
-                            <a href="<?=ROOT?>topic/create">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"/><line x1="7" x2="17" y1="17" y2="17"/><line x1="7" x2="12" y1="13" y2="13"/></svg>
-                                Create Topic
-                            </a>
-                            <a href="<?=ROOT?>analysis">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                View Full Analysis
-                            </a>
-                        </div>
+                        <a href="<?=ROOT?>topic/create">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"/><line x1="7" x2="17" y1="17" y2="17"/><line x1="7" x2="12" y1="13" y2="13"/></svg>
+                            Create Topic
+                        </a>
+                        <a href="<?=ROOT?>analysis">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            View Full Analysis
+                        </a>
                     </div>
                 </div>
             </div>
@@ -170,10 +200,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                     Asked Questions
                 </div>
-                <div class="tab" data-tab="created-exercises" data-endpoint="/api/content/created-exercises">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="m14.4 14.4-.2.2c-.38.38-.97.5-1.48.33l-5.87-2.07c-.98-.34-1.45-1.55-.95-2.47l2.84-5.68c.5-.92 1.93-1.12 2.8-.46l1.37 1.03"/><path d="m5.7 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/><path d="m19.6 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/></svg>
-                    Created Exercises
-                </div>
+                <?php if($user_role === "mentor" || $user_role === "expert" || $user_role === "admin") : ?>
+                    <div class="tab" data-tab="created-exercises" data-endpoint="/api/content/created-exercises">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="m14.4 14.4-.2.2c-.38.38-.97.5-1.48.33l-5.87-2.07c-.98-.34-1.45-1.55-.95-2.47l2.84-5.68c.5-.92 1.93-1.12 2.8-.46l1.37 1.03"/><path d="m5.7 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/><path d="m19.6 15.6-.2-.2c-.38-.38-.5-1.02-.3-1.53l2.07-5.87c.34-.98 1.55-1.45 2.47-.95l5.68 2.84c.92.5 1.12 1.93.46 2.8l-1.03 1.37"/></svg>
+                        Created Exercises
+                    </div>
+                <?php endif; ?>
                 <div class="tab" data-tab="answered-exercises" data-endpoint="/api/content/answered-exercises">
                     <svg xmlns="http://www.w3.org/2000/svg" class="lucide-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 2 2 4-4"/></svg>
                     Answered Exercises

@@ -250,8 +250,8 @@ body {
     padding: var(--space-lg);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    width: 90%;
-    max-width: 500px; /* Constrain modal size */
+    width: 100%;
+    min-width: 500px; 
     position: relative;
     display: flex;
     flex-direction: column;

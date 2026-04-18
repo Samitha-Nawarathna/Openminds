@@ -10,6 +10,12 @@ trait Model
         return $result;
     }
 
+    public function findAll()
+    {
+        $query = "SELECT * FROM $this->table";
+        return $this->query($query);
+    }
+
     public function where($data, $offset = 0, $limit = Null, $columns = [], $data_not = [])
     {
         //SELECT * FROM $table WHERE id = :id && id != :id;
@@ -85,27 +91,21 @@ trait Model
 
     public function insert($data)
     {
-        // try {
-            // create PDO connection
-            $pdo = new PDO("mysql:host=".DBHOST.";dbname=".DBNAME, DBUSER, DBPASS);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-            // build query
-            $query = "INSERT INTO {$this->table} (".implode(", ", array_keys($data)).") 
-                        VALUES (:".implode(", :", array_keys($data)).")";
-    
-            $stmt = $pdo->prepare($query);
-    
-            // execute and return last inserted ID
-            if ($stmt->execute($data)) {
-                return $pdo->lastInsertId();
-            }
-    
-            return false;
-        // } catch (PDOException $e) {
-        //     // handle error (optional: log it)
-        //     return false;
-        // }
+        $pdo = $this->connect();
+
+        // build query
+        $query = "INSERT INTO {$this->table} (".implode(", ", array_keys($data)).") 
+                    VALUES (:".implode(", :", array_keys($data)).")";
+
+        $stmt = $pdo->prepare($query);
+
+        // execute and return last inserted ID (or true if no auto-increment)
+        if ($stmt->execute($data)) {
+            $lastId = $pdo->lastInsertId();
+            return $lastId ?: true;
+        }
+
+        return false;
     }
 
 

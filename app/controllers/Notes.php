@@ -4,16 +4,18 @@ class Notes extends Controller
 {
     public function index()
     {
+        $user_id = $_SESSION['user_id'] ?? 0;
         
         $topics = new Topics();
         $params = [
+            'where' => ['creator_id' => $user_id],
             'order_by' => 'id',
             'order_dir' => 'DESC',
             'limit' => 10
         ];
         
         // Fetch pinned topics
-        $pinned_topics_rows = $topics->where(['pinned' => 1]);
+        $pinned_topics_rows = $topics->where(['pinned' => 1, 'creator_id' => $user_id]);
         $pinned_topic_names = [];
         $pinned_topic_ids = [];
 
@@ -24,10 +26,18 @@ class Notes extends Controller
              }
         }
 
+
+        $topics_data = json_decode(json_encode($topics->filter_and_search($params)), true) ?: [];
+        $note_model = new NoteModel();
+        
+        foreach ($topics_data as &$t) {
+            $t['note_count'] = $note_model->count_by_topic($t['id']);
+        }
+
         $data = [
             'create_url' => 'topics/create/',
             'initial_load' => [
-                'topics' => json_decode(json_encode($topics->filter_and_search($params)), true) ?: [],
+                'topics' => $topics_data,
                 'has_more' => true // logic to check count? For now assume true or check count
             ],
             'recent_topics' => $pinned_topic_names,
@@ -78,6 +88,23 @@ class Notes extends Controller
         $this->view('notes/note', $data);
     }
 
+    public function shared_with_me()
+    {
+        $this->login_guard();
+
+        $note_model = new NoteModel();
+        $user_id = $_SESSION['user_id'];
+
+        $shared_notes = $note_model->get_shared_notes($user_id);
+        
+        $data = [
+            'notes' => $shared_notes ?: [],
+            'browsing_topic_title' => 'Shared with Me'
+        ];
+
+        $this->view('notes/shared_with_me', $data);
+    }
+
     public function show($note_id)
     {
         // $note_id = $_GET['id'] ?? null;
@@ -88,6 +115,7 @@ class Notes extends Controller
         $note_tags = new NoteTags;
         $topics = new Topics;
         $tags = new Tags;
+
 
         $note_data = $notes->first(['id' => $note_id]);
         // show($note_id);
@@ -103,14 +131,52 @@ class Notes extends Controller
             $tag_names[] = $tags->first(['id' => $tag->tag_id])->name;
         }
 
+        $is_shared = $note_shares->first(['note_id' => $note_id, 'user_id' => $_SESSION['user_id']]);
+        $owner_name = "";
+
+        if($is_shared)
+        {
+            $user_model = new User();
+            $owner_id = $note_data->owner_id;
+            $owner_name = $user_model->first(['id' => $owner_id])->username;
+        }
+
+        $shared_with = [];
+        $is_owner = ($note_data && $note_data->owner_id == ($_SESSION['user_id'] ?? 0));
+
+        
+        if ($is_owner) {
+            $shares = $note_shares->where(['note_id' => $note_id]);
+            if ($shares) {
+                $user_model = new User();
+                foreach ($shares as $share) {
+                    $u = $user_model->first(['id' => $share->user_id]);
+                    if ($u) {
+                        $shared_with[] = $u->username;
+                    }
+                }
+            }
+        }
+
+
         $data = [
             'note' => [
                 'id' => $note_id,
                 'title' => $note_data->title ?? 'Unknown Note',
                 'content' => $note_data->content ?? 'No content available.',
                 'tags' => $tag_names,
+                'is_shared' => $is_shared ? true : false,
+                'owner_name' => $owner_name,
+                'is_owner' => $is_owner,
+                'shared_with' => $shared_with
             ]
         ];
+
+        // Log Note Viewed Event
+        $event = new Event;
+        $event->log($_SESSION['user_id'] ?? 0, 'note_viewed', 'Note', $note_id, [
+            'subject_id' => $note_data->subject_id ?? 1 // Logic to be refined if subject mapping exists
+        ]);
 
         $this->view('notes/view', $data);
     }
@@ -185,8 +251,17 @@ class Notes extends Controller
 
             //redirect to note view page
             // Log Event
+            // Resolve Subject ID from Experts table as fallback
+            // $experts = new Expert();
+            // $expert_data = $experts->first(['user_id' => $current_user_id]);
+            // $resolved_subject_id = $expert_data->subject_id ?? 1;
+
+            //resolve topic id 
+            $topic_data = $topics->first(['id' => $topic_id]);
+            $resolved_subject_id = $topic_data->subject_id ?? 1;
+
             $event = new Event;
-            $event->log($current_user_id, 'note_created', 'Note', $note_id, ['title' => $title, 'subject_id' => 1]); // Default subject ID or fetch from topic
+            $event->log($current_user_id, 'note_created', 'Note', $note_id, ['title' => $title, 'subject_id' => $resolved_subject_id]);
 
             header("Location: ".ROOT."/notes/view/" . $note_id);
 
@@ -224,6 +299,7 @@ class Notes extends Controller
             $note_model = new NoteModel;
             $note_tags_model = new NoteTags;
             $tags_model = new Tags;
+            $topic_model = new Topics;
                 
             //retrieve existing note
             $note = $note_model->first(['id' => $note_id]);
@@ -280,8 +356,12 @@ class Notes extends Controller
 
             // Redirect to the note view page after updating
             // Log Event
+
+            //resolve topic id 
+            $topic_data = $topic_model->first(['id' => $topic_id]);
+            $resolved_subject_id = $topic_data->subject_id ?? 1;
             $event = new Event;
-            $event->log($_SESSION['user_id'], 'note_updated', 'Note', $note_id, ['subject_id' => 1]);
+            $event->log($_SESSION['user_id'], 'note_updated', 'Note', $note_id, ['subject_id' => $resolved_subject_id]);
 
             header("Location: ".ROOT."/notes/view/" . $note_id . "?message=Note+updated+successfully");
 
@@ -381,7 +461,7 @@ class Notes extends Controller
             exit();
         }
 
-        $note_id = $_GET['note_id'] ?? null;
+        $note_id = $_GET['note_id'] ?? $_POST['note_id'] ?? null;
 
         // Validated ownership and fetch logic
         $note_model = new NoteModel;
@@ -543,6 +623,8 @@ class Notes extends Controller
         $note_id = $data['note_id'] ?? null;
         $share_with_user_ids = $data['share_with_user_ids'] ?? [];
 
+
+
         if (!$note_id || empty($share_with_user_ids)) {
             $this->json_respond([
                 'status' => 'error',
@@ -555,10 +637,55 @@ class Notes extends Controller
         $note_shares = new NoteShares;
 
         //share note
+        $went_through_loop = 0;
+        $success_count = 0;
         foreach ($share_with_user_ids as $user_id) {
-            $note_shares->insert([
+            $went_through_loop = 1;
+            // Check if already shared or if sharing with self
+            $note_model = new NoteModel;
+            $note = $note_model->first(['id' => $note_id]);
+            
+            if (!$note) {
+                error_log("Notes::api_share - Note not found: $note_id");
+                continue;
+            }
+
+            if ($note->owner_id == $user_id) {
+                continue; // Cannot share with self
+            }
+
+            $already_shared = $note_shares->first([
                 'note_id' => $note_id,
                 'user_id' => $user_id
+            ]);
+
+            if (!$already_shared) {
+                if ($note_shares->insert([
+                    'note_id' => $note_id,
+                    'user_id' => $user_id
+                ])) {
+                    $success_count++;
+                    error_log("Notes::api_share - Insert successfully for user $user_id on note $note_id");
+                } else {
+                    error_log("Notes::api_share - Insert failed for user $user_id on note $note_id");
+                }
+            } else {
+                $success_count++; // Already shared is considered a success for the overall flow
+            }
+        }
+
+        // return $this->json_respond([
+        //     'status' => 'success',
+        //     'message' => 'Note shared successfully',
+        //     'note_id' => $note_id,
+        //     'share_with_user_ids' => $share_with_user_ids,
+        //     'went_through_loop' => $went_through_loop
+        // ]);
+
+        if ($success_count === 0 && count($share_with_user_ids) > 0) {
+            $this->json_respond([
+                'status' => 'error',
+                'message' => 'Failed to share note with any of the selected users.'
             ]);
         }
 
@@ -594,6 +721,32 @@ class Notes extends Controller
         }
     }
 
+    public function api_pin_topic($id) {
+        $topic_model = new Topics();
+        if ($topic_model->pin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully pinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => true]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to pin topic."]);
+        }
+    }
+
+    public function api_unpin_topic($id) {
+        $topic_model = new Topics();
+        if ($topic_model->unpin($id)) {
+            $this->json_respond([
+                "success" => true,
+                "message" => "Topic successfully unpinned.",
+                "data" => ["topic_id" => (int)$id, "is_pinned" => false]
+            ]);
+        } else {
+             $this->json_respond(["success" => false, "message" => "Failed to unpin topic."]);
+        }
+    }
+
     public function api_filter() {
         $data = $this->json_request();
         // Map frontend filter params to backend model params
@@ -606,6 +759,7 @@ class Notes extends Controller
             $params['where']['topic_id'] = $data['topic_id'];
         }
          // Add other filters as needed
+         
 
         $note_model = new NoteModel();
         $results = $note_model->filter_and_search($params);
@@ -631,29 +785,45 @@ class Notes extends Controller
 
     public function api_load_more() {
         $data = $this->json_request();
-        $offset = $data['offset'] ?? 0;
-        $limit = $data['limit'] ?? 5;
-        $topic_id = $data['topic_id'] ?? null;
-
-        $params = [
-            'limit' => $limit,
-            'offset' => $offset,
-            'where' => []
-        ];
-
-        if ($topic_id) {
-             $params['where']['topic_id'] = $topic_id;
-        }
+        $offset = $data['offset'] ?? $_GET['offset'] ?? 0;
+        $limit = $data['limit'] ?? $_GET['limit'] ?? 10;
+        $topic_id = $data['topic_id'] ?? $_GET['topic_id'] ?? null;
+        $filter = $data['filter'] ?? $_GET['filter'] ?? '';
+        $type = $data['type'] ?? $_GET['type'] ?? 'created';
 
         $note_model = new NoteModel();
-        $notes = $note_model->filter_and_search($params) ?: [];
+        
+        if ($type === 'shared') {
+            $notes = $note_model->get_shared_notes($_SESSION['user_id'], $limit, $offset, $filter);
+        } else {
+            $params = [
+                'limit' => $limit,
+                'offset' => $offset,
+                'order_by' => 'created_at',
+                'order_dir' => 'DESC',
+                'where' => []
+            ];
+
+            if ($topic_id) {
+                $params['where']['topic_id'] = $topic_id;
+            }
+
+            // Always filter by owner for 'created' type
+            $params['where']['owner_id'] = $_SESSION['user_id'];
+
+            if (!empty($filter)) {
+                $params['like'] = ['title' => $filter];
+            }
+            
+            $notes = $note_model->filter_and_search($params) ?: [];
+        }
         
         $this->json_respond([
             "success" => true,
             "results_returned" => count($notes),
             "next_offset" => $offset + count($notes),
-            "available_more" => count($notes) >= $limit,
-            "data" => $notes
+            "has_more" => count($notes) >= $limit,
+            "notes" => $notes
         ]);
     }
 

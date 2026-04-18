@@ -1,3 +1,8 @@
+body{
+        padding-left: 70px;
+        width: calc(100vw - 70px);
+}
+
 .body-container
 {
     display: grid;
@@ -5,7 +10,7 @@
     grid-template-rows: 3fr 1fr;
     width: calc(100vw - 2*var(--space-lg));
     overflow-x: hidden;
-
+    
     height: 100vh;
 }
 
@@ -42,12 +47,20 @@
 {
     display: flex;
     flex-wrap: wrap;
+    /* padding-right: var(--space-sm); */
     /* flex-direction: column; */
 }
 
 .profile-section .expert-in .subjects .tile
 {
     margin:var(--space-xs) ;
+    margin-right: var(--space-sm);
+}
+
+.profile-section .expert-in .subjects .tag-pill
+{
+    /* margin:var(--space-xs) ; */
+    margin-right: var(--space-sm);
 }
 
 .profile-picture

@@ -32,6 +32,8 @@
 
     $banned = $data["banned"];
 
+    $subjects = $data["subjects_str"];
+
     $display_ban = $banned ? "none" : "block";
     $display_unban = $banned ? "block" : "none";
 
@@ -67,6 +69,38 @@
         align-items: center;
         gap: 6px;
     }
+
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        min-height: 35px;
+        padding: 5px;
+        border-radius: var(--radius-sm);
+        border: 1px dashed var(--color-border);
+    }
+
+    /* .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        background: var(--color-primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: var(--font-size-xs);
+        gap: 8px;
+    } */
+
+    .tag-pill .remove-tag {
+        cursor: pointer;
+        font-weight: bold;
+        opacity: 0.8;
+    }
+
+    .tag-pill .remove-tag:hover {
+        opacity: 1;
+    }
 </style>
 
 <div class="body-container">
@@ -85,6 +119,21 @@
         </div>
         <div class="expert-details">
 
+            <?php
+                if ($subjects)
+                {
+                    echo '<div class="expert-in">
+                    <p class="">Experts in:</p></div>
+                    <div class="subjects" style="margin-left:var(--space-md);">';
+                    
+                    //iterate through subjects and display them as pills
+                    foreach ($subjects as $subject) {
+                        echo '<div class="tag-pill">'.$subject.'</div>';
+                    }
+                    echo '</div>';                
+                }
+
+            ?>
         </div>
     </div>
     <div class="analysis-section">
@@ -139,7 +188,7 @@
                     Points
                 </div>
                 <div class="count">
-                    <?=$total_upvotes?> pts
+                    <?=$total_points?> pts
                 </div>                
             </div>                                                                      
         </div>
@@ -211,19 +260,17 @@
 <div class="popup subject" style='display:none'>
     <div class="content">
         <div class="container">
-            <p class='message'>Select a Subject</p>
+            <p class='message'>Select Subjects</p>
             <div class="input-group">
-            <label for="subject_input" style="color:var(--color-placeholder)">Enter the subject name:</label>
-
-            <input type="text" name="subject" id="subject_input">
+                <label for="subject_input" style="color:var(--color-placeholder)">Type a subject and press Enter:</label>
+                <input type="text" id="subject_input" placeholder="e.g. Mathematics" autocomplete="off">
+                <div class="tags-container" id="subject_tags">
+                    <!-- Tags will be injected here -->
+                </div>
             </div>
-            <div class="btns" >
+            <div class="btns" style="margin-top: 20px;">
                 <button class='button btn-none btn-dismiss'>Back</button>
-
-                <form class='confirmation-btn' action='' method='post'>
-                    <input type='submit' class='button btn-error' value='Confirm'>
-                    <input type="hidden" name="user_id" value="<?=$profile_id?>">
-                </form>
+                <button class='button btn-error btn-confirm-subjects'>Confirm Subjects</button>
             </div>
 
         </div>
@@ -231,24 +278,18 @@
     <div class="background"></div>
 </div>
 
-<div class="popup subject" style='display:none'>
+<div class="popup ban-reason" style='display:none'>
     <div class="content">
         <div class="container">
-            <p class='message'>Select a Subject</p>
+            <p class='message'>Reason for Banning</p>
             <div class="input-group">
-            <label for="subject_input" style="color:var(--color-placeholder)">Enter the subject name:</label>
-
-            <input type="text" name="subject" id="subject_input">
+                <label for="ban_reason_input" style="color:var(--color-placeholder)">Please specify the reason for banning this user:</label>
+                <textarea name="reason_for_ban" id="ban_reason_input" style="width: 100%; min-height: 100px; padding: 10px; border-radius: 5px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text);"></textarea>
             </div>
-            <div class="btns" >
+            <div class="btns" style="display:flex; margin-top: 15px;">
                 <button class='button btn-none btn-dismiss'>Back</button>
-
-                <form class='confirmation-btn' action='' method='post'>
-                    <input type='submit' class='button btn-error' value='Confirm'>
-                    <input type="hidden" name="user_id" value="<?=$profile_id?>">
-                </form>
+                <button class='button btn-error btn-next-ban'>Next</button>
             </div>
-
         </div>
     </div>
     <div class="background"></div>

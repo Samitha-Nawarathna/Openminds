@@ -7,10 +7,11 @@
 <div class="profilebrowser-container main-content-container">
     <header class="exercise-browser-header">
         <h3 class="main-title">My Requests</h3>
+        <p class="page-description">Manage and track your expert guidance requests.</p>
     </header>
     
     <div class="filter-bar">
-        <input type="text" id="exercise-filter-input" placeholder="Search by subject name...">
+        <input type="text" id="exercise-filter-input" placeholder="Search by typing something...">
         <button class="btn-filter-toggle" id="open-filter-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
             Filter

@@ -19,7 +19,7 @@ class Expertrequest extends Controller
         if ($this->is_post()) {
             // echo "create post...";
             // validate input
-            $expert_requests_service = new ExpertRequests();
+            $expert_requests_service = new ExpertRequestsServices();
 
             $sent_data = $_POST;
             $validation_result = $expert_requests_service->validate($sent_data);
@@ -34,31 +34,60 @@ class Expertrequest extends Controller
             $user_id = $_SESSION['user_id'];
             $sent_data['user_id'] = $user_id;
 
-            //is file available
-            if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK)
-            {
-                $file_validation_result = $expert_requests_service->validate_file($_FILES['file']);
-                if (!$file_validation_result->is_success())
-                {
-                    $this->view('expertrequests/create', ['message' => $file_validation_result->get_errors_string()]);
-                    return;
-                }
-                //create save path
-                $save_dir = __DIR__ . "/../../private/uploads/requests/" . $user_id . "/";
-                $save_path = $save_dir."request.pdf";
-                // create save folder if needed
-                if (!file_exists($save_dir)) {
-                    mkdir($save_dir, 0777, true);
-                }
-                //move file to save path
-                $file_tmp_path = $_FILES['file']['tmp_name'];
-                if(!move_uploaded_file($file_tmp_path, $save_path))
-                {
-                    $this->view('expertrequests/create', ['message' => "Failed to move uploaded file."]);
-                    return;
-                }
+            // 1. Handle Mandatory CV
+            if (!isset($_FILES['cv']) || empty($_FILES['cv']['name'])) {
+                $this->view('expertrequests/create', ['message' => 'CV is mandatory.']);
+                return;
+            }
 
-                $sent_data['proof_link'] = $save_path;
+            // Check CV errors
+            if ($_FILES['cv']['error'] !== UPLOAD_ERR_OK) {
+                $this->view('expertrequests/create', ['message' => 'CV upload failed. Error code: ' . $_FILES['cv']['error']]);
+                return;
+            }
+
+            // Validate CV content
+            $cv_validation = $expert_requests_service->validate_file($_FILES['cv']);
+            if (!$cv_validation->is_success()) {
+                $this->view('expertrequests/create', ['message' => $cv_validation->get_errors_string()]);
+                return;
+            }
+
+            // Create Unique Directory for this Request
+            $unique_id = uniqid('req_');
+            $save_dir = __DIR__ . "/../../private/uploads/requests/" . $user_id . "/" . $unique_id . "/";
+            
+            if (!file_exists($save_dir)) {
+                mkdir($save_dir, 0777, true);
+            }
+
+            // Save CV
+            $cv_path = $save_dir . "CV.pdf";
+            if (!move_uploaded_file($_FILES['cv']['tmp_name'], $cv_path)) {
+                $this->view('expertrequests/create', ['message' => "Failed to save CV."]);
+                return; 
+            }
+            $sent_data['proof_link'] = $cv_path;
+
+            // 2. Handle Optional Supporting Documents
+            if (isset($_FILES['supporting_docs']) && !empty($_FILES['supporting_docs']['name'][0])) {
+                $files = $_FILES['supporting_docs'];
+                $count = count($files['name']);
+
+                for ($i = 0; $i < $count; $i++) {
+                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                        // Simple validation for supporting docs (PDF/Images < 5MB)
+                        // Note: Production should define strict types.
+                        $tmp_name = $files['tmp_name'][$i];
+                        $name = basename($files['name'][$i]);
+                        $size = $files['size'][$i];
+                        
+                        if ($size < 5 * 1024 * 1024) {
+                             $target = $save_dir . $name;
+                             move_uploaded_file($tmp_name, $target);
+                        }
+                    }
+                }
             }
             //update database
 
@@ -88,8 +117,6 @@ class Expertrequest extends Controller
 
     public function show()
     {
-        // Logic to view an existing expert request by ID
-        // Fetch from database and return the data
         $this->login_guard();
 
         $request_id = $_GET['id'] ?? null;
@@ -106,13 +133,35 @@ class Expertrequest extends Controller
             exit;
         }
 
-        $this->view('expertrequests/view', $retrive_result->get_data());
+        $data = $retrive_result->get_data();
+
+        // Scan for files in the request directory
+        // proof_link contains full path to CV. Directory is the parent.
+        if (!empty($data['proof_link'])) {
+            $folder = dirname($data['proof_link']);
+            $supporting_docs = [];
+
+            if (is_dir($folder)) {
+                $files = scandir($folder);
+                foreach ($files as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        // Separate CV from supporting docs
+                        if ($file !== 'CV.pdf' && basename($data['proof_link']) !== $file) {
+                            $supporting_docs[] = $file;
+                        }
+                    }
+                }
+            }
+            $data['supporting_docs'] = $supporting_docs;
+        } else {
+            $data['supporting_docs'] = [];
+        }
+
+        $this->view('expertrequests/view', $data);
     }
 
     public function edit()
     {
-        // Logic to edit an existing expert request by ID
-        // Validate input, update in database, etc.
         $this->login_guard();
         $data['id'] = $_GET['id'] ?? null;
 
@@ -124,12 +173,34 @@ class Expertrequest extends Controller
             exit;
         }
 
-        $this->view('expertrequests/edit', [
+        $edit_data = [
             'id' => $data['id'],
             'subject' => $results->subject ?? '',
             'description' => $results->description ?? '',
             'proof_link' => $results->proof_link ?? ''
-        ]);        
+        ];
+
+        // Scan for supporting documents
+        if (!empty($edit_data['proof_link'])) {
+            $folder = dirname($edit_data['proof_link']);
+            $supporting_docs = [];
+
+            if (is_dir($folder)) {
+                $files = scandir($folder);
+                foreach ($files as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        if ($file !== 'CV.pdf' && basename($edit_data['proof_link']) !== $file) {
+                            $supporting_docs[] = $file;
+                        }
+                    }
+                }
+            }
+            $edit_data['supporting_docs'] = $supporting_docs;
+        } else {
+            $edit_data['supporting_docs'] = [];
+        }
+
+        $this->view('expertrequests/edit', $edit_data);
     }
 
     public function delete()
@@ -170,7 +241,14 @@ class Expertrequest extends Controller
     {
         $this->login_guard();
 
-        $request_id = $_POST['request_id'] ?? null;
+        $request_id = $_GET['request_id'] ?? $_POST['request_id'] ?? null;
+        $file_name = $_GET['file'] ?? $_POST['file'] ?? null;
+
+        if (!$request_id) {
+            // Try extracting ID from proof_link query if legacy, but ideally rely on ID.
+            header("Location: " . ROOT . "expertrequest?message=Invalid download request.");
+            exit;
+        }
 
         $expert_requests = new ExpertRequests();
         $existing_request = $expert_requests->first(['id' => $request_id]);
@@ -180,8 +258,8 @@ class Expertrequest extends Controller
             exit;
         }
 
+        // Authorization Guard
         $role = $_SESSION['role'];
-        
         if ($role !== 'admin') {
             $user_id = $_SESSION['user_id'];
             if ($existing_request->user_id !== $user_id) {
@@ -190,14 +268,25 @@ class Expertrequest extends Controller
             }
         }
 
-        $file_path = $existing_request->proof_link;
+        // Path Resolution
+        if ($file_name) {
+            // Prevent directory traversal
+            $file_name = basename($file_name); 
+            $request_dir = dirname($existing_request->proof_link);
+            $file_path = $request_dir . '/' . $file_name;
+        } else {
+            // Default to the main proof link (CV)
+            $file_path = $existing_request->proof_link;
+        }
 
-
-        $expert_requests_service = new ExpertRequestsServices();
-        $expert_requests_service->download($file_path);
-
-        
-        
+        // Serve File
+        if (file_exists($file_path)) {
+            $expert_requests_service = new ExpertRequestsServices();
+            $expert_requests_service->download($file_path);
+        } else {
+            header("Location: " . ROOT . "expertrequest?message=File not found on server.");
+            exit;
+        }
     }
 
     public function update()
@@ -239,31 +328,81 @@ class Expertrequest extends Controller
     
         $sent_data['user_id'] = $user_id;
         $sent_data['id'] = $request_id;
-    
-        // file upload handling (optional overwrite)
-        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-            $file_validation_result = $expert_requests_service->validate_file($_FILES['file']);
-            if (!$file_validation_result->is_success()) {
-                $this->view('expertrequests/edit', ['message' => $file_validation_result->get_errors_string()]);
+
+        // Get existing proof_link to find the folder
+        $existing_folder = !empty($existing_request['proof_link']) ? dirname($existing_request['proof_link']) : null;
+
+        // Handle files marked for deletion
+        if (!empty($_POST['files_to_delete'])) {
+            $files_to_delete = json_decode($_POST['files_to_delete'], true);
+            if ($existing_folder && is_array($files_to_delete)) {
+                foreach ($files_to_delete as $filename) {
+                    $file_path = $existing_folder . '/' . basename($filename);
+                    if (file_exists($file_path)) {
+                        unlink($file_path);
+                    }
+                }
+            }
+        }
+
+        // Handle CV replacement (optional)
+        if (isset($_FILES['cv']) && $_FILES['cv']['error'] === UPLOAD_ERR_OK) {
+            $cv_validation = $expert_requests_service->validate_file($_FILES['cv']);
+            if (!$cv_validation->is_success()) {
+                $this->view('expertrequests/edit', ['message' => $cv_validation->get_errors_string()]);
                 return;
             }
-    
-            $save_dir = __DIR__ . "/../../private/uploads/requests/" . $user_id ."/".$request_id."/";
-            $save_path = $save_dir . "request.pdf";
-    
-            if (!file_exists($save_dir)) {
-                mkdir($save_dir, 0777, true);
+
+            // Ensure folder exists
+            if (!$existing_folder) {
+                // Create new folder if request didn't have one
+                $unique_id = uniqid('req_');
+                $existing_folder = __DIR__ . "/../../private/uploads/requests/" . $user_id . "/" . $unique_id . "/";
+                if (!file_exists($existing_folder)) {
+                    mkdir($existing_folder, 0777, true);
+                }
             }
-    
-            $file_tmp_path = $_FILES['file']['tmp_name'];
-            if (!move_uploaded_file($file_tmp_path, $save_path)) {
-                $this->view('expertrequests/edit', ['message' => "Failed to move uploaded file."]);
+
+            // Replace CV
+            $cv_path = $existing_folder . '/CV.pdf';
+            if (!move_uploaded_file($_FILES['cv']['tmp_name'], $cv_path)) {
+                $this->view('expertrequests/edit', ['message' => "Failed to save new CV."]);
                 return;
             }
-    
-            $sent_data['proof_link'] = $save_path;
+            $sent_data['proof_link'] = $cv_path;
+        }
+
+        // Handle new supporting documents (optional)
+        if (isset($_FILES['supporting_docs']) && !empty($_FILES['supporting_docs']['name'][0])) {
+            $files = $_FILES['supporting_docs'];
+            $count = count($files['name']);
+
+            // Ensure folder exists
+            if (!$existing_folder) {
+                $unique_id = uniqid('req_');
+                $existing_folder = __DIR__ . "/../../private/uploads/requests/" . $user_id . "/" . $unique_id . "/";
+                if (!file_exists($existing_folder)) {
+                    mkdir($existing_folder, 0777, true);
+                }
+            }
+
+            for ($i = 0; $i < $count; $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $tmp_name = $files['tmp_name'][$i];
+                    $name = basename($files['name'][$i]);
+                    $size = $files['size'][$i];
+                    
+                    if ($size < 5 * 1024 * 1024) {
+                         $target = $existing_folder . '/' . $name;
+                         move_uploaded_file($tmp_name, $target);
+                    }
+                }
+            }
         }
     
+        // Remove non-database fields from sent_data
+        unset($sent_data['files_to_delete']);
+        
         // update database
         $update_result = $expert_requests_service->update($sent_data);
         if (!$update_result->is_success()) {
@@ -274,6 +413,35 @@ class Expertrequest extends Controller
         // redirect to show updated request
         header("Location: " . ROOT . "expertrequest/show?id=" . $request_id);
         exit;
+    }
+
+    public function api_search_subjects()
+    {
+        $this->login_guard();
+
+        header('Content-Type: application/json');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if ($q === '') {
+            echo json_encode([]);
+            return;
+        }
+
+        $subjects_model = new Subjects();
+        $results = $subjects_model->search_by_name($q, 'name');
+
+        if (!$results) {
+            echo json_encode([]);
+            return;
+        }
+
+        // Return only id + name
+        $output = array_map(function($row) {
+            return ['id' => $row->id, 'name' => $row->name];
+        }, $results);
+
+        echo json_encode($output);
     }
 
     public function retrive_user_expertrequests()

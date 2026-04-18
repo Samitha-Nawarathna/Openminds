@@ -43,7 +43,28 @@ $data = [
         </form>
     </div>
 
-    <script src="scripts_answer.js"></script>
+    <!-- <script src="scripts_answer.js"></script> -->
+    <script>
+    document.getElementById('answer-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = {
+            q_id: document.querySelector('input[name="question_id"]').value,
+            content: document.getElementById('answer-content').value
+        };
+        
+        fetch('<?= ROOT ?>/question/api_create_answer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                window.location.href = '<?= ROOT ?>/question/show?id=' + formData.q_id;
+            } else { alert('Error: ' + data.message); }
+        });
+    });
+    </script>
 
 </body>
 </html>

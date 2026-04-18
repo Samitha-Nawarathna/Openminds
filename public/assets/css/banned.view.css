@@ -1,0 +1,92 @@
+body {
+    background-color: var(--color-primary);
+}
+
+.body-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+.banned-container {
+    align-self: center;
+    justify-self: center;
+    width: clamp(400px, 35%, 800px);
+}
+
+.heading {
+    font-family: var(--font-body);
+    font-size: var(--font-size-xl);
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    color: var(--color-text);
+}
+
+.banned-card {
+    background: var(--color-container);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    /* box-shadow: var(--shadow-md); */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    /* border-top: 5px solid var(--color-error); */
+}
+
+.banned-card p {
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    text-align: center;
+}
+
+.reason-box {
+    background: var(--color-background);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-error);
+    margin: var(--space-md) 0;
+}
+
+.reason-box h3 {
+    margin-top: 0;
+    color: var(--color-error);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-xs);
+}
+
+.reason-text {
+    color: var(--color-text);
+    font-style: italic;
+    font-size: var(--font-size-base);
+}
+
+.link {
+    color: var(--color-error);
+    text-align: center;
+    margin-top: var(--space-sm);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    display: block;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .banned-container {
+        padding: var(--space-md);
+        width: 90%;
+    }
+
+    .heading {
+        font-size: 1.5rem;
+    }
+}

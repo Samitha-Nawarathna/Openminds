@@ -48,16 +48,51 @@ h3 {
     color: #333;
 }
 
-
-.title-area {
-    display: flex;
-    gap: var(--space-xs);
-    margin-bottom: 30px;
+.title-suffix {
+    color: var(--color-gray-400);
+    /* Gray shade */
+    font-weight: 400;
+    /* Optional: make it normal weight to distinguish further */
+    font-size: 0.8em;
+    /* Optional: slightly smaller */
 }
 
-.caption {
+
+/* Header Styles (Matching Title View) */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-bottom: 30px;
+    position: relative;
+    /* For badge positioning if needed */
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+}
+
+.page-description {
+    margin: 0;
     font-size: var(--font-size-sm);
-    color: var(--color-placeholder);
+    color: var(--color-gray-400);
+    font-weight: 400;
+}
+
+.title-icon {
+    width: 48px;
+    height: auto;
+    min-height: 48px;
+    object-fit: contain;
+    align-self: stretch;
+}
+
+.topic-badge-container {
+    margin-left: auto;
+    /* Push badge to the right */
+    align-self: center;
 }
 
 .recent-topic-container {

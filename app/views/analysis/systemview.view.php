@@ -31,14 +31,14 @@ include_once '../app/views/partials/header.view.php';
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
         </a>
     </div>
-    <div class="card kpi-card">
+    <!-- <div class="card kpi-card">
         <div class="kpi-title">System Health Score</div>
         <div id="kpi-system-health" class="kpi-value" style="color: var(--color-tertiary-accent);">...</div> 
         <a href="#" class="kpi-action-link">
             View System Logs
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
         </a>
-    </div>
+    </div> -->
 </section>        <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Profile Status Overview</h3>

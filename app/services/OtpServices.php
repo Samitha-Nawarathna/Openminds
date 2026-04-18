@@ -124,6 +124,10 @@ class OtpServices
     
                 header("Location: ".ROOT."profileupdate?message=You have successfully changed your password!");               
                 break;            
+            case 'forgot_password':
+                $_SESSION['user_id'] = $user_data['user_id'];
+                header("Location: ".ROOT."profileupdate/reset_password");
+                exit;
             default:
                 # registration
                 $register_services = new RegisterServices;

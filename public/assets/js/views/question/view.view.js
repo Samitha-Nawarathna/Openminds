@@ -2,7 +2,7 @@ import { ROOT } from "../../core/config.js";
 
 // --- JAVASCRIPT LOGIC ---
 
-const CURRENT_USER_ID = 1;
+
 
 let questionData = {};
 let answerList = [];
@@ -129,11 +129,11 @@ async function handleAction(action, data) {
             payload = { id: data.answer_id, content: data.content };
             break;
         case 'delete_question':
-            endpoint = 'question/api_delete_question';
+            endpoint = 'question/api/delete'; // Fixed path
             payload = { id: data.question_id };
             break;
         case 'delete_answer':
-            endpoint = 'question/api_delete_answer';
+            endpoint = 'question/api/delete_answer'; // Fixed path
             payload = { id: data.answer_id };
             break;
         case 'accept_answer':
@@ -383,30 +383,50 @@ window.handleEditAnswer = async function (event) {
 }
 
 window.handleDeleteQuestion = function (id) {
-    if (!confirm("WARNING: Are you sure you want to delete this entire question?")) return;
-
-    handleAction('delete_question', { question_id: id })
-        .then(response => {
-            if (response.status === 'success') {
-                window.location.href = `${ROOT}/question`;
-            }
-        })
-        .catch(error => {
-            window.showPopupError(error.message || "Failed to delete question.");
-        });
+    Swal.fire({
+        title: 'Delete Question?',
+        text: "You won't be able to revert this! All associated data will be removed.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            handleAction('delete_question', { question_id: id })
+                .then(response => {
+                    if (response.status === 'success') {
+                        window.location.href = `${ROOT}/question`;
+                    }
+                })
+                .catch(error => {
+                    window.showPopupError(error.message || "Failed to delete question.");
+                });
+        }
+    });
 }
 
-window.handleDeleteAnswer = async function (id) {
-    if (!confirm("Are you sure you want to delete this answer?")) return;
-
-    try {
-        const response = await handleAction('delete_answer', { answer_id: id });
-        if (response.status === 'success') {
-            location.reload();
+window.handleDeleteAnswer = function (id) {
+    Swal.fire({
+        title: 'Delete Answer?',
+        text: "Are you sure you want to remove your answer?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await handleAction('delete_answer', { answer_id: id });
+                if (response.status === 'success') {
+                    location.reload();
+                }
+            } catch (error) {
+                window.showPopupError(error.message || "Failed to delete answer.");
+            }
         }
-    } catch (error) {
-        window.showPopupError(error.message || "Failed to delete answer.");
-    }
+    });
 }
 
 window.loadMoreAnswers = async function () {

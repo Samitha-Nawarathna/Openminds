@@ -11,7 +11,7 @@ nav {
     padding: 0;
     width: 50vw;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);    
+    box-shadow: var(--shadow-md);
     background-color: var(--color-surface);
     margin: var(--space-md) 0;
     padding: var(--space-md);
@@ -23,13 +23,13 @@ nav {
     transform: translateY(0);
 }
 
-nav > .name {
+nav>.name {
     flex: 0;
     font-size: var(--font-size-lg);
     font-weight: 600;
 }
 
-nav > .btns {
+nav>.btns {
     flex: 1;
     display: flex;
     justify-content: flex-end;
@@ -37,7 +37,7 @@ nav > .btns {
     gap: var(--space-md);
 }
 
-nav > .btns > a {
+nav>.btns>a {
     text-decoration: none;
     color: var(--color-text);
     transition: background-color 0.3s ease;
@@ -64,7 +64,8 @@ nav > .btns > a {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
-    text-align: center; /* Reset alignment */
+    text-align: center;
+    /* Reset alignment */
     align-items: center;
     margin-top: var(--space-lg);
     width: 100vw;
@@ -80,7 +81,8 @@ nav > .btns > a {
     background-color: var(--color-primary);
     border-radius: var(--radius-md);
     width: fit-content;
-    display: block; /* Ensure it's not flexed weirdly */
+    display: block;
+    /* Ensure it's not flexed weirdly */
 }
 
 .hero-content .logo svg {
@@ -100,8 +102,7 @@ nav > .btns > a {
     margin-bottom: 0;
 }
 
-.hero-section .text-main
-{
+.hero-section .text-main {
     text-align: center;
 }
 
@@ -109,7 +110,7 @@ nav > .btns > a {
     color: var(--color-primary);
 }
 
- .text-sub {
+.text-sub {
     color: var(--color-placeholder);
     font-size: var(--font-size-base);
     line-height: 1.6;
@@ -256,9 +257,21 @@ nav > .btns > a {
 }
 
 /* Brand Colors for Icons (Local to this view) */
-.icon-notion { background: #fff; border: 1px solid #ddd; color: #000; }
-.icon-quora { background: #b92b27; color: white; }
-.icon-stack { background: #f48024; color: white; }
+.icon-notion {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #000;
+}
+
+.icon-quora {
+    background: #b92b27;
+    color: white;
+}
+
+.icon-stack {
+    background: #f48024;
+    color: white;
+}
 
 .divider {
     display: flex;
@@ -326,8 +339,8 @@ nav > .btns > a {
 .philosophy-section {
     display: flex;
     width: calc(100vw - var(--space-md)*2);
-    min-height: 100vh;  
-    box-sizing: border-box;  
+    min-height: 100vh;
+    box-sizing: border-box;
     background-color: var(--color-surface);
     margin: var(--space-md);
     border-radius: var(--radius-lg);
@@ -354,7 +367,7 @@ nav > .btns > a {
 .philosophy-section .text .prompt {
     font-size: calc(1.2*var(--font-size-lg));
     justify-self: right;
-    
+
 }
 
 .philosophy-section .image {
@@ -367,7 +380,7 @@ nav > .btns > a {
 .philosophy-section .image .main-image {
     border-radius: var(--radius-lg);
     background: url('../images/plant.png');
-    background-size: cover; 
+    background-size: cover;
     background-position: center;
     width: 70%;
     height: 100%;
@@ -393,7 +406,7 @@ nav > .btns > a {
     padding-top: var(--space-xl);
 }
 
-.values-section > .text {    
+.values-section>.text {
     font-size: var(--font-size-xl);
     font-weight: 600;
     margin: calc(2*var(--space-xl)) 0;
@@ -401,11 +414,11 @@ nav > .btns > a {
     letter-spacing: -0.04em;
 }
 
-.values-section > .text span {  
+.values-section>.text span {
     color: var(--color-primary);
 }
 
-.values-section  > .statements {
+.values-section>.statements {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr;
@@ -447,30 +460,31 @@ nav > .btns > a {
 }
 
 .values-section .statements .statement-card .icon {
-    flex:1;
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.values-section .statements .statement-card .icon svg{
+.values-section .statements .statement-card .icon svg {
     width: 5vw;
     height: 5vw;
 }
-.values-section .statements .statement-card > .title {
-    flex:0;
+
+.values-section .statements .statement-card>.title {
+    flex: 0;
     font-size: var(--font-size-lg);
     font-weight: 600;
     padding: var(--space-sm);
     align-self: start;
 }
 
-.values-section .statements .statement-card > .text {
-    flex:0;
+.values-section .statements .statement-card>.text {
+    flex: 0;
     font-size: var(--font-size-base);
     font-weight: 400;
     padding: var(--space-sm);
-}    
+}
 
 /* --- FEATURE SECTION --- */
 .feature-section {
@@ -518,7 +532,8 @@ nav > .btns > a {
     flex-direction: column;
     justify-content: center;
 }
-.feature-section .text-section .feature> * {
+
+.feature-section .text-section .feature>* {
     margin: var(--space-md);
 }
 
@@ -544,26 +559,45 @@ nav > .btns > a {
 .feature-section .image-section .icon {
     animation: bounce-icon 1.5s ease-in-out infinite alternate;
 }
+
 .feature-section .image-section .image {
     animation: bounce-image 1.5s ease-in-out infinite alternate;
     animation-delay: 0.5s;
 }
+
 .feature-section .image-section .square-wrapper {
-   animation: bounce-square 1.5s ease-in-out infinite alternate;
-   animation-delay: 1s;
+    animation: bounce-square 1.5s ease-in-out infinite alternate;
+    animation-delay: 1s;
 }
-  
+
 @keyframes bounce-icon {
-    from { transform: translateY(20%) translateX(-50%); }
-    to   { transform: translateY(20% + 2vh) translateX(-50%); }
+    from {
+        transform: translateY(20%) translateX(-50%);
+    }
+
+    to {
+        transform: translateY(20% + 2vh) translateX(-50%);
+    }
 }
+
 @keyframes bounce-image {
-    from { transform: translateY(0); }
-    to   { transform: translateY(2vh); }
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(2vh);
+    }
 }
+
 @keyframes bounce-square {
-    from { transform: translateY(-50%) translateX(50%); }
-    to   { transform: translateY(-50% + 2vh) translateX(50%); }
+    from {
+        transform: translateY(-50%) translateX(50%);
+    }
+
+    to {
+        transform: translateY(-50% + 2vh) translateX(50%);
+    }
 }
 
 .feature-section .image-section .icon svg {
@@ -581,9 +615,17 @@ nav > .btns > a {
     z-index: 1;
 }
 
-.feature-section .image-section .icon svg:nth-child(1) { transform: translateY(300%); }
-.feature-section .image-section .icon svg:nth-child(2) { transform: translateY(200%); }
-.feature-section .image-section .icon svg:nth-child(3) { transform: translateY(100%); }
+.feature-section .image-section .icon svg:nth-child(1) {
+    transform: translateY(300%);
+}
+
+.feature-section .image-section .icon svg:nth-child(2) {
+    transform: translateY(200%);
+}
+
+.feature-section .image-section .icon svg:nth-child(3) {
+    transform: translateY(100%);
+}
 
 .feature-section .image-section .image {
     flex: 1;
@@ -648,6 +690,7 @@ nav > .btns > a {
     align-self: end;
     transition: all 0.3s ease;
 }
+
 .fqa-section .question-section .question .card {
     flex-direction: row;
     justify-content: space-between;
@@ -663,10 +706,12 @@ nav > .btns > a {
     margin: 0;
     padding: 0;
 }
+
 .active {
     opacity: 100;
-    max-height: 500px; /* arbitrary height for animation */ 
-    padding: var(--space-sm); 
+    max-height: 500px;
+    /* arbitrary height for animation */
+    padding: var(--space-sm);
 }
 
 /* --- CTA SECTION --- */
@@ -681,7 +726,7 @@ nav > .btns > a {
     overflow: hidden;
 }
 
-.cta-section > .button {
+.cta-section>.button {
     padding: calc(var(--space-xl)) calc(2*var(--space-xl));
     width: fit-content;
     font-size: var(--font-size-lg);
@@ -690,7 +735,7 @@ nav > .btns > a {
     z-index: 10;
 }
 
-.cta-section > .button:hover {
+.cta-section>.button:hover {
     color: var(--color-surface);
     background-color: var(--color-primary);
 }
@@ -703,6 +748,7 @@ nav > .btns > a {
     top: 40%;
     color: var(--color-pink-300);
 }
+
 .cta-section .background-img svg {
     width: 100%;
     height: 100%;
@@ -718,7 +764,7 @@ nav > .btns > a {
         padding-top: calc(var(--space-md) + 15vh);
         gap: var(--space-lg);
     }
-    
+
     .hero-visual {
         margin-top: var(--space-md);
     }
@@ -737,9 +783,12 @@ nav > .btns > a {
         flex-direction: column;
         height: auto;
     }
+
     .feature-section .image-section {
-        display: none; /* Hide sticky animation on mobile for simplicity, or stack it */
+        display: none;
+        /* Hide sticky animation on mobile for simplicity, or stack it */
     }
+
     .feature-section .text-section {
         grid-row: auto;
         grid-column: auto;
@@ -768,14 +817,15 @@ nav > .btns > a {
 .unified-learning-section {
     width: 100vw;
     /* Use min-height instead of fixed height to prevent content cutoff on small screens */
-    min-height: 80vh; 
+    min-height: 80vh;
     display: flex;
     flex-direction: column-reverse;
     align-items: center;
     justify-content: center;
     gap: var(--space-xl);
     padding: var(--space-xl) var(--space-md);
-    background-color: transparent; /* Allows page gradient to show through */
+    background-color: transparent;
+    /* Allows page gradient to show through */
 }
 
 /* The Text Block */
@@ -786,7 +836,8 @@ nav > .btns > a {
 }
 
 .unified-message-title {
-    font-size: calc(0.9 * var(--font-size-xl)); /* Slightly smaller than hero title */
+    font-size: calc(0.9 * var(--font-size-xl));
+    /* Slightly smaller than hero title */
     font-weight: 600;
     letter-spacing: -0.04em;
     line-height: 1.2;
@@ -798,6 +849,209 @@ nav > .btns > a {
     color: var(--color-primary);
     position: relative;
 }
+
+/* --- ROLES SECTION --- */
+.roles-section {
+    width: 100%;
+    padding: var(--space-xl) var(--space-md);
+    background-color: var(--color-surface);
+    /* Assuming a light background like the image */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xl);
+}
+
+.roles-header {
+    text-align: center;
+    max-width: 700px;
+}
+
+.roles-title {
+    font-size: calc(0.9 * var(--font-size-xl));
+    /* Matched to unified-message-title */
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    color: var(--color-text);
+}
+
+.roles-subtitle {
+    font-size: var(--font-size-base);
+    /* Matched to unified-message-subtitle */
+    color: var(--color-placeholder);
+    line-height: 1.5;
+}
+
+.roles-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--space-xs);
+    width: 100%;
+    max-width: 1200px;
+    flex-wrap: wrap;
+    /* Allow wrapping on smaller screens */
+}
+
+.role-card {
+    flex: 1;
+    min-width: 250px;
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    position: relative;
+    border-top: 16px solid transparent;
+    /* Increased height */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Specific Role Colors and Borders */
+.role-student {
+    border-top-color: #3b82f6;
+}
+
+/* Blue */
+.role-mentor {
+    border-top-color: #f97316;
+}
+
+/* Orange */
+.role-expert {
+    border-top-color: #22c55e;
+}
+
+/* Green */
+.role-admin {
+    border-top-color: #a855f7;
+}
+
+/* Purple */
+
+/* Role Icon Wrapper - Colored Dots on Top */
+.role-card::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    /* Centered in 16px border */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+}
+
+.role-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: var(--space-xs);
+}
+
+.role-student .role-icon-wrapper {
+    background-color: #eff6ff;
+    color: #3b82f6;
+}
+
+.role-mentor .role-icon-wrapper {
+    background-color: #fff7ed;
+    color: #f97316;
+}
+
+.role-expert .role-icon-wrapper {
+    background-color: #f0fdf4;
+    color: #22c55e;
+}
+
+.role-admin .role-icon-wrapper {
+    background-color: #faf5ff;
+    color: #a855f7;
+}
+
+.role-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.role-name {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+}
+
+.role-badge {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-placeholder);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xs);
+}
+
+/* Badge colors matching card */
+.role-mentor .role-badge {
+    background-color: #fff7ed;
+    color: #c2410c;
+    padding: 2px 8px;
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.role-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-placeholder);
+    line-height: 1.6;
+}
+
+/* Connector Lines (Dashed arrow) */
+.role-connector {
+    flex: 0 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.role-connector::after {
+    content: "→";
+    color: var(--color-border);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+@media (max-width: 1024px) {
+    .roles-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .role-card {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .role-connector {
+        flex: 0 0 40px;
+        transform: rotate(90deg);
+    }
+}
+
 
 .unified-message-subtitle {
     font-size: var(--font-size-base);
@@ -822,7 +1076,8 @@ nav > .btns > a {
     flex-direction: column;
     align-items: flex-end;
     justify-content: right;
-    aspect-ratio: 1.2/1; /* Rectangular shape similar to design system cards */
+    aspect-ratio: 1.2/1;
+    /* Rectangular shape similar to design system cards */
     box-shadow: var(--shadow-sm);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
@@ -886,7 +1141,8 @@ nav > .btns > a {
     }
 
     .learning-grid {
-        grid-template-columns: 1fr; /* Stack cards on mobile */
+        grid-template-columns: 1fr;
+        /* Stack cards on mobile */
         max-width: 100%;
     }
 

@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function apiPinTopic(topicId) {
         try {
-            const response = await fetch(`${ROOT}/topics/api/pin/${topicId}`, {
+            const response = await fetch(`${ROOT}topics/api/pin/${topicId}`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function apiUnpinTopic(topicId) {
         try {
-            const response = await fetch(`${ROOT}/topics/api/unpin/${topicId}`, {
+            const response = await fetch(`${ROOT}topics/api/unpin/${topicId}`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Using search mechanism or load_more 
-            const response = await fetch(`${ROOT}/topics/api/load_more?offset=${offset}&filter=${encodeURIComponent(filterName)}`);
+            const response = await fetch(`${ROOT}topics/api/load_more?offset=${offset}&filter=${encodeURIComponent(filterName)}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -119,31 +119,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /** Creates the HTML structure for a single topic item. */
-    function createSubjectItem(topic) {
-        // Structure: <div class="topic-item" data-id="ID"><a ...>NAME <span class="pin-icon">pin</span></a></div>
+    /** Creates the HTML structure for a single topic item. */
+    function createTopicItem(topic) {
         const item = document.createElement('div');
         item.classList.add('topic-item');
         item.dataset.id = topic.id;
 
+        // 1. Topic Info (Link)
         const link = document.createElement('a');
         link.href = `${ROOT}/notes/list/${topic.id}`;
-        link.className = 'no-style-link';
-        link.textContent = topic.name; // Text content
+        link.className = 'topic-info';
 
-        const pinSpan = document.createElement('span');
-        pinSpan.className = 'pin-icon';
-        pinSpan.textContent = 'pin';
-        // Add data-id to helper click detection
-        pinSpan.dataset.id = topic.id;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'topic-name';
+        nameSpan.textContent = topic.name;
 
-        const deleteSpan = document.createElement('span');
-        deleteSpan.className = 'delete-icon';
-        deleteSpan.textContent = 'delete';
-        deleteSpan.dataset.id = topic.id;
+        const countSpan = document.createElement('span');
+        countSpan.className = 'note-count';
+        const count = topic.note_count !== undefined ? topic.note_count : 0;
+        countSpan.textContent = `${count} ${count === 1 ? 'Note' : 'Notes'}`;
 
-        link.appendChild(pinSpan);
-        link.appendChild(deleteSpan);
+        link.appendChild(nameSpan);
+        link.appendChild(countSpan);
         item.appendChild(link);
+
+        // 2. Topic Actions
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'topic-actions';
+
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'action-btn pin-btn';
+        pinBtn.title = 'Pin Topic';
+        pinBtn.dataset.id = topic.id;
+
+        // Pin Icon SVG
+        pinBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`;
+
+        actionsDiv.appendChild(pinBtn);
+        item.appendChild(actionsDiv);
 
         return item;
     }
@@ -169,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.topics.length === 0 && offset === 0) {
                 listContainer.innerHTML = '<div class="loading">No topics found.</div>';
             } else {
-                response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
+                response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
 
                 // Update offset
                 currentOffset = offset + response.topics.length;
@@ -197,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await mockFetchTopics(currentOffset, filterName);
 
-            response.topics.forEach(t => listContainer.appendChild(createSubjectItem(t)));
+            response.topics.forEach(t => listContainer.appendChild(createTopicItem(t)));
 
             // Update offset
             currentOffset += response.topics.length;
@@ -223,10 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle clicks for Pin/Unpin and Navigation
     document.addEventListener('click', (e) => {
         // 1. PIN ICON CLICK
-        if (e.target.classList.contains('pin-icon')) {
+        if (e.target.classList.contains('pin-btn') || e.target.closest('.pin-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            const id = e.target.dataset.id || e.target.closest('.topic-item').dataset.id;
+            const btn = e.target.classList.contains('pin-btn') ? e.target : e.target.closest('.pin-btn');
+            const id = btn.dataset.id;
             apiPinTopic(id);
             return;
         }

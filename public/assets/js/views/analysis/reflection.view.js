@@ -1,6 +1,6 @@
-import {ROOT} from "../../core/config.js";
+import { ROOT } from "../../core/config.js";
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const API_ENDPOINT = ROOT + 'analysis/api/reflection_data';
     const MAX_RETRIES = 5;
 
@@ -65,21 +65,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- IMPLEMENTATION 1: OVERVIEW PANEL (KPI Cards) ---
         const overviewPanel = document.getElementById('reflection-overview-panel');
         const overviewData = data.overview;
-        
+
         const kpiDefinitions = {
             // valueKey: points to the field in the API response that holds the main value
             "avg_notes_per_week": { unit: "", format: v => v, valueKey: 'count' },
             "avg_mark_improvement": { unit: "pts", format: v => v.toFixed(1), valueKey: 'score' },
             "note_exercise_fraction": { unit: "", format: v => overviewData.note_exercise_fraction.fraction, valueKey: 'fraction' } // The fraction key holds the display string
         };
-        
+
         // Clear any loading states or mock data
         overviewPanel.innerHTML = '';
 
         ['avg_notes_per_week', 'avg_mark_improvement', 'note_exercise_fraction'].forEach(key => {
             const itemData = overviewData[key];
             const def = kpiDefinitions[key];
-            
+
             // Handle specific value extraction
             const value = itemData[def.valueKey];
             const valueDisplay = (key === 'note_exercise_fraction') ? itemData.fraction : def.format(value);
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isPositive = itemData.change_percentage >= 0;
             const changeClass = isPositive ? 'positive' : 'negative';
             const sign = isPositive ? '↑' : '↓';
-            
+
             const html = `
                 <div class="kpi-card">
                     <div class="kpi-title">${itemData.title}</div>
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { name: 'Updated', data: noteActivityData.map(d => ({ x: d.date, y: d.updated })) },
                 { name: 'Deleted', data: noteActivityData.map(d => ({ x: d.date, y: d.deleted })) }
             ],
-            chart: { type: 'line', height: 350 },
+            chart: { type: 'bar', height: 350, stacked: true },
             colors: [colorPrimary, colorSecondary, '#D32F2F'],
             xaxis: {
                 type: 'datetime',
@@ -124,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: { text: 'Note Count', style: { fontWeight: 500 } },
                 min: 0
             },
-            stroke: { curve: 'smooth', width: 3 },
             legend: { show: true, position: 'top', horizontalAlign: 'right' },
             tooltip: {
                 x: { format: 'MMM dd, yyyy' },
@@ -152,8 +151,8 @@ document.addEventListener('DOMContentLoaded', function() {
         function renderProficiencyChart(subjectIndex) {
             const subject = subjectProficiencyData[subjectIndex];
             // Categories are now generated dynamically based on the length of the weekly_marks array
-            const categories = Array.from({ length: subject.weekly_marks.length }, (_, i) => `W${i + 1}`); 
-            
+            const categories = Array.from({ length: subject.weekly_marks.length }, (_, i) => `W${i + 1}`);
+
             const proficiencyOptions = {
                 series: [{ name: subject.name, data: subject.weekly_marks }],
                 chart: { type: 'line', height: 350, id: 'proficiency-chart' },
@@ -174,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: { formatter: (val) => `${val > 0 ? '+' : ''}${val} points` }
                 },
                 annotations: {
-                    yaxis: [{ 
+                    yaxis: [{
                         y: 0,
                         borderColor: colorTextLight,
                         borderWidth: 1,
@@ -187,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }]
                 }
             };
-            
+
             if (subjectProficiencyChart) {
                 // If chart exists, update options and series
                 subjectProficiencyChart.updateOptions(proficiencyOptions);
@@ -200,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initial render (if data exists)
         if (subjectProficiencyData.length > 0) {
-            renderProficiencyChart(0); 
+            renderProficiencyChart(0);
 
             // Add Event Listener
             subjectSelector.addEventListener('change', (e) => {
@@ -212,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- IMPLEMENTATION 4: TOP POPULAR TAGS (Stacked Bar) ---
         const tagData = data.top_tags_last_4_weeks.sort((a, b) => b.total - a.total).slice(0, 10);
         const tagNames = tagData.map(d => d.tag);
-        
+
         const popularTagsOptions = {
             series: [
                 { name: 'Week 4', data: tagData.map(d => d.w4) },
@@ -231,86 +230,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const popularTagsChart = new ApexCharts(document.querySelector("#popular-tags-chart-container"), popularTagsOptions);
         popularTagsChart.render();
-        
 
-        // --- IMPLEMENTATION 5: ATTENTION DRIFT (Multiple Small Bar Charts) ---
-        const driftContainer = document.getElementById('attention-drift-container');
-        driftContainer.innerHTML = ''; // Clear container for dynamic rendering
 
-        const driftTags = tagData; // Reuse the sorted top 10 tags
-        const categories = ['W1', 'W2', 'W3', 'W4'];
-        
-        driftTags.forEach((tag, index) => {
-            // 1. Create a wrapper element for each chart
-            const chartWrapper = document.createElement('div');
-            chartWrapper.className = 'tag-drift-chart-wrapper';
-            
-            const title = document.createElement('div');
-            title.className = 'tag-drift-chart-title';
-            title.textContent = tag.tag;
-            chartWrapper.appendChild(title);
-            
-            const chartId = `drift-chart-${index}`;
-            const chartDiv = document.createElement('div');
-            chartDiv.id = chartId;
-            chartWrapper.appendChild(chartDiv);
-            
-            driftContainer.appendChild(chartWrapper);
-            
-            // 2. Prepare the data for the current tag
-            const seriesData = [tag.drift_w1, tag.drift_w2, tag.drift_w3, tag.drift_w4];
-            const maxDriftValue = Math.max(...seriesData, 1);
-            
-            // 3. Configure and render the chart
-            const driftChartOptions = {
-                series: [{ name: 'Drift Score', data: seriesData }],
-                chart: { 
-                    type: 'bar', 
-                    height: 120, 
-                    sparkline: { enabled: true }
-                },
-                colors: [colorSecondary],
-                plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
-                xaxis: { categories: categories, labels: { show: true } },
-                yaxis: { 
-                    show: false,
-                    max: maxDriftValue * 1.2
-                },
-                grid: { show: false },
-                tooltip: {
-                    enabled: true,
-                    y: { formatter: (val) => `${val} Drift Score` }
-                }
-            };
-            
-            const driftChart = new ApexCharts(document.querySelector(`#${chartId}`), driftChartOptions);
-            driftChart.render();
-        });
+        // IMPLEMENTATION 5 (ATTENTION DRIFT) COMPLETELY REMOVED BY USER REQUEST
     }
 
 
     // ========================================
     // 🚀 INITIALIZE ANALYTICS ON LOAD
     // ========================================
-    
+
     // Asynchronously fetch data and then render the charts
     async function initAnalytics() {
         try {
             // Display a simple loading state while fetching
             document.getElementById('reflection-overview-panel').innerHTML = '<div class="loading-spinner">Loading Overview...</div>';
-            
+
             const realData = await fetchWithExponentialBackoff(API_ENDPOINT);
-            
+
             // Remove the loading state and render the real data
             renderAnalytics(realData);
-            
+
         } catch (error) {
             // The fetchWithExponentialBackoff handles the console error and display of the user-facing message
             // No need to re-throw or handle here, but we can log for completeness
             console.error("Initialization failed:", error.message);
         }
     }
-    
+
     initAnalytics();
 
 });

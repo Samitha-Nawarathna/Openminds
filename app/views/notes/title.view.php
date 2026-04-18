@@ -9,15 +9,19 @@ include_once '../app/views/partials/Rnavbar.view.php';
 include "../app/views/partials/focus_timer.php";
 ?>
 <div class="main-content-container">
-    <header>
-        <h1 class="main-title">Subjects</h1>
+    <header class="page-header">
+        <img src="<?=ROOT?>assets/images/title.png" alt="Topics" class="title-icon">
+        <div class="header-text">
+            <h1 class="main-title">Topics</h1>
+            <p class="page-description">notes are organized under title.</p>
+        </div>
     </header>
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     
         <div class="filter-bar">
-            <input type="text" id="topic-filter-input" placeholder="enter a username/name">
+            <input type="text" id="topic-filter-input" placeholder="type an topic name and click filter">
             <button class="btn-filter" id="filter-btn">Filter</button> 
             <a href="<?=ROOT?>/topics/create" class="btn-create">+ Create</a>
         </div>
@@ -70,7 +74,21 @@ include "../app/views/partials/focus_timer.php";
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {
                 // Added data-id for JS event listener
-                echo '<div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '"><a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="no-style-link">' . htmlspecialchars($topic['name']) . '</a><span class="pin-icon">pin</span><span class="delete-icon" data-id="' . htmlspecialchars($topic['id']) . '">delete</span></div>';
+                $note_count = $topic['note_count'] ?? 0;
+                $note_text = $note_count . ' ' . ($note_count === 1 ? 'Note' : 'Notes');
+                
+                echo '
+                <div class="topic-item" data-id="' . htmlspecialchars($topic['id']) . '">
+                    <a href="'.ROOT.'/notes/list/'.htmlspecialchars($topic['id']).'" class="topic-info">
+                        <span class="topic-name">' . htmlspecialchars($topic['name']) . '</span>
+                        <span class="note-count">' . $note_text . '</span>
+                    </a>
+                    <div class="topic-actions">
+                        <button class="action-btn pin-btn" title="Pin Topic" data-id="' . htmlspecialchars($topic['id']) . '">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+                        </button>
+                    </div>
+                </div>';
             }
             ?>
         </div>

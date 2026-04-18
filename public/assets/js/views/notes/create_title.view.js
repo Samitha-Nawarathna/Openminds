@@ -18,7 +18,7 @@ let totalAvailableNotes = 0; // Track total for "Load More" logic
  * Updates the UI elements based on the topic creation state.
  */
 function updateTopicCreationUI() {
-    const subjectInput = document.getElementById('subject-name-input');
+    const subjectInput = document.getElementById('topic-name-input');
     const createBtn = document.getElementById('create-subject-btn');
 
     if (isTopicCreated) {
@@ -66,7 +66,7 @@ window.validatesubjectName = validatesubjectName;
  * Creates a new topic via API and opens the modal.
  */
 async function createSubject() {
-    const subjectName = document.getElementById('subject-name-input').value;
+    const subjectName = document.getElementById('topic-name-input').value;
 
     if (!document.getElementById('create-subject-btn').disabled && !isTopicCreated) {
 
@@ -114,7 +114,7 @@ window.createSubject = createSubject;
  * Here we revert UI state.
  */
 function undoTopicCreation() {
-    if (confirm("This will reset the form. The subject '" + document.getElementById('subject-name-input').value + "' has already been created in the background. Continue?")) {
+    if (confirm("This will reset the form. The subject '" + document.getElementById('topic-name-input').value + "' has already been created in the background. Continue?")) {
         // Close the modal immediately
         closeNotesModal();
 
@@ -123,7 +123,7 @@ function undoTopicCreation() {
         selectedNotesToMove = [];
         updateNotesPanels();
 
-        document.getElementById('subject-name-input').value = '';
+        document.getElementById('topic-name-input').value = '';
         validatesubjectName('');
         updateTopicCreationUI();
     }
@@ -378,15 +378,12 @@ async function moveNotesToNewTopic() {
                 // Finalize flow
                 closeNotesModal();
 
-                // Reset state
-                selectedNotesToMove = [];
-                isTopicCreated = false;
-                currentTopicId = null;
-                document.getElementById('subject-name-input').value = '';
-                updateTopicCreationUI();
-
-                // Maybe reload page to show new topic?
-                window.location.reload();
+                // Redirect to the new topic's page
+                if (currentTopicId) {
+                    window.location.href = `${window.ROOT}notes/list/${currentTopicId}`;
+                } else {
+                    window.location.reload();
+                }
 
             } else {
                 alert(`Failed to move notes: ${result.message}`);
@@ -399,7 +396,11 @@ async function moveNotesToNewTopic() {
     } else {
         // No notes to move, just finish
         closeNotesModal();
-        window.location.reload();
+        if (currentTopicId) {
+            window.location.href = `${window.ROOT}notes/list/${currentTopicId}`;
+        } else {
+            window.location.reload();
+        }
     }
 }
 
@@ -411,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAddedNotes();
     updateTopicCreationUI();
 
-    document.getElementById('subject-name-input').addEventListener('input', (e) => {
+    document.getElementById('topic-name-input').addEventListener('input', (e) => {
         validatesubjectName(e.target.value);
 
     });

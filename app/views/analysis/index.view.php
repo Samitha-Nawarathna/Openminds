@@ -20,7 +20,7 @@ include_once '../app/views/partials/header.view.php';
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Weekly Activity Trends (Last 52 Weeks)</h3>
+                <h3 class="card-title">Weekly Activity Trends (from to last 52 Weeks)</h3>
                 <div class="transaction-toggles" id="trend-chart-toggles">
                     <button class="toggle-button active" data-series="notes">Notes Created</button>
                     <button class="toggle-button" data-series="questions">Questions Asked</button>

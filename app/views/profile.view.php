@@ -3,7 +3,6 @@
     //     header("Location: ".ROOT."login");
     //     exit;
     // }
-
     $title = "Profile";
     $filename = "profile";
 
@@ -27,6 +26,7 @@
     $total_upvotes = $data["total_upvotes"];
 
     $total_points = $data["total_points"];
+    // show($total_points);
 
     $subjects = $data["subjects_str"];
 
@@ -120,7 +120,7 @@
                         Points
                     </div>
                     <div class="count">
-                        <?=$total_upvotes?> pts
+                        <?=$total_points?> pts
                     </div>                
                 </div>                                                
             </div>

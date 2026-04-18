@@ -3,7 +3,7 @@
     //guard from unnessesary accesses
     if (isset($_SESSION['user_id']))
     {
-        header('Location: '.ROOT.'profile');
+        header('Location: '.ROOT.'dashboard');
         exit;
     }
 
@@ -31,7 +31,12 @@
             </div>
             <input type="submit" class="button" value="Log in">
         </form>
-        <a href="<?=ROOT?>register" class="link">New user? Register</a>
+        <div style="margin-top: 10px;">
+            <a href="<?=ROOT?>forgotpassword" class="link">Forgot Password?</a>
+        </div>
+        <div style="margin-top: 5px;">
+            <a href="<?=ROOT?>register" class="link">New user? Register</a>
+        </div>
         </div>
 
     </div>

@@ -119,4 +119,44 @@ class Profileupdate extends Controller
 
     }
 
+    public function reset_password()
+    {
+        $this->login_guard();
+        $this->view('change_pword', ['reset_mode' => true]);
+    }
+
+    public function process_reset()
+    {
+        $this->login_guard();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = $_SESSION['user_id'];
+            $new_password = $_POST['new_password'];
+            $confirm_new_password = $_POST['confirm_new_password'];
+
+            if ($new_password !== $confirm_new_password) {
+                header("Location: " . ROOT . "profileupdate/reset_password?message=Passwords do not match!");
+                exit;
+            }
+
+            $profile_services = new ProfileServices;
+            $result = $profile_services->reset_password($user_id, $new_password);
+
+            if ($result->has_errors()) {
+                $message = implode(", ", $result->get_errors());
+                header("Location: " . ROOT . "profileupdate/reset_password?message=" . $message);
+                exit;
+            }
+
+            // Success! Clear session data if needed (though user is now essentially logged in)
+            unset($_SESSION['user_data']);
+            
+            $notification_services = new NotificationServices;
+            $notification_services->send_notification(0, 'Your password has been reset successfully!', $user_id);
+
+            header("Location: " . ROOT . "profile?message=Your password has been reset successfully!");
+            exit;
+        }
+        $this->reset_password();
+    }
+
 }

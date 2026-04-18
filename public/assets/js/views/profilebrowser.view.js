@@ -5,21 +5,22 @@ let cards = document.querySelectorAll('.content-tab');
 
 let currentIndex = 0;
 let state = {
-  banned: 0, 
-  searchTerm: '', 
-  limit: 10,
-  offset: 0,
-  searchTimeout: null,
-  isLoading: false,
-  roles: [],
-  dateStart: null,
-  dateEnd: null,
-  orderBy: 'created_at',
-  orderDir: 'DESC',
-  baseFilters: {
-    'select': ['profile_id', 'username', 'display_name', 'role_name', 'subject_name', 'created_at', 'banned'],
-    'where_not': { 'display_name': 'Guest User' }
-  }
+    banned: 0,
+    searchTerm: '',
+    limit: 10,
+    offset: 0,
+    searchTimeout: null,
+    isLoading: false,
+    roles: [],
+    subject: '',
+    dateStart: null,
+    dateEnd: null,
+    orderBy: 'created_at',
+    orderDir: 'DESC',
+    baseFilters: {
+        'select': ['profile_id', 'username', 'display_name', 'role_name', 'subject_name', 'created_at', 'banned'],
+        'where_not': { 'display_name': 'Guest User' }
+    }
 };
 
 function showSkeleton(container, append = false) {
@@ -37,7 +38,7 @@ function loadProfiles(appendMode = false) {
 
     const container = cards[currentIndex];
     const loadMoreBtn = document.getElementById('load-more-btn');
-    
+
     if (!appendMode) {
         showSkeleton(container);
         loadMoreBtn.style.display = 'none';
@@ -58,6 +59,7 @@ function loadProfiles(appendMode = false) {
 
     if (state.searchTerm) backendParams.like['display_name'] = state.searchTerm;
     if (state.roles.length > 0) backendParams.where['role_name'] = state.roles;
+    if (state.subject) backendParams.where['subject_name'] = state.subject;
     if (state.dateStart && state.dateEnd) backendParams.range['created_at'] = [state.dateStart, state.dateEnd];
 
     get_content(backendParams, appendMode)
@@ -72,7 +74,7 @@ function loadProfiles(appendMode = false) {
             }
 
             // Simple logic to hide load more if we likely reached the end
-            const resultsCount = (res.match(/class="profile-item"/g) || []).length;
+            const resultsCount = (res.match(/class="profile-item/g) || []).length;
             loadMoreBtn.style.display = resultsCount < state.limit ? 'none' : 'block';
         })
         .finally(() => {
@@ -103,10 +105,10 @@ btns.forEach((btn, index) => {
         if (index === currentIndex) return;
         btns[currentIndex].classList.replace('btn-primary', 'btn-none');
         btn.classList.replace('btn-none', 'btn-primary');
-        
+
         cards[currentIndex].classList.remove('active');
         cards[index].classList.add('active');
-        
+
         currentIndex = index;
         state.banned = index; // 0 for active, 1 for banned
         state.offset = 0;
@@ -121,6 +123,12 @@ document.querySelectorAll('.role-filter').forEach(cb => {
         state.offset = 0;
         loadProfiles();
     });
+});
+
+document.getElementById('subject-filter')?.addEventListener('change', (e) => {
+    state.subject = e.target.value;
+    state.offset = 0;
+    loadProfiles();
 });
 
 document.getElementById('sort-by')?.addEventListener('change', (e) => {
@@ -138,7 +146,11 @@ document.getElementById('load-more-btn')?.addEventListener('click', () => {
 document.getElementById('clear-filters')?.addEventListener('click', () => {
     document.querySelectorAll('.role-filter').forEach(cb => cb.checked = false);
     document.getElementById('sort-by').value = 'created_at-DESC';
+    if (document.getElementById('subject-filter')) {
+        document.getElementById('subject-filter').value = '';
+    }
     state.roles = [];
+    state.subject = '';
     state.offset = 0;
     loadProfiles();
 });

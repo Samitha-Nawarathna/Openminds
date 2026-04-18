@@ -4,8 +4,42 @@ class Question extends Controller
 {
     public function index()
     {
+        $data = [];
+        $user_id = $_SESSION['user_id'] ?? null;
 
-        $this->view('question/browser');
+        if ($user_id) {
+            $question_model = new QuestionModel;
+            $answer_model = new Answer;
+
+            // Fetch User's Questions
+            $my_questions = $question_model->where(['creator_id' => $user_id]);
+            $questions_count = is_array($my_questions) ? count($my_questions) : 0;
+            $question_votes = 0;
+            if ($my_questions) {
+                foreach ($my_questions as $q) {
+                    $question_votes += ($q->vote_count ?? 0);
+                }
+            }
+
+            // Fetch User's Answers
+            $my_answers = $answer_model->where(['creator_id' => $user_id]);
+            $answers_count = is_array($my_answers) ? count($my_answers) : 0;
+            $answer_votes = 0;
+            if ($my_answers) {
+                foreach ($my_answers as $a) {
+                    $answer_votes += ($a->vote_count ?? 0);
+                }
+            }
+
+            $data['user_stats'] = [
+                'questions' => $questions_count,
+                'answers' => $answers_count,
+                'q_votes' => $question_votes,
+                'a_votes' => $answer_votes
+            ];
+        }
+
+        $this->view('question/browser', $data);
     }
 
 
@@ -19,52 +53,8 @@ class Question extends Controller
 
     public function create()
     {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $current_user = $_SESSION['user_id'] ?? null;
-
-            $title = $_POST['title'];
-            $content = $_POST['content'];
-            $tags_list = explode(',',$_POST['tags']);
-
-            // Save question to the database
-            $tags = new Tags;
-            $question = new QuestionModel;
-            $question_tag = new Questiontag;
-
-            $question_id = $question->insert([
-                'title' => $title,
-                'content' => $content,
-                'creator_id' => $current_user,
-                'created_at' => date('Y-m-d H:i:s')
-            ]);
-
-            foreach ($tags_list as $tag_name) {
-                $tag = $tags->first(['name' => trim($tag_name)]);
-                if (!$tag) {
-                    // If tag does not exist, create it
-                    $tag_id = $tags->insert(['name' => trim($tag_name)]);
-                } else {
-                    $tag_id = $tag->id;
-                }
-
-                // Associate tag with question
-                $question_tag->insert([
-                    'question_id' => $question_id,
-                    'tag_id' => $tag_id
-                ]);
-            }
-
-            // Redirect to the question view page
-            // Log Event
-            $event = new Event;
-            $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => 1]); // Assuming Subject ID 1 for now or fetch if available
-
-            header("Location: ".ROOT."/question/show?id=" . $question_id);
-
-        } else {
-            // Show the form
-            $this->view('question/question_creator');
-        }
+        // Show the form
+        $this->view('question/question_creator');
     }
 
     public function show()
@@ -122,7 +112,7 @@ class Question extends Controller
                 if ($vote->votetype === 'upvote') $q_up++;
                 elseif ($vote->votetype === 'downvote') $q_down++;
                 
-                if ($current_user && $vote->user_id == $current_user) {
+                if ($current_user && $vote->u_id == $current_user) {
                     $q_user_voted = true;
                     $q_user_vote_type = ($vote->votetype === 'upvote') ? 'up' : 'down';
                 }
@@ -157,7 +147,7 @@ class Question extends Controller
                         if ($vote->votetype === 'upvote') $a_up++;
                         elseif ($vote->votetype === 'downvote') $a_down++;
 
-                        if ($current_user && $vote->user_id == $current_user) {
+                        if ($current_user && $vote->u_id == $current_user) {
                             $a_user_voted = true;
                             $a_user_vote_type = ($vote->votetype === 'upvote') ? 'up' : 'down';
                         }
@@ -198,7 +188,8 @@ class Question extends Controller
                 'list' => $answer_list,
                 'has_more' => ($total_answers > $limit)
             ],
-            'totalAnswerCount' => $total_answers
+            'totalAnswerCount' => $total_answers,
+            'current_user_id' => $current_user
         ];
 
         $this->view('question/view', $data);
@@ -206,41 +197,28 @@ class Question extends Controller
 
     public function edit()
     {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            //read question id
-            $q_id = $_POST['id'];
+        $id = $_GET['id'] ?? null;
+        $current_user = $_SESSION['user_id'] ?? null;
 
-            //read form data
+        if (!$id || !$current_user) {
+            redirect('question');
+            return;
+        }
 
-            //load relevent models
+        $questions = new QuestionModel;
+        $answers = new Answer;
+        $user_vote_question = new Uservotequestion;
+        $user_vote_answer = new Uservoteanswer;
+        $question_tag = new Questiontag;
+        $user = new User;
+        $tags = new Tags;
 
-            // retrive question from database
-
-            //validate data and ownership of question if not by creator then redirect to show page with error message
-
-            //if question has atleast one answer then cannot edit and redirect to show page with error message
-
-            // Update question in the database
-
-
-            header("Location: ".ROOT."/question/show?id=" . $q_id);
-        } else {
-            $id = $_GET['id'] ?? 2;
-            $id = $_GET['id'] ?? 1;
-            // Fetch question from the database using $id
-            $current_user = $_SESSION['user_id'] ?? 'user_2';
-    
-            $questions = new QuestionModel;
-            $answers = new Answer;
-            $user_vote_question = new Uservotequestion;
-            $user_vote_answer = new Uservoteanswer;
-            $question_tag = new Questiontag;
-            $user = new User;
-            $tags = new Tags;
-    
-    
-            $question_data = $questions->first(['id' => $id]);
-            $creator = $user->first(['id' => $question_data->creator_id])->username;
+        $question_data = $questions->first(['id' => $id]);
+        if (!$question_data || $question_data->creator_id != $current_user) {
+            redirect('question');
+            return;
+        }
+        $creator = $user->first(['id' => $question_data->creator_id])->username;
     
             $question_tags = $question_tag->where(['question_id' => $id]);
             $tag_names = [];
@@ -315,71 +293,103 @@ class Question extends Controller
             
             $this->view('question/edit_question', $data);
         }
-    }
+    
 
     public function delete()
     {
-        //read question id from post method
-        
-        //load relevant models
-
-        // retrive question from database
-
-        //validate data and ownership of question if not by creator then redirect to show page with error message
-
-        //cannot edit atleast one answer is given
-
-        // Delete question from the database using $id
-
-        //show success message or error
-        header("Location: ".ROOT."/question");
+        redirect('question');
     }
 
     public function answer()
     {
-        $q_id = $_GET['id'] ?? 1;
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Save answer to the database
-
-            header("Location: ".ROOT."/question/show?id=" . $_POST['question_id']);
-        } else {
-            // Show the answer form
-            $this->view('question/answer_creator', ['q_id' => $q_id]);
-        }
+        $q_id = $_GET['id'] ?? null;
+        if (!$q_id) { redirect('question'); return; }
+        $this->view('question/answer_creator', ['q_id' => $q_id]);
     }
 
     public function edit_answer()
     {
-        $a_id = 1;//$_GET['id'];
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Update answer in the database
-            header("Location: ".ROOT."/question/show?id=" . $_POST['question_id']);
-        } else {
-            // Fetch answer from the database using $a_id
-            // Show the edit form
-            $data = [
-                'question_id'     => 1,
-                'question_title'  => 'What are myelinated axons?',
-                'answer_id' => 'a_202',
-                'answer_content' => 'This is the existing content of the answer that is being edited.',
-                
-            ];
+        $a_id = $_GET['id'] ?? null;
+        if (!$a_id) { redirect('question'); return; }
 
-            $this->view('question/edit_answer', $data);
+        $answers = new Answer();
+        $answer = $answers->first(['id' => $a_id]);
+        if (!$answer || $answer->creator_id != ($_SESSION['user_id'] ?? null)) {
+            redirect('question');
+            return;
         }
+
+        $data = [
+            'question_id'     => $answer->q_id,
+            'question_title'  => 'Editing your answer',
+            'answer_id' => $answer->id,
+            'answer_content' => $answer->content,
+        ];
+
+        $this->view('question/edit_answer', $data);
     }
 
     public function delete_answer()
     {
-        $a_id = $_GET['id'];
-        // Delete answer from the database using $a_id
-        //show success message or error
-        header("Location: /question/view?id=" . $_GET['q_id']);
+        redirect('question');
     }
 
     //---------------------------------------------------------------//
     //-----------------------AJAX METHODS----------------------------//
     //---------------------------------------------------------------//
+
+    public function api_create_question()
+    {
+        $data = $this->json_request();
+        $current_user = $_SESSION['user_id'] ?? null;
+
+        if (!$current_user) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+            return;
+        }
+
+        $title = $data['title'] ?? '';
+        $content = $data['content'] ?? '';
+        $tags_list = !empty($data['tags']) ? explode(',', $data['tags']) : [];
+
+        $tags = new Tags;
+        $question = new QuestionModel;
+        $question_tag = new Questiontag;
+
+        $question_id = $question->insert([
+            'title' => $title,
+            'content' => $content,
+            'creator_id' => $current_user,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        foreach ($tags_list as $tag_name) {
+            $tag_name = trim($tag_name);
+            if(empty($tag_name)) continue;
+
+            $tag = $tags->first(['name' => $tag_name]);
+            if (!$tag) {
+                $tag_id = $tags->insert(['name' => $tag_name]);
+            } else {
+                $tag_id = $tag->id;
+            }
+
+            $question_tag->insert([
+                'question_id' => $question_id,
+                'tag_id' => $tag_id
+            ]);
+        }
+
+        // Resolve Subject ID from Experts table
+        $experts = new Expert();
+        $expert_data = $experts->first(['user_id' => $current_user]);
+        $resolved_subject_id = $expert_data->subject_id ?? 1;
+
+        $event = new Event;
+        $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => $resolved_subject_id]);
+
+        echo json_encode(['status' => 'success', 'question_id' => $question_id]);
+    }
 
     public function api_create_answer()
     {
@@ -400,9 +410,13 @@ class Question extends Controller
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
+        // Resolve Subject ID from Experts table
+
         // Log Event
         $event = new Event;
-        $event->log($current_user, 'question_answered', 'Answer', $answer_id, ['question_id' => $q_id]);
+        $event->log($current_user, 'question_answered', 'Answer', $answer_id, [
+            'question_id' => $q_id,
+        ]);
 
         // Return success response
         echo json_encode(['status' => 'success', 'answer_id' => $answer_id]);
@@ -420,7 +434,7 @@ class Question extends Controller
         $user_vote_question = new Uservotequestion;
 
         // Check if user has already voted
-        $existing_vote = $user_vote_question->first(['user_id' => $current_user, 'q_id' => $q_id]);
+        $existing_vote = $user_vote_question->first(['u_id' => $current_user, 'q_id' => $q_id]);
 
         if ($existing_vote) {
             // Update existing vote
@@ -437,7 +451,7 @@ class Question extends Controller
         } else {
             // Insert new vote
             $user_vote_question->insert([
-                'user_id' => $current_user,
+                'u_id' => $current_user,
                 'q_id' => $q_id,
                 'votetype' => $votetype
             ]);
@@ -462,7 +476,7 @@ class Question extends Controller
         $user_vote_answer = new Uservoteanswer;
 
         // Check if user has already voted
-        $existing_vote = $user_vote_answer->first(['user_id' => $current_user, 'q_id' => $q_id]);
+        $existing_vote = $user_vote_answer->first(['u_id' => $current_user, 'a_id' => $q_id]);
 
         if ($existing_vote) {
             // Update existing vote
@@ -479,8 +493,8 @@ class Question extends Controller
         } else {
             // Insert new vote
             $user_vote_answer->insert([
-                'user_id' => $current_user,
-                'q_id' => $q_id,
+                'u_id' => $current_user,
+                'a_id' => $q_id,
                 'votetype' => $votetype
             ]);
 
@@ -635,6 +649,12 @@ class Question extends Controller
 
         $result = $questions->delete($q_id);
 
+        if ($result !== false) {
+             // Log Event
+            $event = new Event;
+            $event->log($user_id, 'question_deleted', 'Question', $q_id, []);
+        }
+
         if ($result === false) {
             echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
             return;
@@ -667,6 +687,12 @@ class Question extends Controller
 
         $result = $answers->delete($a_id);
 
+        if ($result !== false) {
+            // Log Event
+            $event = new Event;
+            $event->log($user_id, 'answer_deleted', 'Answer', $a_id, []);
+        }
+
         if (!$result) {
             // Note: Model::delete returns void/null in the viewed code, so this check might always fail if interpreted as boolean. 
             // However, assuming it works or we trust it:
@@ -689,6 +715,8 @@ class Question extends Controller
         $current_user = $_SESSION['user_id'] ?? null;
 
         $questions_model = new QuestionModel;
+        $answer_model = new Answer;
+        $user_vote_question = new Uservotequestion;
         $user_model = new User;
         $tag_model = new Tags;
         $q_tag_model = new Questiontag;
@@ -702,26 +730,9 @@ class Question extends Controller
         
         $where = [];
 
-        // 1. Handle Tag Filtering first (id matching)
+        // 1. Handle Search (Title)
         if (!empty($tag_filter)) {
-            // Find tag id
-            $tag = $tag_model->first(['name' => $tag_filter]);
-            if ($tag) {
-                // Find question IDs with this tag
-                $tagged_qs = $q_tag_model->where(['tag_id' => $tag->id]);
-                if ($tagged_qs) {
-                    $q_ids = array_column($tagged_qs, 'question_id');
-                    $where['id'] = $q_ids;
-                } else {
-                    // Tag exists but no questions, return empty
-                    echo json_encode(['questions' => [], 'has_more' => false]);
-                    return;
-                }
-            } else {
-                 // Tag doesn't exist, return empty
-                 echo json_encode(['questions' => [], 'has_more' => false]);
-                 return;
-            }
+            $params['like'] = ['title' => $tag_filter];
         }
 
         // 2. Handle Tab Filtering
@@ -731,16 +742,23 @@ class Question extends Controller
                 return;
             }
             $where['creator_id'] = $current_user;
-        } elseif ($tab === 'unanswered') {
-             // This is harder with simple Model methods. 
-             // Ideally: WHERE id NOT IN (SELECT q_id FROM answer)
-             // For now, we might skip this or implement a custom query in Model if needed.
-             // Leaving simplified for now: Fetch all and filter in PHP (inefficient) or use a custom query.
-             // Let's rely on filter_and_search capabilities.
-             // It doesn't seem to support "NOT IN subquery". 
-             // We'll treat 'unanswered' as 'all' for this MVP refactor or handled roughly.
-             // Actually, we can fetch all questions and check answers count? No, pagination breaks.
-             // Let's postpone strict 'unanswered' logic or just show all for now.
+        } elseif ($tab === 'answered') {
+             // For "You answered" tab - get questions where current user has answered
+             if (!$current_user) {
+                echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
+                return;
+             }
+             
+             // Get all answers by this user
+             $user_answers = $answer_model->where(['creator_id' => $current_user]);
+             
+             if ($user_answers) {
+                 $q_ids = array_unique(array_column($user_answers, 'q_id'));
+                 $where['id'] = array_values($q_ids);
+             } else {
+                 echo json_encode(['questions' => [], 'has_more' => false]);
+                 return;
+             }
         }
 
         if (!empty($where)) {
@@ -770,18 +788,51 @@ class Question extends Controller
                  }
              }
              
-             // Basic Answer count (inefficient N+1 but works for now)
-             // Or we could join.
+             // 1. Get Answer Count & Solved Status
+             $answers = $answer_model->where(['q_id' => $q->id]);
+             $answer_count = $answers ? count($answers) : 0;
+             $is_solved = false;
+             
+             if ($answers) {
+                 foreach ($answers as $ans) {
+                     if (!empty($ans->chosen) && $ans->chosen == 1) { // Assuming 'chosen' column implies solved
+                         $is_solved = true;
+                         break;
+                     }
+                 }
+             }
+             
+             // 2. Get Vote Counts
+             $votes = $user_vote_question->where(['q_id' => $q->id]);
+             $upvotes = 0;
+             $downvotes = 0;
+             $user_vote_type = null;
+             
+             if ($votes) {
+                 foreach ($votes as $v) {
+                     if ($v->votetype === 'upvote') $upvotes++;
+                     elseif ($v->votetype === 'downvote') $downvotes++;
+                     
+                     if ($current_user && $v->u_id == $current_user) {
+                         $user_vote_type = ($v->votetype === 'upvote') ? 'up' : 'down';
+                     }
+                 }
+             }
+             
+             $net_votes = $upvotes - $downvotes;
              
              $result_data[] = [
                  'id' => $q->id,
                  'title' => $q->title,
-                 'content' => $q->content, // Snippet?
+                 'content' => $q->content,
                  'creator_id' => $q->creator_id,
                  'creator' => $creator_name,
                  'created_at' => $q->created_at,
                  'tags' => $tag_names,
-                 // 'answers_count' => ...
+                 'answer_count' => $answer_count,
+                 'is_solved' => $is_solved,
+                 'vote_count' => $net_votes,
+                 'user_vote_type' => $user_vote_type
              ];
         }
 

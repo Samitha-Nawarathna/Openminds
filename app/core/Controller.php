@@ -85,4 +85,15 @@ class Controller
         echo json_encode($data);
         exit;
     }
+
+        protected function json_response($data)
+    {
+        if (ob_get_level() > 0) {
+            ob_clean(); 
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
+    }
 }

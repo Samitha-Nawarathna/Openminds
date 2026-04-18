@@ -10,10 +10,13 @@
 ?>
 
 <div class="main-content-container">
-    <div class="title-area">
-    <h1 class="main-title">Notes</h1>
-      <span class="tag-pill"><?= htmlspecialchars($data['browsing_topic_title']) ?></span>
-    </div>    
+    <header class="page-header">
+        <img src="<?=ROOT?>assets/images/note.png" alt="Notes" class="title-icon">
+        <div class="header-text">
+            <h1 class="main-title">Notes <span class="title-suffix">under <?= htmlspecialchars($data['browsing_topic_title']) ?></span></h1>
+            <p class="page-description">Manage and organize your notes</p>
+        </div>
+    </header>    
 
 
         <div class="filter-bar">
@@ -69,8 +72,8 @@
 
     <div class="note-browser-container">
         <div class="tabs-container" id="tabs-container">
-            <button class="tab-button active" data-tab="created" id="created-tab">Created</button>
-            <button class="tab-button" data-tab="shared" id="shared-tab">Shared</button>
+            <!-- <button class="tab-button active" data-tab="created" id="created-tab">Created</button> -->
+            <!-- <button class="tab-button" data-tab="shared" id="shared-tab">Shared</button> -->
         </div>
 
         <div class="list-container" id="notes-list">

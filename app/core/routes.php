@@ -13,7 +13,7 @@ App::post('notes/delete/{id}', 'Notes@delete');
 //note module api
 App::get('notes/api/search_by_tags', 'Notes@api_search_notes_by_tags');
 App::get('notes/api/get_by_id/{note_id}', 'Notes@api_get_note_by_id');
-App::get('notes/api/share', 'Notes@api_share');
+App::post('notes/api/share', 'Notes@api_share');
 //api endpoints for pinning and unpinning notes.
 App::post('notes/api/pin/{id}', 'Notes@api_pin_note');
 App::post('notes/api/unpin/{id}', 'Notes@api_unpin_note');
@@ -53,7 +53,7 @@ App::post('tags/api/search_by_name', 'TagController@api_search_tags_by_name');
 
 
 //user module api
-App::post('users/api/search_by_name', 'Users@api_search_users_by_name');
+App::post('users/api/search_by_name', 'Profile@api_search_users_by_name');
 
 
 //question module api
@@ -75,8 +75,10 @@ App::post('exercises/create', 'Exercises@create');
 App::post('exercises/attempt', 'Exercises@attempt'); // POST submission
 App::get('exercises/attempt', 'Exercises@attempt'); // GET view
 App::get('exercises/show', 'Exercises@show');
+App::get('exercises/mentorview', 'Exercises@mentorview');
 App::get('exercises/edit', 'Exercises@edit');
 App::post('exercises/edit', 'Exercises@edit');
+App::post('exercises/toggleVisibility', 'Exercises@toggleVisibility');
 App::post('exercises/delete', 'Exercises@delete');
 App::get('exercises/hide', 'Exercises@hide');
 App::get('exercises/expertreview', 'Exercises@expertreview');
@@ -85,12 +87,28 @@ App::post('exercises/approve', 'Exercises@approve');
 App::post('exercises/reject', 'Exercises@reject');
 
 
+// --- EXPERT REVIEW API ENDPOINTS (NEW) ---
+// Get pending exercises for expert review
+App::get('exercises/api/pending', 'Exercises@api_get_pending_exercises');
+// Load exercise data for review (with questions and options)
+App::get('exercises/api/load_review_data/{exercise_id}', 'Exercises@api_load_review_data');
+// Approve a pending exercise
+App::post('exercises/api/approve_exercise', 'Exercises@api_approve_exercise');
+// Reject/send feedback on a pending exercise
+App::post('exercises/api/reject_exercise', 'Exercises@api_reject_exercise');
+
+
 // ----------------------------------------------------------------------
 // --- NEW EXERCISES API ENDPOINTS ---
 // ----------------------------------------------------------------------
 
 // Browsing and Filtering (R6)
 App::get('exercises/api/published', 'Exercises@api_get_published');
+App::get('exercises/api/subjects', 'Exercises@api_subjects');
+
+// API: Create Exercise (NEW)
+App::post('api/exercises/create', 'Exercises@api_create');
+App::post('exercises/api/save_draft', 'Exercises@api_save_draft');
 
 // Attempting and Results (R7, R9)
 App::post('exercises/api/attempt/{exercise_id}', 'Exercises@api_submit_attempt');
@@ -153,6 +171,9 @@ App::get('api/dashboard/exercises/answered', 'Dashboard@getAnsweredExercises');
 App::get('api/dashboard/exercises/attempt', 'Dashboard@getAttemptExercises'); // Mapping to 'Published' list
 App::get('api/dashboard/exercises/pending', 'Dashboard@getPendingReviewRequests');
 
+
+//expert request api
+App::get('expertrequest/api/search_subjects', 'Expertrequest@api_search_subjects');
 
 //profile browser module
 App::get('profilebrowser', 'Profilebrowser@index');

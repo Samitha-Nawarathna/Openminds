@@ -59,7 +59,8 @@
     </div>
 
     <script>
-        // Pass initial user data to JavaScript
+        // Pass essential data to JavaScript
+        window.ROOT = "<?= ROOT ?>";
         const INITIAL_SHARED_USERS = <?= json_encode($data['initial_shared_users']) ?>;
     </script>
 

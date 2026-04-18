@@ -68,9 +68,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const navbarNotesContainer = document.getElementById('navbar-notes-kpi');
     const dateRangeString = getDateRange(7);
     const kpiDefinitions = {
-      "notes_created": { title: `Notes Created (${dateRangeString})`, unit: "", format: v => v },
-      "average_exercise_score": { title: `Avg. Exercise Score (${dateRangeString})`, unit: "%", format: v => v },
-      "all_votes": { title: `Total Votes (${dateRangeString})`, unit: "", format: v => v },
+      "notes_created": { title: `Notes Created (All Time)`, unit: "", format: v => v },
+      "average_exercise_score": { title: `Avg. Exercise Score (All Time)`, unit: "%", format: v => v },
+      "all_votes": { title: `Total Votes (All Time)`, unit: "", format: v => v },
       "learning_consistency": { title: `Learning Consistency (${dateRangeString})`, unit: "", format: v => v }
     };
 
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
         min: 0,
         tickAmount: 5
       },
-      stroke: { curve: 'smooth', width: 3 },
+      stroke: { curve: 'straight', width: 3 },
       dataLabels: { enabled: false },
       legend: { show: false },
       tooltip: {
@@ -181,11 +181,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // We need a color range for the heatmap that is based on the primary color
     const heatmapColors = [
-      { from: 0, to: 0, color: '#F0F0F0', name: 'No Activity' }, // Lightest grey for 0 activity
-      { from: 1, to: 5, color: '#D0E9E5', name: 'Low' },
-      { from: 6, to: 15, color: '#80D4C8', name: 'Medium' },
-      { from: 16, to: 25, color: '#40BFB1', name: 'High' },
-      { from: 26, to: 30, color: colorPrimary, name: 'Very High' }
+      { from: 0, to: 0, color: '#F0F0F0', name: '0 Activity' },
+      { from: 1, to: 5, color: '#D0E9E5', name: '1-5 (Low)' },
+      { from: 6, to: 15, color: '#80D4C8', name: '6-15 (Medium)' },
+      { from: 16, to: 25, color: '#40BFB1', name: '16-25 (High)' },
+      { from: 26, to: 100000, color: colorPrimary, name: '26+ (Very High)' }
     ];
 
     const heatmapOptions = {
@@ -242,8 +242,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderSubjectsChart(viewKey) {
       const subjectsRawData = analyticsData[0].top_subjects[viewKey].slice(0, 10).sort((a, b) => a.average_score - b.average_score);
-      const subjectNames = subjectsRawData.map(s => s.subject_name);
-      const subjectScores = subjectsRawData.map(s => s.average_score.toFixed(1));
+      let subjectNames = subjectsRawData.map(s => s.subject_name);
+      let subjectScores = subjectsRawData.map(s => s.average_score.toFixed(1));
+
+      // Ensure that if there's no data, an empty 'No Subjects' category is shown to preserve grid shape
+      if (subjectNames.length === 0) {
+        subjectNames = ['No Activity Available'];
+        subjectScores = [0];
+      }
 
       const subjectsChartOptions = {
         series: [{ name: 'Avg. Score', data: subjectScores }],
