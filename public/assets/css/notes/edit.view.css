@@ -13,6 +13,7 @@ body {
     width: 100%;
     max-width: 950px;
     padding: var(--space-lg);
+    margin: 0 auto;
     /* height: 95vh; */
 }
 
