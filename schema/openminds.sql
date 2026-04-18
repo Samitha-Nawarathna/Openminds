@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 18, 2026 at 04:19 AM
+-- Generation Time: Apr 18, 2026 at 10:10 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `announcements` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_announcement_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `announcements`
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   PRIMARY KEY (`id`),
   KEY `q_id` (`q_id`),
   KEY `fk_answer_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `answer`
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
 INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chosen`) VALUES
 (1, '{\"ops\":[{\"insert\":\"You need to install the \'cors\' package in Express and use it as a middleware: `const cors = require(\'cors\'); app.use(cors());`.\\n\"}]}', NULL, 1, '2026-03-31 06:25:57', 1),
 (2, '{\"ops\":[{\"insert\":\"Make sure your frontend fetch URL has the correct protocol (http:\\/\\/). If it still fails, you can proxy the API in package.json by adding `\\\"proxy\\\": \\\"http:\\/\\/localhost:5000\\\"`.\\n\"}]}', 102, 1, '2026-03-31 06:25:57', 0),
-(3, '{\"ops\":[{\"insert\":\"As a quick dev fix, you can use a browser extension to disable CORS, but the correct way is definitely allowing the origin in Express.\\n\"}]}', 91, 1, '2026-04-10 06:25:57', 0),
+(3, '{\"ops\":[{\"insert\":\"As a quick dev fix, you can use a browser extension to disable CORS, but the correct way is definitely allowing the origin in Express.\\n\"}]}', NULL, 1, '2026-04-10 06:25:57', 0),
 (4, '{\"ops\":[{\"insert\":\"CORS errors usually mean the server isn\'t returning the `Access-Control-Allow-Origin` header. Setup CORS options correctly restricting to your specific frontend URL in production.\\n\"}]}', 97, 1, '2026-04-02 06:25:57', 0),
 (5, '{\"ops\":[{\"insert\":\"useEffect is asynchronous and runs after the browser paints. useLayoutEffect is synchronous and runs before the browser paints. Use the latter ONLY for measuring DOM elements.\\n\"}]}', 101, 2, '2026-04-06 06:25:57', 0),
 (6, '{\"ops\":[{\"insert\":\"If you use useEffect to mutate the DOM, the user might see a flicker of the old layout before the effect runs. useLayoutEffect blocks the paint to prevent this flicker.\\n\"}]}', 101, 2, '2026-03-27 06:25:57', 1),
@@ -183,15 +183,15 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (21, '{\"ops\":[{\"insert\":\"Think of LEFT JOIN when you want an entity even if it doesn\'t have child records natively (e.g., all Users, even those with zero Orders).\\n\"}]}', 102, 6, '2026-04-10 06:25:57', 0),
 (22, '{\"ops\":[{\"insert\":\"There\'s also RIGHT JOIN and FULL OUTER JOIN, though they are less commonly used compared to LEFT JOIN.\\n\"}]}', 101, 6, '2026-04-03 06:25:57', 0),
 (23, '{\"ops\":[{\"insert\":\"Always visualize using Venn Diagrams, it helps enormously when learning SQL joins.\\n\"}]}', 101, 6, '2026-03-30 06:25:57', 0),
-(24, '{\"ops\":[{\"insert\":\"Use the `-e` flag when running the container: `docker run -e DB_PASSWORD=my_secret_pass my-image`.\\n\"}]}', 91, 7, '2026-04-04 06:25:57', 1),
+(24, '{\"ops\":[{\"insert\":\"Use the `-e` flag when running the container: `docker run -e DB_PASSWORD=my_secret_pass my-image`.\\n\"}]}', NULL, 7, '2026-04-04 06:25:57', 1),
 (25, '{\"ops\":[{\"insert\":\"Even better, use an `.env` file and pass it using `--env-file .env`.\\n\"}]}', 97, 7, '2026-04-03 06:25:57', 0),
 (26, '{\"ops\":[{\"insert\":\"If using Docker Compose, you can map the `environment` array directly in your `docker-compose.yml`.\\n\"}]}', 97, 7, '2026-04-07 06:25:57', 0),
 (27, '{\"ops\":[{\"insert\":\"A closure is a function that remembers the variables from its outer scope even after the outer function has finished executing.\\n\"}]}', 97, 8, '2026-04-01 06:25:57', 0),
 (28, '{\"ops\":[{\"insert\":\"Example: `function outer() { let a = 1; return function inner() { console.log(a); } }` The `inner` function \'closes over\' `a`.\\n\"}]}', 97, 8, '2026-04-06 06:25:57', 1),
-(29, '{\"ops\":[{\"insert\":\"They are primarily used for data privacy in JS, essentially emulating private variables.\\n\"}]}', 91, 8, '2026-04-03 06:25:57', 0),
-(30, '{\"ops\":[{\"insert\":\"Think of it like a backpack. A function carries the variables it needs in its \'backpack\' no matter where it is invoked.\\n\"}]}', 91, 8, '2026-04-04 06:25:57', 0),
+(29, '{\"ops\":[{\"insert\":\"They are primarily used for data privacy in JS, essentially emulating private variables.\\n\"}]}', NULL, 8, '2026-04-03 06:25:57', 0),
+(30, '{\"ops\":[{\"insert\":\"Think of it like a backpack. A function carries the variables it needs in its \'backpack\' no matter where it is invoked.\\n\"}]}', NULL, 8, '2026-04-04 06:25:57', 0),
 (31, '{\"ops\":[{\"insert\":\"To get back safely to your normal branch, just run `git checkout main` (or master).\\n\"}]}', 101, 9, '2026-04-01 06:25:57', 0),
-(32, '{\"ops\":[{\"insert\":\"If you made changes you want to keep while detached, create a new branch from there: `git checkout -b my-new-branch`.\\n\"}]}', 91, 9, '2026-04-04 06:25:57', 1),
+(32, '{\"ops\":[{\"insert\":\"If you made changes you want to keep while detached, create a new branch from there: `git checkout -b my-new-branch`.\\n\"}]}', NULL, 9, '2026-04-04 06:25:57', 1),
 (33, '{\"ops\":[{\"insert\":\"Detached head just means HEAD is pointing directly to a specific commit hash rather than a branch name.\\n\"}]}', 101, 9, '2026-04-09 06:25:57', 0),
 (34, '{\"ops\":[{\"insert\":\"It\'s completely safe, it\'s just Git\'s way of warning you that commits made here won\'t belong to any branch.\\n\"}]}', 97, 9, '2026-04-10 06:25:57', 0),
 (35, '{\"ops\":[{\"insert\":\"For a shallow copy, use the spread operator: `let newArr = [...oldArr];`\\n\"}]}', NULL, 10, '2026-04-05 06:25:57', 1),
@@ -216,7 +216,7 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (54, '{\"ops\":[{\"insert\":\"If a user changes their role from \'user\' to \'admin\' in the payload, the resulting signature won\'t match the server\'s calculation, rejecting it.\\n\"}]}', 102, 16, '2026-04-01 06:25:57', 1),
 (55, '{\"ops\":[{\"insert\":\"Because they are readable, NEVER put sensitive data like passwords or SSNs inside the JWT payload itself.\\n\"}]}', 101, 16, '2026-03-27 06:25:57', 0),
 (56, '{\"ops\":[{\"insert\":\"Because localStorage is accessible by JavaScript. If your site falls victim to an XSS attack, malicious script can easily read and steal the token.\\n\"}]}', 101, 17, '2026-04-11 06:25:57', 0),
-(57, '{\"ops\":[{\"insert\":\"The secure way is using an HttpOnly, Secure cookie. HttpOnly means JS cannot read the token, completely mitigating XSS token theft.\\n\"}]}', 91, 17, '2026-04-01 06:25:57', 0),
+(57, '{\"ops\":[{\"insert\":\"The secure way is using an HttpOnly, Secure cookie. HttpOnly means JS cannot read the token, completely mitigating XSS token theft.\\n\"}]}', NULL, 17, '2026-04-01 06:25:57', 0),
 (58, '{\"ops\":[{\"insert\":\"However, HttpOnly cookies make you vulnerable to CSRF instead, so you must implement anti-CSRF tokens alongside them.\\n\"}]}', 97, 17, '2026-03-25 06:25:57', 1),
 (59, '{\"ops\":[{\"insert\":\"Using object spread: `const merged = { ...obj1, ...obj2 };`. Properties in obj2 will overwrite obj1.\\n\"}]}', 102, 18, '2026-03-28 06:25:57', 0),
 (60, '{\"ops\":[{\"insert\":\"You can use `Object.assign({}, obj1, obj2)`. Does the same thing but works in older JS versions natively.\\n\"}]}', 102, 18, '2026-03-24 06:25:57', 1),
@@ -226,16 +226,16 @@ INSERT INTO `answer` (`id`, `content`, `creator_id`, `q_id`, `created_at`, `chos
 (64, '{\"ops\":[{\"insert\":\"It\'s O(1) conceptually because the size of the data doesn\'t increase exactly the time it takes to hash the bucket index.\\n\"}]}', 101, 19, '2026-03-24 06:25:57', 0),
 (65, '{\"ops\":[{\"insert\":\"For a project exceeding 1 week or 1 developer, it is absolutely worth it natively. It prevents infinite runtime errors.\\n\"}]}', 97, 20, '2026-04-11 06:25:57', 1),
 (66, '{\"ops\":[{\"insert\":\"The immediate IDE autocomplete alone saves massive amounts of time reading docs or guessing object shapes.\\n\"}]}', 97, 20, '2026-03-31 06:25:57', 0),
-(67, '{\"ops\":[{\"insert\":\"Typing is a contract. It forces you to think about data structures before writing logic natively, which yields better code.\\n\"}]}', 91, 20, '2026-04-02 06:25:57', 0),
+(67, '{\"ops\":[{\"insert\":\"Typing is a contract. It forces you to think about data structures before writing logic natively, which yields better code.\\n\"}]}', NULL, 20, '2026-04-02 06:25:57', 0),
 (68, '{\"ops\":[{\"insert\":\"There\'s a learning curve natively, but once you surpass it, writing raw JS feels incredibly blind and dangerous.\\n\"}]}', 97, 20, '2026-03-29 06:25:57', 0),
 (69, '{\"ops\":[{\"insert\":\"simple explaination on block chain\\n\"}]}', 97, 33, '2026-04-17 19:33:58', 0),
 (70, '{\"ops\":[{\"insert\":\"simple explaination on block chain\\n\"}]}', 97, 33, '2026-04-17 19:34:03', 1),
 (71, '{\"ops\":[{\"insert\":\"simple explaination on block chain\\n\"}]}', 97, 33, '2026-04-17 19:34:07', 0),
-(72, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', 91, 34, '2026-04-17 20:01:33', 0),
-(73, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', 91, 34, '2026-04-17 20:02:09', 0),
-(74, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', 91, 34, '2026-04-17 20:04:15', 0),
+(72, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', NULL, 34, '2026-04-17 20:01:33', 0),
+(73, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', NULL, 34, '2026-04-17 20:02:09', 0),
+(74, '{\"ops\":[{\"insert\":\"simple answer\\n\"}]}', NULL, 34, '2026-04-17 20:04:15', 0),
 (75, '{\"ops\":[{\"insert\":\"simple explanation on microservice architecture\\n\"}]}', 97, 38, '2026-04-17 20:51:48', 1),
-(76, '{\"ops\":[{\"insert\":\"my answer edited\\n\"}]}', 102, 40, '2026-04-17 20:58:10', 0);
+(76, '{\"ops\":[{\"insert\":\"my answer edited\\n\"}]}', 102, 40, '2026-04-17 20:58:10', 1);
 
 -- --------------------------------------------------------
 
@@ -271,21 +271,11 @@ INSERT INTO `attempt_answer` (`id`, `attempt_id`, `question_id`, `user_response`
 (13, 3, 3, '[11]', 1, 1.00),
 (14, 3, 4, '[14]', 1, 1.00),
 (15, 3, 5, '[19]', 1, 1.00),
-(16, 4, 1, '[4]', 0, 0.00),
-(17, 4, 2, '[7]', 1, 1.00),
-(18, 4, 3, '[11]', 1, 1.00),
-(19, 4, 4, '[13]', 0, 0.00),
-(20, 4, 5, '[19]', 1, 1.00),
 (21, 5, 1, '[3]', 1, 1.00),
 (22, 5, 2, '[7]', 1, 1.00),
 (23, 5, 3, '[11]', 1, 1.00),
 (24, 5, 4, '[14]', 1, 1.00),
 (25, 5, 5, '[18]', 0, 0.00),
-(26, 6, 1, '[3]', 1, 1.00),
-(27, 6, 2, '[8]', 0, 0.00),
-(28, 6, 3, '[9]', 0, 0.00),
-(29, 6, 4, '[14]', 1, 1.00),
-(30, 6, 5, '[19]', 1, 1.00),
 (36, 8, 1, '[3]', 1, 1.00),
 (37, 8, 2, '[5]', 0, 0.00),
 (38, 8, 3, '[11]', 1, 1.00),
@@ -331,76 +321,7 @@ INSERT INTO `attempt_answer` (`id`, `attempt_id`, `question_id`, `user_response`
 (101, 19, 8, '[30]', 1, 1.00),
 (102, 19, 9, '[36]', 0, 0.00),
 (103, 19, 10, '[38]', 1, 1.00),
-(104, 19, 11, '[41]', 1, 1.00),
-(105, 20, 6, '[23]', 1, 1.00),
-(106, 20, 7, '[26]', 1, 1.00),
-(107, 20, 8, '[30]', 1, 1.00),
-(108, 20, 9, '[34]', 0, 0.00),
-(109, 20, 10, '[38]', 1, 1.00),
-(110, 20, 11, '[41]', 1, 1.00),
-(111, 21, 12, '[48]', 0, 0.00),
-(112, 21, 13, '[51]', 1, 1.00),
-(113, 21, 14, '[54]', 1, 1.00),
-(114, 21, 15, '[59]', 1, 1.00),
-(115, 21, 16, '[63]', 1, 1.00),
-(116, 21, 17, '[68]', 0, 0.00),
-(117, 22, 12, '[46]', 1, 1.00),
-(118, 22, 13, '[51]', 1, 1.00),
-(119, 22, 14, '[56]', 0, 0.00),
-(120, 22, 15, '[59]', 1, 1.00),
-(121, 22, 16, '[61]', 0, 0.00),
-(122, 22, 17, '[66]', 1, 1.00),
-(123, 23, 12, '[46]', 1, 1.00),
-(124, 23, 13, '[49]', 0, 0.00),
-(125, 23, 14, '[54]', 1, 1.00),
-(126, 23, 15, '[59]', 1, 1.00),
-(127, 23, 16, '[63]', 1, 1.00),
-(128, 23, 17, '[66]', 1, 1.00),
-(129, 24, 12, '[46]', 1, 1.00),
-(130, 24, 13, '[51]', 1, 1.00),
-(131, 24, 14, '[54]', 1, 1.00),
-(132, 24, 15, '[58]', 0, 0.00),
-(133, 24, 16, '[63]', 1, 1.00),
-(134, 24, 17, '[66]', 1, 1.00),
-(135, 25, 12, '[46]', 1, 1.00),
-(136, 25, 13, '[51]', 1, 1.00),
-(137, 25, 14, '[54]', 1, 1.00),
-(138, 25, 15, '[59]', 1, 1.00),
-(139, 25, 16, '[63]', 1, 1.00),
-(140, 25, 17, '[66]', 1, 1.00),
-(141, 26, 12, '[46]', 1, 1.00),
-(142, 26, 13, '[51]', 1, 1.00),
-(143, 26, 14, '[54]', 1, 1.00),
-(144, 26, 15, '[59]', 1, 1.00),
-(145, 26, 16, '[64]', 0, 0.00),
-(146, 26, 17, '[68]', 0, 0.00),
-(147, 27, 12, '[46]', 1, 1.00),
-(148, 27, 13, '[51]', 1, 1.00),
-(149, 27, 14, '[54]', 1, 1.00),
-(150, 27, 15, '[59]', 1, 1.00),
-(151, 27, 16, '[63]', 1, 1.00),
-(152, 27, 17, '[66]', 1, 1.00),
-(153, 28, 12, '[46]', 1, 1.00),
-(154, 28, 13, '[51]', 1, 1.00),
-(155, 28, 14, '[54]', 1, 1.00),
-(156, 28, 15, '[59]', 1, 1.00),
-(157, 28, 16, '[63]', 1, 1.00),
-(158, 28, 17, '[66]', 1, 1.00),
-(165, 30, 12, '[46]', 1, 1.00),
-(166, 30, 13, '[51]', 1, 1.00),
-(167, 30, 14, '[54]', 1, 1.00),
-(168, 30, 15, '[59]', 1, 1.00),
-(169, 30, 16, '[63]', 1, 1.00),
-(170, 30, 17, '[66]', 1, 1.00),
-(306, 54, 12, '[46]', 1, 1.00),
-(307, 54, 13, '[51]', 1, 1.00),
-(308, 54, 14, '[54]', 1, 1.00),
-(309, 54, 15, '[59]', 1, 1.00),
-(310, 54, 16, '[62]', 0, 0.00),
-(311, 54, 17, '[65]', 0, 0.00),
-(315, 58, 36, '[142]', 1, 1.00),
-(316, 58, 37, '[145]', 1, 2.00),
-(317, 58, 38, '[149]', 1, 1.00);
+(104, 19, 11, '[41]', 1, 1.00);
 
 -- --------------------------------------------------------
 
@@ -420,7 +341,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   PRIMARY KEY (`id`),
   KEY `idx_user_time_type` (`user_id`,`event_time`,`event_type`),
   KEY `idx_entity` (`entity_type`,`entity_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `events`
@@ -470,26 +391,15 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 (62, 102, '2026-04-17 05:30:21', 'note_created', 'Note', 53, '{\"title\": \"test_science_note\", \"subject_id\": 1}'),
 (63, 102, '2026-04-17 19:07:38', 'exercise_attempted', 'Exercise', 4, '{\"score\": 4, \"max_score\": 5, \"subject_id\": 1}'),
 (64, 102, '2026-04-17 19:24:07', 'note_viewed', 'Note', 51, '{\"subject_id\": 1}'),
-(65, 91, '2026-04-17 19:51:11', 'note_created', 'Note', 55, '{\"title\": \"what is electronics\", \"subject_id\": 1}'),
-(66, 91, '2026-04-17 19:51:11', 'note_viewed', 'Note', 55, '{\"subject_id\": 1}'),
-(67, 91, '2026-04-17 19:51:27', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
-(68, 91, '2026-04-17 19:51:48', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
 (69, 102, '2026-04-17 19:51:58', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
 (70, 102, '2026-04-17 19:53:15', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
-(71, 91, '2026-04-17 19:54:17', 'note_updated', 'Note', 54, '{\"subject_id\": 1}'),
-(72, 91, '2026-04-17 19:54:17', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
-(73, 91, '2026-04-17 19:54:26', 'note_deleted', 'Note', 54, NULL),
 (74, 102, '2026-04-17 19:54:33', 'note_viewed', 'Note', 54, '{\"subject_id\": 1}'),
-(75, 91, '2026-04-17 20:00:39', 'vote_given', 'Question', 34, '{\"direction\": \"upvote\"}'),
 (76, 106, '2026-04-17 20:01:01', 'vote_given', 'Question', 34, '{\"direction\": \"upvote\"}'),
-(77, 91, '2026-04-17 20:04:15', 'question_answered', 'Answer', 74, '{\"question_id\": 34}'),
 (78, 102, '2026-04-17 20:08:13', 'exercise_created', 'Exercise', 6, '{\"subject_id\": 1}'),
-(79, 91, '2026-04-17 20:11:11', 'exercise_created', 'Exercise', 7, '{\"subject_id\": 6}'),
 (80, 106, '2026-04-17 20:12:19', 'exercise_attempted', 'Exercise', 7, '{\"score\": 2, \"max_score\": 3, \"subject_id\": 6}'),
 (81, 102, '2026-04-17 20:45:07', 'vote_given', 'Answer', 72, '{\"direction\": \"upvote\"}'),
 (82, 102, '2026-04-17 20:45:14', 'vote_given', 'Answer', 72, '{\"direction\": \"downvote\"}'),
 (83, 102, '2026-04-17 20:45:18', 'vote_given', 'Answer', 72, '{\"direction\": \"upvote\"}'),
-(84, 91, '2026-04-17 20:45:46', 'vote_given', 'Answer', 73, '{\"direction\": \"upvote\"}'),
 (85, 106, '2026-04-17 20:48:05', 'exercise_attempted', 'Exercise', 3, '{\"score\": 4, \"max_score\": 6, \"subject_id\": 1}'),
 (86, 97, '2026-04-17 20:51:26', 'vote_given', 'Question', 38, '{\"direction\": \"upvote\"}'),
 (87, 97, '2026-04-17 20:51:48', 'question_answered', 'Answer', 75, '{\"question_id\": 38}'),
@@ -499,8 +409,43 @@ INSERT INTO `events` (`id`, `user_id`, `event_time`, `event_type`, `entity_type`
 (91, 106, '2026-04-17 20:52:30', 'vote_given', 'Answer', 75, '{\"direction\": \"upvote\"}'),
 (92, 106, '2026-04-17 20:52:32', 'vote_given', 'Question', 38, '{\"direction\": \"upvote\"}'),
 (93, 102, '2026-04-17 20:58:10', 'question_answered', 'Answer', 76, '{\"question_id\": 40}'),
-(94, 91, '2026-04-17 21:27:01', 'exercise_created', 'Exercise', 8, '{\"subject_id\": 1}'),
-(95, 106, '2026-04-17 21:37:44', 'exercise_attempted', 'Exercise', 8, '{\"score\": 4, \"max_score\": 4, \"subject_id\": 1}');
+(95, 106, '2026-04-17 21:37:44', 'exercise_attempted', 'Exercise', 8, '{\"score\": 4, \"max_score\": 4, \"subject_id\": 1}'),
+(96, 102, '2026-04-17 22:51:25', 'note_viewed', 'Note', 53, '{\"subject_id\": 1}'),
+(97, 102, '2026-04-17 22:51:51', 'note_viewed', 'Note', 53, '{\"subject_id\": 1}'),
+(98, 102, '2026-04-17 23:06:08', 'note_created', 'Note', 56, '{\"title\": \"Sans\", \"subject_id\": 1}'),
+(99, 102, '2026-04-17 23:06:08', 'note_viewed', 'Note', 56, '{\"subject_id\": 1}'),
+(100, 102, '2026-04-17 23:06:38', 'note_updated', 'Note', 56, '{\"subject_id\": 1}'),
+(101, 102, '2026-04-17 23:06:38', 'note_viewed', 'Note', 56, '{\"subject_id\": 1}'),
+(102, 102, '2026-04-17 23:09:12', 'note_viewed', 'Note', 56, '{\"subject_id\": 1}'),
+(104, 102, '2026-04-18 04:22:20', 'vote_given', 'Answer', 12, '{\"direction\": \"upvote\"}'),
+(105, 102, '2026-04-18 07:08:00', 'note_created', 'Note', 57, '{\"title\": \"Intro to astrology\", \"subject_id\": 1}'),
+(106, 102, '2026-04-18 07:08:01', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(107, 102, '2026-04-18 07:12:57', 'note_created', 'Note', 58, '{\"title\": \"test note\", \"subject_id\": 1}'),
+(108, 102, '2026-04-18 07:12:57', 'note_viewed', 'Note', 58, '{\"subject_id\": 1}'),
+(109, 102, '2026-04-18 07:13:03', 'note_deleted', 'Note', 58, NULL),
+(110, 102, '2026-04-18 07:14:05', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(111, 102, '2026-04-18 07:16:09', 'note_updated', 'Note', 57, '{\"subject_id\": 1}'),
+(112, 102, '2026-04-18 07:16:09', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(113, 102, '2026-04-18 07:19:56', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(114, 102, '2026-04-18 07:22:24', 'note_updated', 'Note', 57, '{\"subject_id\": 1}'),
+(115, 102, '2026-04-18 07:22:24', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(116, 102, '2026-04-18 07:23:45', 'note_viewed', 'Note', 51, '{\"subject_id\": 1}'),
+(117, 102, '2026-04-18 07:23:49', 'note_viewed', 'Note', 3, '{\"subject_id\": 1}'),
+(118, 102, '2026-04-18 07:24:39', 'note_viewed', 'Note', 57, '{\"subject_id\": 1}'),
+(119, 102, '2026-04-18 07:25:11', 'note_deleted', 'Note', 57, NULL),
+(120, 102, '2026-04-18 07:26:07', 'note_created', 'Note', 59, '{\"title\": \"intro to astrology\", \"subject_id\": 1}'),
+(121, 102, '2026-04-18 07:26:07', 'note_viewed', 'Note', 59, '{\"subject_id\": 1}'),
+(122, 102, '2026-04-18 07:29:23', 'note_viewed', 'Note', 59, '{\"subject_id\": 1}'),
+(123, 102, '2026-04-18 07:29:52', 'note_viewed', 'Note', 59, '{\"subject_id\": 1}'),
+(125, 102, '2026-04-18 07:43:23', 'question_asked', 'Question', 43, NULL),
+(126, 102, '2026-04-18 07:45:10', 'question_asked', 'Question', 44, NULL),
+(129, 102, '2026-04-18 08:06:28', 'question_deleted', 'Question', 43, NULL),
+(130, 102, '2026-04-18 08:07:51', 'vote_given', 'Answer', 76, '{\"direction\": \"upvote\"}'),
+(131, 102, '2026-04-18 16:35:17', 'question_answered', 'Answer', 78, '{\"question_id\": 44}'),
+(132, 102, '2026-04-18 16:35:21', 'answer_deleted', 'Answer', 78, NULL),
+(133, 102, '2026-04-18 16:39:24', 'note_viewed', 'Note', 59, '{\"subject_id\": 1}'),
+(134, 102, '2026-04-18 16:39:35', 'note_updated', 'Note', 59, '{\"subject_id\": 1}'),
+(135, 102, '2026-04-18 16:39:35', 'note_viewed', 'Note', 59, '{\"subject_id\": 1}');
 
 --
 -- Triggers `events`
@@ -544,7 +489,7 @@ CREATE TABLE IF NOT EXISTS `exerciseanswer` (
   `question_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `question_id` (`question_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exerciseanswer`
@@ -595,30 +540,6 @@ INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`
 (42, 'Null values', 0, 1, 11),
 (43, 'Composite keys', 0, 2, 11),
 (44, 'Duplicate primary keys', 0, 3, 11),
-(45, 'var', 0, 0, 12),
-(46, 'let', 1, 1, 12),
-(47, 'global', 0, 2, 12),
-(48, 'None of these', 0, 3, 12),
-(49, 'Hoisting', 0, 0, 13),
-(50, 'Callbacks', 0, 1, 13),
-(51, 'Closures', 1, 2, 13),
-(52, 'Promises', 0, 3, 13),
-(53, 'Web APIs', 0, 0, 14),
-(54, 'The Call Stack', 1, 1, 14),
-(55, 'The Microtask Queue', 0, 2, 14),
-(56, 'The Memory Heap', 0, 3, 14),
-(57, '.then()', 0, 0, 15),
-(58, '.finally()', 0, 1, 15),
-(59, '.catch()', 1, 2, 15),
-(60, 'try()', 0, 3, 15),
-(61, '\"null\"', 0, 0, 16),
-(62, '\"undefined\"', 0, 1, 16),
-(63, '\"object\"', 1, 2, 16),
-(64, '\"boolean\"', 0, 3, 16),
-(65, 'true', 0, 0, 17),
-(66, 'false', 1, 1, 17),
-(67, 'undefined', 0, 2, 17),
-(68, 'TypeError', 0, 3, 17),
 (117, '1', 1, 0, 30),
 (118, '2', 0, 1, 30),
 (119, '3', 1, 2, 30),
@@ -630,31 +551,7 @@ INSERT INTO `exerciseanswer` (`id`, `answer_text`, `is_correct`, `display_order`
 (125, '1', 1, 0, 32),
 (126, '3', 0, 1, 32),
 (127, '-3', 1, 2, 32),
-(128, '2', 0, 3, 32),
-(129, '1', 1, 0, 33),
-(130, '2', 0, 1, 33),
-(131, '3', 0, 2, 33),
-(132, '4', 0, 3, 33),
-(133, '2', 0, 0, 34),
-(134, '4', 0, 1, 34),
-(135, '16', 1, 2, 34),
-(136, '32', 0, 3, 34),
-(137, '1', 0, 0, 35),
-(138, '-1', 1, 1, 35),
-(139, '5', 0, 2, 35),
-(140, '4', 0, 3, 35),
-(141, '0', 0, 0, 36),
-(142, '2', 1, 1, 36),
-(143, '1', 0, 2, 36),
-(144, '4', 0, 3, 36),
-(145, '33', 1, 0, 37),
-(146, '30', 0, 1, 37),
-(147, '66', 0, 2, 37),
-(148, '3', 0, 3, 37),
-(149, 'infinite', 1, 0, 38),
-(150, '0', 0, 1, 38),
-(151, '5', 0, 2, 38),
-(152, '1', 0, 3, 38);
+(128, '2', 0, 3, 32);
 
 -- --------------------------------------------------------
 
@@ -672,7 +569,7 @@ CREATE TABLE IF NOT EXISTS `exercisequestion` (
   `display_order` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `exercise_id` (`exercise_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exercisequestion`
@@ -690,21 +587,9 @@ INSERT INTO `exercisequestion` (`id`, `question_text`, `explanation`, `weight`, 
 (9, 'A table with columns (Order_ID, Product_ID, Product_Name) violates which Normal Form?', 'Refer to class material for more details.', 1, 2, 3),
 (10, 'What SQL keyword is used to ensure all rows from exactly one table are returned even if there are no matches in the related table?', 'Refer to class material for more details.', 1, 2, 4),
 (11, 'Which of these violates 1NF?', 'Refer to class material for more details.', 1, 2, 5),
-(12, 'Which keyword allows you to declare a block-level scoped variable?', 'Refer to class material for more details.', 1, 3, 0),
-(13, 'What mechanism allows a function to remember the environment in which it was created?', 'Refer to class material for more details.', 1, 3, 1),
-(14, 'The Event Loop works by pulling tasks from the Callback Queue and pushing them to:', 'Refer to class material for more details.', 1, 3, 2),
-(15, 'Which function is used to handle a Promise rejection?', 'Refer to class material for more details.', 1, 3, 3),
-(16, 'What does \"typeof null\" return in JavaScript?', 'Refer to class material for more details.', 1, 3, 4),
-(17, 'What will `[1] == [1]` evaluate to?', 'Refer to class material for more details.', 1, 3, 5),
 (30, '1 + 2', '1 + 2 = 3', 1, 6, 0),
 (31, '2*8', '2*8 = 16', 1, 6, 1),
-(32, '2 - 5', '2 - 5 = -3', 2, 6, 2),
-(33, '1 + 2', '3', 1, 7, 0),
-(34, '2 * 8', '16', 1, 7, 1),
-(35, '2 - 3', '-1', 1, 7, 2),
-(36, '2 / 1', '2 / 1 = 2', 1, 8, 0),
-(37, '5*6+3', '5*6 + 3 = 30 + 3\n			 = 33', 2, 8, 1),
-(38, '5/0', '5 / 0 = infinite', 1, 8, 2);
+(32, '2 - 5', '2 - 5 = -3', 2, 6, 2);
 
 -- --------------------------------------------------------
 
@@ -719,7 +604,7 @@ CREATE TABLE IF NOT EXISTS `exercises` (
   `title` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `creator_id` int NOT NULL,
-  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `status` enum('pending','approved','rejected','draft') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'pending',
   `feedback` text,
   `reviewed_by` int DEFAULT NULL,
   `description` text,
@@ -728,7 +613,7 @@ CREATE TABLE IF NOT EXISTS `exercises` (
   KEY `subject_id` (`subject_id`),
   KEY `creator_id` (`creator_id`),
   KEY `reviewed_by` (`reviewed_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `exercises`
@@ -737,10 +622,7 @@ CREATE TABLE IF NOT EXISTS `exercises` (
 INSERT INTO `exercises` (`id`, `subject_id`, `title`, `created_at`, `creator_id`, `status`, `feedback`, `reviewed_by`, `description`, `updated_at`) VALUES
 (1, 1, 'Introduction to Algorithm Efficiency', '2026-04-12 05:17:13', 101, 'approved', NULL, NULL, 'A fundamental test evaluating your understanding of Big O notation and time complexity.', '2026-04-12 05:17:13'),
 (2, 1, 'Advanced Database Normalization', '2026-04-12 05:17:13', 101, 'approved', NULL, NULL, 'Test your understanding of logical database design, foreign keys, and normal forms.', '2026-04-12 05:17:13'),
-(3, 1, 'JavaScript Core Principles', '2026-04-12 05:17:13', 91, 'approved', NULL, NULL, 'Test your knowledge on modern JavaScript concepts like closures, promises, and the event loop.', '2026-04-12 05:17:13'),
-(6, 1, 'Simple Math test', '2026-04-18 01:38:13', 102, 'pending', NULL, NULL, 'an simple math test about basic operations', '2026-04-18 01:38:13'),
-(7, 6, 'simple Math test', '2026-04-18 01:41:11', 91, 'approved', NULL, 102, 'an simple test in basic maths', '2026-04-18 01:41:42'),
-(8, 1, 'Simple Math Test 2', '2026-04-18 02:57:01', 91, 'approved', 'improve a little bit', 102, 'simple math test', '2026-04-18 02:58:46');
+(6, 1, 'Simple Math test', '2026-04-18 01:38:13', 102, 'pending', NULL, NULL, 'an simple math test about basic operations', '2026-04-18 01:38:13');
 
 -- --------------------------------------------------------
 
@@ -761,12 +643,7 @@ CREATE TABLE IF NOT EXISTS `exercisetag` (
 --
 
 INSERT INTO `exercisetag` (`exercise_id`, `tag_id`) VALUES
-(8, 25),
-(6, 64),
-(7, 65),
-(8, 65),
-(7, 66),
-(8, 66);
+(6, 64);
 
 -- --------------------------------------------------------
 
@@ -794,9 +671,7 @@ CREATE TABLE IF NOT EXISTS `exercise_attempt` (
 INSERT INTO `exercise_attempt` (`id`, `exe_id`, `date`, `u_id`, `score`, `latest`) VALUES
 (1, 1, '2026-04-09 05:17:13', 102, 80.00, 1),
 (3, 1, '2026-04-07 05:17:13', 101, 100.00, 1),
-(4, 1, '2026-03-24 05:17:13', 91, 60.00, 1),
 (5, 1, '2026-03-25 05:17:13', 102, 80.00, 1),
-(6, 1, '2026-04-10 05:17:14', 91, 60.00, 1),
 (8, 1, '2026-03-28 05:17:14', 97, 80.00, 1),
 (9, 1, '2026-03-25 05:17:14', 101, 80.00, 1),
 (11, 2, '2026-03-15 05:17:14', 101, 83.33, 1),
@@ -804,20 +679,7 @@ INSERT INTO `exercise_attempt` (`id`, `exe_id`, `date`, `u_id`, `score`, `latest
 (14, 2, '2026-03-20 05:17:14', 101, 100.00, 1),
 (17, 2, '2026-03-20 05:17:14', 101, 83.33, 1),
 (18, 2, '2026-03-26 05:17:14', 101, 66.67, 1),
-(19, 2, '2026-03-27 05:17:14', 102, 83.33, 1),
-(20, 2, '2026-03-20 05:17:14', 91, 83.33, 1),
-(21, 3, '2026-04-10 05:17:14', 101, 66.67, 1),
-(22, 3, '2026-03-20 05:17:14', 101, 66.67, 1),
-(23, 3, '2026-04-02 05:17:14', 101, 83.33, 1),
-(24, 3, '2026-03-24 05:17:14', 97, 83.33, 1),
-(25, 3, '2026-03-26 05:17:14', 97, 100.00, 1),
-(26, 3, '2026-03-30 05:17:14', 91, 66.67, 1),
-(27, 3, '2026-03-16 05:17:14', 101, 100.00, 1),
-(28, 3, '2026-03-13 05:17:14', 97, 100.00, 1),
-(30, 3, '2026-03-17 05:17:14', 97, 100.00, 1),
-(53, 7, '2026-04-18 01:42:19', 106, 2.00, 1),
-(54, 3, '2026-04-18 02:18:05', 106, 4.00, 1),
-(58, 8, '2026-04-18 03:07:44', 106, 4.00, 1);
+(19, 2, '2026-03-27 05:17:14', 102, 83.33, 1);
 
 -- --------------------------------------------------------
 
@@ -846,25 +708,29 @@ CREATE TABLE IF NOT EXISTS `exercise_summary` (
 
 DROP TABLE IF EXISTS `experts`;
 CREATE TABLE IF NOT EXISTS `experts` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
-  `subject_id` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `subject_id` int DEFAULT NULL,
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `experts`
 --
 
-INSERT INTO `experts` (`user_id`, `subject_id`) VALUES
-(3, 1),
-(3, 4),
-(102, 6),
-(105, 9),
-(102, 10),
-(94, 8),
-(94, 6),
-(94, 11),
-(94, 2),
-(102, 1);
+INSERT INTO `experts` (`id`, `user_id`, `subject_id`) VALUES
+(1, 3, 1),
+(2, 3, 4),
+(3, 102, 6),
+(4, 105, 9),
+(5, 102, 10),
+(6, 94, 8),
+(7, 94, 6),
+(8, 94, 11),
+(9, 94, 2),
+(10, 102, 1),
+(12, 40, 8),
+(13, 40, 11);
 
 -- --------------------------------------------------------
 
@@ -885,7 +751,7 @@ CREATE TABLE IF NOT EXISTS `notes` (
   PRIMARY KEY (`id`),
   KEY `owner_id` (`owner_id`),
   KEY `fk_note_topic` (`topic_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notes`
@@ -897,11 +763,6 @@ INSERT INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_
 (3, 'Gradient Descent', 'An optimization algorithm used to minimize loss functions...', 2, 5, '2025-10-18 03:51:38', '2025-10-18 03:51:38', 0),
 (4, 'Bias vs Variance', 'Bias is systematic error; variance is sensitivity to data...', 2, 5, '2025-10-18 03:51:38', '2025-10-18 03:51:38', 0),
 (6, 'Relativity Overview', 'Einstein’s relativity redefined space and time...', 4, 40, '2025-10-18 03:51:38', '2025-10-18 03:51:38', 0),
-(13, 't', 's', NULL, 91, '2025-10-21 12:31:01', '2025-10-21 12:31:01', 0),
-(14, 'title', 'contente', NULL, 91, '2025-10-21 12:43:00', '2025-10-21 12:43:00', 0),
-(16, 'tvbygbybhuun', 'ygbnu', NULL, 91, '2025-10-22 14:23:57', '2025-10-22 14:23:57', 0),
-(20, 'oefkv', 'wd.vwkh', NULL, 91, '2025-10-23 09:43:49', '2025-10-23 09:43:49', 0),
-(21, 'title', 'content', NULL, 91, '2025-10-23 09:56:20', '2025-10-23 09:56:20', 0),
 (28, 'title', 'content', NULL, 94, '2025-10-23 11:16:45', '2025-10-23 11:16:45', 0),
 (29, 'a', 'c', NULL, 94, '2025-10-23 11:17:30', '2025-10-23 11:17:30', 0),
 (31, 'title', 'content', NULL, 94, '2025-10-23 13:33:03', '2025-10-23 13:33:03', 0),
@@ -923,7 +784,8 @@ INSERT INTO `notes` (`id`, `title`, `content`, `topic_id`, `owner_id`, `created_
 (51, 'science', '{\"ops\":[{\"insert\":\"science \"},{\"attributes\":{\"bold\":true},\"insert\":\"science\"},{\"insert\":\"\\n\"}]}', 36, 102, '2026-04-17 13:02:26', '2026-04-18 06:20:49', 0),
 (52, 'new_test_note', '{\"ops\":[{\"insert\":\"content\\n\"}]}', 9, 102, '2026-04-17 16:29:27', '2026-04-17 16:29:27', 0),
 (53, 'test_science_note', '{\"ops\":[{\"insert\":\"content\\n\"}]}', 36, 102, '2026-04-17 16:30:21', '2026-04-17 16:30:21', 0),
-(55, 'what is electronics', '{\"ops\":[{\"insert\":\"simple note on electronics\\n\"}]}', 43, 91, '2026-04-18 06:51:11', '2026-04-18 06:51:11', 0);
+(56, 'Sans', '{\"ops\":[{\"insert\":\"1234\\n\"}]}', 45, 102, '2026-04-18 10:06:08', '2026-04-18 10:09:25', 0),
+(59, 'intro to astrology', '{\"ops\":[{\"insert\":\"sample note\\n\"}]}', 46, 102, '2026-04-18 18:26:07', '2026-04-18 22:09:35', 0);
 
 -- --------------------------------------------------------
 
@@ -969,7 +831,8 @@ INSERT INTO `note_shares` (`note_id`, `user_id`) VALUES
 (4, 2),
 (1, 5),
 (3, 102),
-(51, 102);
+(51, 102),
+(53, 106);
 
 -- --------------------------------------------------------
 
@@ -994,27 +857,16 @@ INSERT INTO `note_tags` (`note_id`, `tag_id`) VALUES
 (2, 2),
 (3, 3),
 (4, 6),
-(13, 9),
-(14, 9),
-(20, 9),
 (34, 9),
 (41, 9),
 (51, 9),
 (52, 9),
 (53, 9),
-(55, 9),
+(56, 9),
 (6, 10),
 (28, 17),
 (29, 17),
-(16, 18),
-(13, 25),
-(16, 25),
 (39, 25),
-(55, 25),
-(13, 28),
-(14, 28),
-(21, 36),
-(21, 37),
 (31, 37),
 (33, 37),
 (31, 47),
@@ -1031,6 +883,7 @@ INSERT INTO `note_tags` (`note_id`, `tag_id`) VALUES
 (48, 51),
 (52, 51),
 (53, 51),
+(59, 51),
 (35, 52),
 (39, 52),
 (42, 52),
@@ -1055,7 +908,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `notifications`
@@ -1153,7 +1006,26 @@ INSERT INTO `notifications` (`id`, `sender_id`, `receiver_id`, `content`, `is_re
 (89, 97, 94, 'Your user role has been changed to expert.', 0, '2026-04-17 23:31:39'),
 (90, 97, 102, 'Your expert request has been approved. You can now access expert features on our platform.', 0, '2026-04-17 23:36:59'),
 (91, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 00:44:44'),
-(92, 102, 91, 'Your exercise #8 received feedback: improve a little bit', 0, '2026-04-18 02:57:35');
+(92, 102, 91, 'Your exercise #8 received feedback: improve a little bit', 0, '2026-04-18 02:57:35'),
+(93, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 05:05:48'),
+(94, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 11:38:09'),
+(95, 97, 102, 'Your expert request has been approved. You can now access expert features on our platform.', 0, '2026-04-18 11:52:38'),
+(96, 97, 40, 'Your user role has been changed to mentor.', 0, '2026-04-18 12:02:25'),
+(97, 97, 40, 'Your user role has been changed to expert.', 0, '2026-04-18 12:03:31'),
+(98, 97, 40, 'Your user role has been changed to student.', 0, '2026-04-18 12:04:16'),
+(99, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 12:14:30'),
+(100, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 14:13:26'),
+(101, 0, 91, 'You have successfully logged in.', 0, '2026-04-18 14:33:35'),
+(102, 0, 91, 'Your password has been reset successfully!', 0, '2026-04-18 14:35:54'),
+(103, 0, 91, 'Your password has been reset successfully!', 0, '2026-04-18 14:37:22'),
+(104, 0, 107, 'You have successfully logged in.', 0, '2026-04-18 15:09:00'),
+(105, 0, 107, 'You have successfully logged in.', 0, '2026-04-18 21:16:10'),
+(106, 0, 108, 'You have successfully logged in.', 0, '2026-04-18 21:32:54'),
+(107, 0, 108, 'You have successfully logged in.', 0, '2026-04-18 21:37:17'),
+(108, 0, 109, 'You have successfully logged in.', 0, '2026-04-18 21:43:36'),
+(109, 0, 109, 'You have successfully logged in.', 0, '2026-04-18 21:44:47'),
+(110, 0, 102, 'You have successfully logged in.', 0, '2026-04-18 22:04:21'),
+(111, 97, 102, 'Your expert request has been approved. You can now access expert features on our platform.', 0, '2026-04-18 22:08:19');
 
 -- --------------------------------------------------------
 
@@ -1172,7 +1044,7 @@ CREATE TABLE IF NOT EXISTS `otp_codes` (
   `expires_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=265 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=289 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `otp_codes`
@@ -1442,7 +1314,31 @@ INSERT INTO `otp_codes` (`id`, `username`, `email`, `code`, `type`, `is_used`, `
 (261, 'samitha', 'Samithanawarathna528@gmail.com', '932665', 'login', 0, '2026-04-17 23:17:05', '2026-04-18 04:42:10'),
 (262, 'student_test', 'animelearnin528@gmail.com', '649682', 'login', 0, '2026-04-18 00:48:59', '2026-04-18 06:14:07'),
 (263, 'student_test_final', 'methmalinavodya@gmail.com', '943616', 'login', 0, '2026-04-18 00:50:24', '2026-04-18 06:15:28'),
-(264, 'student_test', 'samithanawarathna322@gmail.com', '875565', 'registration', 0, '2026-04-18 00:53:38', '2026-04-18 06:18:43');
+(264, 'student_test', 'samithanawarathna322@gmail.com', '875565', 'registration', 0, '2026-04-18 00:53:38', '2026-04-18 06:18:43'),
+(265, 'mentor_test', 'animelearnin528@gmail.com', '962382', 'login', 0, '2026-04-18 05:10:16', '2026-04-18 10:35:24'),
+(266, 'mentor_test', 'animelearnin528@gmail.com', '539064', 'login', 0, '2026-04-18 11:41:40', '2026-04-18 17:06:48'),
+(267, 'mentor_test', 'animelearnin528@gmail.com', '616649', 'login', 0, '2026-04-18 12:16:19', '2026-04-18 17:41:28'),
+(268, 'mentor_test', 'animelearnin528@gmail.com', '817344', 'login', 0, '2026-04-18 12:19:08', '2026-04-18 17:44:14'),
+(269, 'mentor_test', 'animelearnin528@gmail.com', '130683', 'login', 0, '2026-04-18 14:17:23', '2026-04-18 19:42:35'),
+(270, 'test', 'samithanawarathna444@gmail.com', '271358', 'registration', 0, '2026-04-18 14:24:56', '2026-04-18 19:50:04'),
+(271, 'mentor_test', 'animelearnin528@gmail.com', '788885', 'login', 0, '2026-04-18 14:38:08', '2026-04-18 20:03:16'),
+(272, 'mentor_test', 'animelearnin528@gmail.com', '953867', 'forgot_password', 0, '2026-04-18 14:39:46', '2026-04-18 20:04:52'),
+(273, 'mentor_test', 'animelearnin528@gmail.com', '883166', 'forgot_password', 0, '2026-04-18 14:41:34', '2026-04-18 20:06:39'),
+(274, 'mentor_test', 'animelearnin528@gmail.com', '818188', 'accountverification', 0, '2026-04-18 14:50:51', '2026-04-18 20:16:00'),
+(275, 'mentor_test', 'animelearnin528@gmail.com', '220215', 'registration', 0, '2026-04-18 14:53:47', '2026-04-18 20:18:52'),
+(276, 'mentor_test', 'animelearnin528@gmail.com', '730928', 'login', 0, '2026-04-18 15:13:34', '2026-04-18 20:38:41'),
+(277, 'mentor_test', 'animelearnin528@gmail.com', '973107', 'forgot_password', 0, '2026-04-18 15:15:31', '2026-04-18 20:40:37'),
+(278, 'mentor_test', 'animelearnin528@gmail.com', '967663', 'login', 0, '2026-04-18 21:20:26', '2026-04-19 02:45:32'),
+(279, 'mentor_test', 'animelearnin528@gmail.com', '813794', 'registration', 0, '2026-04-18 21:22:10', '2026-04-19 02:47:15'),
+(280, 'mentor_test', 'animelearnin528@gmail.com', '297035', 'login', 0, '2026-04-18 21:37:26', '2026-04-19 03:02:31'),
+(281, 'mentor_test', 'animelearnin528@gmail.com', '198498', 'login', 0, '2026-04-18 21:41:52', '2026-04-19 03:06:57'),
+(282, 'mentor_test', 'animelearnin528@gmail.com', '665614', 'accountverification', 0, '2026-04-18 21:42:29', '2026-04-19 03:07:34'),
+(283, 'mentor_test', 'animelearnin528@gmail.com', '422143', 'accountverification', 0, '2026-04-18 21:44:53', '2026-04-19 03:09:58'),
+(284, 'mentor_test', 'animelearnin528@gmail.com', '256203', 'accountverification', 0, '2026-04-18 21:45:11', '2026-04-19 03:10:17'),
+(285, 'mentor_test', 'animelearnin528@gmail.com', '707796', 'registration', 0, '2026-04-18 21:46:12', '2026-04-19 03:11:20'),
+(286, 'mentor_test', 'animelearnin528@gmail.com', '238863', 'login', 0, '2026-04-18 21:48:18', '2026-04-19 03:13:23'),
+(287, 'mentor_test', 'animelearnin528@gmail.com', '113389', 'login', 0, '2026-04-18 21:49:22', '2026-04-19 03:14:27'),
+(288, 'samitha', 'Samithanawarathna528@gmail.com', '410701', 'login', 0, '2026-04-18 22:08:55', '2026-04-19 03:34:00');
 
 -- --------------------------------------------------------
 
@@ -1479,7 +1375,7 @@ CREATE TABLE IF NOT EXISTS `question` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_question_creator` (`creator_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `question`
@@ -1487,9 +1383,9 @@ CREATE TABLE IF NOT EXISTS `question` (
 
 INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `created_at`) VALUES
 (1, 'How do I resolve \"CORS policy\" error in React and Node.js?', '{\"ops\":[{\"insert\":\"I am trying to make a fetch request from my React app on localhost:3000 to my Express backend on localhost:5000, but I keep getting a CORS policy blocked error. How do I fix this?\\n\"}]}', 101, 0, '2026-03-26 06:25:57'),
-(2, 'What is the exact difference between useEffect and useLayoutEffect in React?', '{\"ops\":[{\"insert\":\"I have read the docs but I\'m still confused. When should I strictly use useLayoutEffect over useEffect, and what performance costs does it carry?\\n\"}]}', 91, 0, '2026-03-14 06:25:57'),
+(2, 'What is the exact difference between useEffect and useLayoutEffect in React?', '{\"ops\":[{\"insert\":\"I have read the docs but I\'m still confused. When should I strictly use useLayoutEffect over useEffect, and what performance costs does it carry?\\n\"}]}', NULL, 0, '2026-03-14 06:25:57'),
 (3, 'Git: How do I undo my last commit without losing the code changes?', '{\"ops\":[{\"insert\":\"I accidentally committed some WIP files. I want to undo the commit, but keep the files in my working directory so I can edit them. What\'s the command?\\n\"}]}', 101, 0, '2026-03-23 06:25:57'),
-(4, 'Why does 0.1 + 0.2 equal 0.30000000000000004 in JavaScript?', '{\"ops\":[{\"insert\":\"I was building a shopping cart calculator and noticed floating point math in JS is completely broken. Why does this happen and how do I fix it?\\n\"}]}', 91, 0, '2026-03-29 06:25:57'),
+(4, 'Why does 0.1 + 0.2 equal 0.30000000000000004 in JavaScript?', '{\"ops\":[{\"insert\":\"I was building a shopping cart calculator and noticed floating point math in JS is completely broken. Why does this happen and how do I fix it?\\n\"}]}', NULL, 0, '2026-03-29 06:25:57'),
 (5, 'How to center a div horizontally and vertically using CSS?', '{\"ops\":[{\"insert\":\"This keeps coming up in interviews. What are the modern, standard ways to center a div completely within its parent?\\n\"}]}', 97, 0, '2026-03-14 06:25:57'),
 (6, 'Difference between JOIN and LEFT JOIN in SQL?', '{\"ops\":[{\"insert\":\"I am learning MySQL and writing queries. Is INNER JOIN exactly the same as JOIN? When must I use LEFT JOIN?\\n\"}]}', 102, 0, '2026-03-28 06:25:57'),
 (7, 'How to pass environmental variables to a Docker container?', '{\"ops\":[{\"insert\":\"I have a Node app inside a Docker container, but I need to pass my DB_PASSWORD to it dynamically without hardcoding it in the Dockerfile.\\n\"}]}', NULL, 0, '2026-03-20 06:25:57'),
@@ -1497,20 +1393,23 @@ INSERT INTO `question` (`id`, `title`, `content`, `creator_id`, `is_deleted`, `c
 (9, 'How to deal with \"detached head\" state in Git?', '{\"ops\":[{\"insert\":\"I checked out an old commit to look at it, and now git says I\'m in a \'detached HEAD\' state. How do I get back, and can I save changes made here?\\n\"}]}', 101, 0, '2026-03-31 06:25:57'),
 (10, 'What is the best way to copy an array in JS without modifying the original?', '{\"ops\":[{\"insert\":\"If I do `let newArr = oldArr`, modifying `newArr` also mutates `oldArr`. What is the clean ES6 way to clone it?\\n\"}]}', 102, 0, '2026-03-16 06:25:57'),
 (11, 'Python: List comprehension syntax explanation', '{\"ops\":[{\"insert\":\"I see list comprehensions all the time like `[x for x in list if x > 2]`. Are they actually faster than normal for-loops?\\n\"}]}', 101, 0, '2026-03-27 06:25:57'),
-(12, 'What exactly is a \"Promise\" in programming?', '{\"ops\":[{\"insert\":\"I understand callbacks, but the jump to Promises is confusing. What exactly is a Promise abstractly?\\n\"}]}', 91, 0, '2026-03-16 06:25:57'),
+(12, 'What exactly is a \"Promise\" in programming?', '{\"ops\":[{\"insert\":\"I understand callbacks, but the jump to Promises is confusing. What exactly is a Promise abstractly?\\n\"}]}', NULL, 0, '2026-03-16 06:25:57'),
 (13, 'PostgreSQL vs MySQL: Which one should I choose for a new startup?', '{\"ops\":[{\"insert\":\"We are evaluating relational DBs. I am used to MySQL but hear incredible things about Postgres features. What\'s the main difference?\\n\"}]}', 97, 0, '2026-03-30 06:25:57'),
-(14, 'How to optimize images for Web Core Vitals?', '{\"ops\":[{\"insert\":\"My LCP (Largest Contentful Paint) is being ruined by banner images on my site. How do I properly optimize them?\\n\"}]}', 91, 0, '2026-03-19 06:25:57'),
+(14, 'How to optimize images for Web Core Vitals?', '{\"ops\":[{\"insert\":\"My LCP (Largest Contentful Paint) is being ruined by banner images on my site. How do I properly optimize them?\\n\"}]}', NULL, 0, '2026-03-19 06:25:57'),
 (15, 'What is the purpose of Docker volumes?', '{\"ops\":[{\"insert\":\"Docker containers are ephemeral, meaning data is lost when they are stopped. Is a volume just a mapped folder?\\n\"}]}', 97, 0, '2026-03-27 06:25:57'),
-(16, 'How do JWTs (JSON Web Tokens) prevent tampering?', '{\"ops\":[{\"insert\":\"I can decode a JWT payload easily on jwt.io. If they are readable, how is it secure for authentication?\\n\"}]}', 91, 0, '2026-03-22 06:25:57'),
+(16, 'How do JWTs (JSON Web Tokens) prevent tampering?', '{\"ops\":[{\"insert\":\"I can decode a JWT payload easily on jwt.io. If they are readable, how is it secure for authentication?\\n\"}]}', NULL, 0, '2026-03-22 06:25:57'),
 (17, 'Why shouldn\'t I store JWTs in local storage?', '{\"ops\":[{\"insert\":\"I build React apps and always store JWTs in `localStorage`. I just read an article saying this is a critical vulnerability.\\n\"}]}', NULL, 0, '2026-03-24 06:25:57'),
-(18, 'How to merge objects in JavaScript?', '{\"ops\":[{\"insert\":\"I have two objects, `{a:1}` and `{b:2, a:3}`. How do I merge them and handle key collisions natively?\\n\"}]}', 91, 0, '2026-03-14 06:25:57'),
+(18, 'How to merge objects in JavaScript?', '{\"ops\":[{\"insert\":\"I have two objects, `{a:1}` and `{b:2, a:3}`. How do I merge them and handle key collisions natively?\\n\"}]}', NULL, 0, '2026-03-14 06:25:57'),
 (19, 'Understanding big O time complexity locally', '{\"ops\":[{\"insert\":\"Why is fetching an item from a Hash Map considered O(1) natively if there can be hash collisions?\\n\"}]}', 101, 0, '2026-03-21 06:25:57'),
 (20, 'Is TypeScript honestly worth the boilerplate?', '{\"ops\":[{\"insert\":\"I\'m starting a new 6-month project. Does TypeScript actually save time natively, or does fixing types eat up more hours?\\n\"}]}', 101, 0, '2026-03-26 06:25:57'),
 (33, 'explain the block chain technology?', 'can someone explain me what is block chain means and how it works?', 102, 0, '2026-04-17 19:33:08'),
 (34, 'what is electronics?', '{\"ops\":[{\"insert\":\"give me simple explaination on electronics edited\\n\"}]}', 102, 0, '2026-04-17 19:57:57'),
 (38, 'explain how Microservice architecture works', 'I need an simple explanation on MSA', 102, 0, '2026-04-17 20:51:08'),
 (39, 'what is calculus', 'explain calculus in simple terms', 102, 0, '2026-04-17 20:55:05'),
-(40, 'test_question', '{\"ops\":[{\"insert\":\"test_content content\\n\"}]}', 102, 0, '2026-04-17 20:57:23');
+(40, 'test_question', '{\"ops\":[{\"insert\":\"test_content content\\n\"}]}', 102, 0, '2026-04-17 20:57:23'),
+(41, 'test_question_2', 'question content', 102, 0, '2026-04-18 07:41:41'),
+(42, 'test_question_2', 'question content', 102, 0, '2026-04-18 07:41:57'),
+(44, 'explain astronomy', '{\"ops\":[{\"insert\":\"give a simple explanation on astronomy edited\\n\"}]}', 102, 0, '2026-04-18 07:45:10');
 
 -- --------------------------------------------------------
 
@@ -1532,16 +1431,22 @@ CREATE TABLE IF NOT EXISTS `questiontag` (
 
 INSERT INTO `questiontag` (`question_id`, `tag_id`) VALUES
 (34, 18),
+(44, 18),
 (33, 57),
 (33, 60),
 (33, 61),
 (33, 62),
 (34, 63),
 (40, 65),
+(41, 65),
+(42, 65),
 (40, 66),
+(41, 66),
+(42, 66),
 (38, 67),
 (38, 68),
-(38, 69);
+(38, 69),
+(44, 71);
 
 -- --------------------------------------------------------
 
@@ -1561,7 +1466,7 @@ CREATE TABLE IF NOT EXISTS `request` (
   `feedback` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `request`
@@ -1632,7 +1537,9 @@ INSERT INTO `request` (`id`, `user_id`, `time`, `subject`, `description`, `proof
 (73, 102, '2026-01-28 00:27:53', 'A', 'sub', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_697958097c4b3/CV.pdf', 'pending', NULL),
 (74, 102, '2026-02-19 06:27:56', 'psychology', 'des', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_6996ad6c3371b/CV.pdf', 'approved', NULL),
 (75, 105, '2026-04-06 08:57:53', 'sci', 'desc', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/105/req_69d3759114698/CV.pdf', 'approved', NULL),
-(76, 102, '2026-04-17 23:36:43', 'Mathematics', 'description for become an expert in maths', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_69e2c40b1aaf4/CV.pdf', 'approved', NULL);
+(76, 102, '2026-04-17 23:36:43', 'Mathematics', 'description for become an expert in maths', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_69e2c40b1aaf4/CV.pdf', 'approved', NULL),
+(78, 102, '2026-04-18 11:50:05', 'Computer Science', 'simple description', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_69e36fed912f7/CV.pdf', 'approved', NULL),
+(79, 102, '2026-04-18 22:07:37', 'Art History', 'description', 'C:\\wamp64\\www\\Openminds\\app\\controllers/../../private/uploads/requests/102/req_69e400a90332c/CV.pdf', 'approved', NULL);
 
 -- --------------------------------------------------------
 
@@ -1699,7 +1606,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tags`
@@ -1710,6 +1617,8 @@ INSERT INTO `tags` (`id`, `name`) VALUES
 (55, '22\\'),
 (21, '4'),
 (68, 'architecture patterns'),
+(70, 'astrology'),
+(71, 'astronomy'),
 (64, 'beginner'),
 (48, 'biology'),
 (57, 'blockchain'),
@@ -1789,7 +1698,7 @@ CREATE TABLE IF NOT EXISTS `topics` (
   `creator_id` int NOT NULL,
   `pinned` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if the topic is pinned, 0 otherwise',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `topics`
@@ -1838,7 +1747,10 @@ INSERT INTO `topics` (`id`, `name`, `creator_id`, `pinned`) VALUES
 (40, 'theology554', 102, 0),
 (41, 'thology666', 102, 0),
 (42, 'theology789', 102, 0),
-(43, 'electronics | physics', 91, 0);
+(43, 'electronics | physics', 91, 0),
+(44, 'test 1', 102, 0),
+(45, 'Qbit', 102, 0),
+(46, 'astrology', 102, 0);
 
 -- --------------------------------------------------------
 
@@ -1864,7 +1776,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `user`
@@ -1926,13 +1838,13 @@ INSERT INTO `user` (`id`, `username`, `password`, `email`, `role`, `created_at`,
 (87, 'user48', 'pw48', 'user48@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'William Sanders', 0.000000, NULL),
 (88, 'user49', 'pw49', 'user49@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'Layla Ramirez', 0.000000, NULL),
 (89, 'user50', 'pw50', 'user50@example.com', 1, '2025-08-19 10:56:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'James Foster', 0.000000, NULL),
-(91, 'mentor_test', '$2y$10$4mbTnYhM0RpIJelv1iB3IurJTtlvXlpaQIi0f6hlz6u4Vu.1LCu/a', 'animelearnin528@gmail.com', 2, '2025-10-21 00:22:59', 0, NULL, 0, './uploads/91/profile.jpg', 'mentor_test', 2.193296, NULL),
 (94, 'student_test_final', '$2y$10$u.qOVCjZQ7UFH58IQAg7ye9NWQnlYDuB0l4/WD9OxSVP.C46bZv0.', 'methmalinavodya@gmail.com', 3, '2025-10-23 05:11:35', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'student_test', 0.000000, NULL),
 (97, 'admin_test', '$2y$10$hqg7slA4gMGqSlt52fdAwuk0BoynbQ2UO6GBOO8UE5KUWdepIJ.q6', '2023cs120@stu.ucsc.cmb.ac.lk', 4, '2025-10-23 07:02:47', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'admin_test', 0.800000, NULL),
-(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3', 0.000000, NULL),
-(102, 'samitha', '$2y$10$1XKiy.VDFo.dOA9WRUEfmucJi5Spt4JkxnERrRPMfgayY08SRQeqm', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 3.991321, 'reason for ban is added'),
+(101, 'admin_test2', '$2y$10$1aWXMpvq0/WjSn3fwrsbHOzyFQHZbt01YQN41MXRe4GwuOldZBmE2', 'samithanawarathna@gmail.com', 3, '2025-11-14 07:08:02', 0, NULL, 0, './uploads/101/profile.jpg', 'admin_test3', 0.230420, NULL),
+(102, 'samitha', '$2y$10$1XKiy.VDFo.dOA9WRUEfmucJi5Spt4JkxnERrRPMfgayY08SRQeqm', 'samithanawarathna528@gmail.com', 3, '2025-11-25 07:59:00', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha', 5.569224, 'reason for ban is added'),
 (103, 'samitha2', '$2y$10$WB3LwrkyincnJO/do15tQuph4uACw2RsaWn10lI3idK4i8O7rWn86', 'eva2@example.com', 1, '2026-01-23 04:38:07', 0, NULL, 0, '\\uploads\\\\0\\profile.avif', 'samitha2', 0.994072, NULL),
-(106, 'student_test', '$2y$10$chzRkV9DWoyPHM6lMA6mouV8QHr.1dfVlz90eJfV9ybmjgsyP4zIG', 'samithanawarathna322@gmail.com', 1, '2026-04-18 00:49:14', 0, NULL, 0, './uploads/106/profile.jpg', 'student_test', 1.200000, NULL);
+(106, 'student_test', '$2y$10$chzRkV9DWoyPHM6lMA6mouV8QHr.1dfVlz90eJfV9ybmjgsyP4zIG', 'samithanawarathna322@gmail.com', 1, '2026-04-18 00:49:14', 0, NULL, 0, './uploads/106/profile.jpg', 'student_test', 1.200000, NULL),
+(109, 'mentor_test', '$2y$10$E0b4U9avjCj1.r4fzAsX6Orq51c45Y2cgUrIOxTByrYKVb42oO9VS', 'animelearnin528@gmail.com', 1, '2026-04-18 21:41:35', 0, NULL, 0, './uploads/109/profile.', 'mentor_test', 0.000000, NULL);
 
 -- --------------------------------------------------------
 
@@ -1949,7 +1861,7 @@ CREATE TABLE IF NOT EXISTS `uservoteanswer` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`a_id`,`u_id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `uservoteanswer`
@@ -1966,6 +1878,7 @@ INSERT INTO `uservoteanswer` (`id`, `a_id`, `u_id`, `votetype`, `created_at`) VA
 (8, 9, 102, 'upvote', '2026-04-12 06:25:57'),
 (9, 9, 105, 'upvote', '2026-04-12 06:25:57'),
 (10, 12, 91, 'upvote', '2026-04-12 06:25:57'),
+(69, 12, 102, 'downvote', '2026-04-18 09:52:20'),
 (11, 13, 97, 'upvote', '2026-04-12 06:25:57'),
 (12, 13, 102, 'upvote', '2026-04-12 06:25:57'),
 (13, 14, 101, 'upvote', '2026-04-12 06:25:57'),
@@ -2019,7 +1932,8 @@ INSERT INTO `uservoteanswer` (`id`, `a_id`, `u_id`, `votetype`, `created_at`) VA
 (63, 72, 102, 'upvote', '2026-04-18 02:15:18'),
 (64, 73, 91, 'upvote', '2026-04-18 02:15:46'),
 (65, 75, 102, 'upvote', '2026-04-18 02:22:09'),
-(68, 75, 106, 'upvote', '2026-04-18 02:22:30');
+(68, 75, 106, 'upvote', '2026-04-18 02:22:30'),
+(70, 76, 102, 'upvote', '2026-04-18 13:37:51');
 
 -- --------------------------------------------------------
 
