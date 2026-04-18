@@ -25,7 +25,7 @@ include_once '../app/views/partials/header.view.php';
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Vote Given Trend (Last 52 Weeks)</h3>
+                <h3 class="card-title">Vote Given Trend (From Last 52 Weeks)</h3>
             </div>
             <div id="weekly-votes-chart-container"></div>
         </div>

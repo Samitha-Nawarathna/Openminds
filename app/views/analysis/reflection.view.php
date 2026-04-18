@@ -25,7 +25,7 @@ include_once '../app/views/partials/header.view.php';
             <div id="note-activity-chart-container"></div>
         </div>
         
-        <div class="card">
+        <div class="card" style="display: none !important;">
             <div class="card-header">
                 <h3 class="card-title">Subject Proficiency: Weekly Avg. Mark Change</h3>
                 <select id="subject-selector" class="subject-selector">

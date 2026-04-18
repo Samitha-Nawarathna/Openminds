@@ -190,7 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (subjectProficiencyChart) {
                 // If chart exists, update options and series
                 subjectProficiencyChart.updateOptions(proficiencyOptions);
-            } else {
+            } 
+            else {
                 // If chart doesn't exist, create it
                 subjectProficiencyChart = new ApexCharts(document.querySelector("#subject-proficiency-chart-container"), proficiencyOptions);
                 subjectProficiencyChart.render();
