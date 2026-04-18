@@ -31,7 +31,7 @@ function updateTopicCreationUI() {
         // Pre-creation state
         subjectInput.disabled = false;
         createBtn.className = 'button button-primary';
-        createBtn.textContent = 'Create Subject';
+        createBtn.textContent = 'Create Topic';
         createBtn.setAttribute('onclick', 'createSubject()');
     }
 }

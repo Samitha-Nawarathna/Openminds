@@ -120,7 +120,7 @@
         <div class="expert-details">
 
             <?php
-                if ($subjects)
+                if ($subjects && $role == 'Expert')
                 {
                     echo '<div class="expert-in">
                     <p class="">Experts in:</p></div>

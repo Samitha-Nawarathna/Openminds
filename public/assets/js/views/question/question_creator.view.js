@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tags.forEach(tag => {
             const tagElement = document.createElement('span');
             tagElement.classList.add('tag-pill');
-            
+
             // Tag text
             const tagText = document.createTextNode(tag);
-            
+
             // Remove button (x)
             const removeBtn = document.createElement('span');
             removeBtn.classList.add('remove-tag');
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             removeBtn.addEventListener('click', () => {
                 removeTag(tag);
             });
-            
+
             tagElement.appendChild(tagText);
             tagElement.appendChild(removeBtn);
             tagsContainer.appendChild(tagElement);
@@ -71,18 +71,5 @@ document.addEventListener('DOMContentLoaded', () => {
             tagInput.value = '';
         }
     });
-    
-    // --- Mock form submission to show the data ---
-    form.addEventListener('submit', (event) => {
-        // Prevent actual submission for this demonstration
-        event.preventDefault();
-        
-        const formData = new FormData(form);
-        console.log("--- Form Data Ready for Backend ---");
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-        }
-        
-       form.submit();
-    });
+
 });

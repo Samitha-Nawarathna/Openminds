@@ -97,7 +97,7 @@
                 <input type="hidden" name="id" value="<?=$data['id']?>">
                 <input type="submit" class="button btn-none btn-edit" value="Edit">
             </form>
-            <input type="button" class="button btn-delete-soft" value="Delete">  
+            <input type="button" class="button btn-delete-soft btn-delete" value="Delete">  
         </div>
 
         <div class="display-group" style="display: <?=$rejected_show?>">

@@ -42,8 +42,7 @@ class Profilesetup extends Controller
         
         $file = $_FILES['image'];
 
-        $register_services = new RegisterServices;
-        $register_services->unset_user_data();
+        // Delay unsetting user_data until the very end, so if the upload fails, the user can try again safely.
 
         $user = new User;
         $results = $user->first(['username'=>$username]);

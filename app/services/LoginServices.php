@@ -116,7 +116,7 @@ class LoginServices
         $user = new User;
 
 
-        $results = $user->first(['username' => $_SESSION['user_data']['username']]);
+        $results = $user->first(['username' => $user_data['username']]);
         
 
         if ($results === false) {
@@ -133,6 +133,8 @@ class LoginServices
         $_SESSION['user_id'] = $results->id;
         $_SESSION['password'] = $results->password;
         $_SESSION['role'] = $user->get_role($results->role);
+
+        $_SESSION['user_data'] = $user_data;
 
         return 1;
     }

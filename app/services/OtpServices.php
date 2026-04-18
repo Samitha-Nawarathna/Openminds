@@ -92,7 +92,7 @@ class OtpServices
                 $login_services->unset_user_data();
 
     
-                header("Location: ".ROOT."profile");
+                header("Location: ".ROOT."dashboard");
                 exit;
 
             case 'accountverification':
@@ -137,7 +137,7 @@ class OtpServices
                 $login_services->set_session($user_data);
                 // $register_services->unset_user_data();
                 
-                header("Location: ".ROOT."profilesetup");
+                header("Location: ".ROOT."profile");
                 exit;
         }
     }

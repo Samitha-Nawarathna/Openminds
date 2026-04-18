@@ -381,12 +381,12 @@ class Question extends Controller
         }
 
         // Resolve Subject ID from Experts table
-        $experts = new Expert();
-        $expert_data = $experts->first(['user_id' => $current_user]);
-        $resolved_subject_id = $expert_data->subject_id ?? 1;
+        // $experts = new Expert();
+        // $expert_data = $experts->first(['user_id' => $current_user]);
+        // $resolved_subject_id = $expert_data->subject_id ?? 1;
 
         $event = new Event;
-        $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => $resolved_subject_id]);
+        $event->log($current_user, 'question_asked', 'Question', $question_id);
 
         echo json_encode(['status' => 'success', 'question_id' => $question_id]);
     }

@@ -22,9 +22,12 @@ class Accountverification extends Controller
     {
         $user_data = $_POST;
         $user_data['type'] = 'accountverification';
-        $_SESSION['user_data'] = $user_data;
+        // $_SESSION['user_data'] = $user_data;
 
         $login_services = new LoginServices;
+        $login_services->update_session_user_data($user_data);
+        $user_data = $_SESSION['user_data'];
+        
         $errors = $login_services->validate($user_data);
         // show($user_data);
 
@@ -43,7 +46,7 @@ class Accountverification extends Controller
         }
 
         $user_data = $login_services->update_session_user_data();
-        
+        // show($_SESSION);
         $otp_service = new OtpServices;
         $is_generated = $otp_service->send_otp($_SESSION['user_data']);
 
