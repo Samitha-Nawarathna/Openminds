@@ -54,8 +54,22 @@ class Profileadmin extends Controller
         $total_upvotes = $analysis_services->get_total_upvotes($user_id);
 
         $total_points = $analysis_services->get_total_points($user_id);
+        $experts_model = new Experts;
+        $subject_model = new Subjects;
 
+        $subjects = $experts_model->where(['user_id'=>$user_id], ['subject_id']);
+        $subjects_str = [];
 
+        foreach ($subjects as $key => $subject) {
+            $result_name = $subject_model->first(['id'=>$subject->subject_id])->name;
+
+            if ($result_name)
+            {
+                $subjects_str[] = $result_name;
+            }
+            
+        }
+        $data['subjects_str'] = $subjects_str;
         $this->view("profileadmin/profile", [
             "id"=>$results->id,
             "profile_picture_path"=>ROOT.$results->profile_picture,
@@ -69,6 +83,7 @@ class Profileadmin extends Controller
             "total_upvotes"=>$total_upvotes,
             "total_points"=>$total_points,
             "banned"=>$results->banned,
+            "subjects_str"=>$subjects_str,
         ]);
     }
 
@@ -97,7 +112,9 @@ class Profileadmin extends Controller
             exit;
         }
 
-        $user->update($user_id, ['banned'=>1]);
+        $reason_for_ban = $_POST['reason_for_ban'] ?? 'No reason provided';
+
+        $user->update($user_id, ['banned'=>1, 'reason_for_ban' => $reason_for_ban]);
 
         header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User has been banned successfully");
     }
@@ -106,7 +123,7 @@ class Profileadmin extends Controller
     {
         $this->admin_guard();
 
-        $user_id = $_POST['id'] ?? null;
+        $user_id = $_POST['user_id'] ?? null;
 
         if ($user_id === null) {
             header("Location: ".ROOT."profileadmin?message=Invalid Profile ID");
@@ -139,6 +156,7 @@ class Profileadmin extends Controller
 
         $user_id = $_POST['user_id'] ?? null;
         $new_role = $_POST['new_role'] ?? null;
+        $subjects = $_POST['subjects'] ?? []; // This is now an array
 
         if ($user_id === null) {
             header("Location: ".ROOT."profileadmin?message=Invalid Profile ID");
@@ -154,6 +172,33 @@ class Profileadmin extends Controller
             exit;
         }
 
+        // Handle Expert Role Assignment
+        if ($new_role == 3) {
+            if (empty($subjects)) {
+                header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=Expert role requires at least one subject");
+                exit;
+            }
+
+            $subject_model = new Subjects;
+            $experts_model = new Experts;
+
+            foreach ($subjects as $subject_name) {
+                $subject_id = $subject_model->add_new_subject($subject_name);
+
+                $existing_expert = $experts_model->first([
+                    'user_id' => $user_id,
+                    'subject_id' => $subject_id
+                ]);
+
+                if (!$existing_expert) {
+                    $experts_model->insert([
+                        'user_id' => $user_id,
+                        'subject_id' => $subject_id
+                    ]);
+                }
+            }
+        }
+
         $user->update($user_id, ['role'=>$new_role]);
         $roles_model = new Roles;
         $role_name = $roles_model->first(['role_id'=>$new_role])->name;
@@ -165,7 +210,6 @@ class Profileadmin extends Controller
         $notification_service->send_notification($sender_id, $notification_content, $user_id);
         
         header("Location: ".ROOT."profileadmin/profile?id=$user_id&message=User role has been changed to $role_name successfully");
-        
         
     }
 

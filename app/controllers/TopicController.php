@@ -230,7 +230,10 @@ class TopicController extends Controller
         $topics_model = new Topics();
         $note_model = new NoteModel();
 
+        $user_id = $_SESSION['user_id'] ?? 0;
+
         $params = [
+            'where' => ['creator_id' => $user_id],
             'limit' => $limit,
             'offset' => $offset,
             'order_by' => 'id',

@@ -380,8 +380,13 @@ class Question extends Controller
             ]);
         }
 
+        // Resolve Subject ID from Experts table
+        $experts = new Expert();
+        $expert_data = $experts->first(['user_id' => $current_user]);
+        $resolved_subject_id = $expert_data->subject_id ?? 1;
+
         $event = new Event;
-        $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => 1]);
+        $event->log($current_user, 'question_asked', 'Question', $question_id, ['subject_id' => $resolved_subject_id]);
 
         echo json_encode(['status' => 'success', 'question_id' => $question_id]);
     }
@@ -405,9 +410,13 @@ class Question extends Controller
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
+        // Resolve Subject ID from Experts table
+
         // Log Event
         $event = new Event;
-        $event->log($current_user, 'question_answered', 'Answer', $answer_id, ['question_id' => $q_id]);
+        $event->log($current_user, 'question_answered', 'Answer', $answer_id, [
+            'question_id' => $q_id,
+        ]);
 
         // Return success response
         echo json_encode(['status' => 'success', 'answer_id' => $answer_id]);
@@ -467,7 +476,7 @@ class Question extends Controller
         $user_vote_answer = new Uservoteanswer;
 
         // Check if user has already voted
-        $existing_vote = $user_vote_answer->first(['u_id' => $current_user, 'q_id' => $q_id]);
+        $existing_vote = $user_vote_answer->first(['u_id' => $current_user, 'a_id' => $q_id]);
 
         if ($existing_vote) {
             // Update existing vote
@@ -485,7 +494,7 @@ class Question extends Controller
             // Insert new vote
             $user_vote_answer->insert([
                 'u_id' => $current_user,
-                'q_id' => $q_id,
+                'a_id' => $q_id,
                 'votetype' => $votetype
             ]);
 
@@ -640,6 +649,12 @@ class Question extends Controller
 
         $result = $questions->delete($q_id);
 
+        if ($result !== false) {
+             // Log Event
+            $event = new Event;
+            $event->log($user_id, 'question_deleted', 'Question', $q_id, []);
+        }
+
         if ($result === false) {
             echo json_encode(['status' => 'error', 'message' => 'Delete failed']);
             return;
@@ -671,6 +686,12 @@ class Question extends Controller
         }
 
         $result = $answers->delete($a_id);
+
+        if ($result !== false) {
+            // Log Event
+            $event = new Event;
+            $event->log($user_id, 'answer_deleted', 'Answer', $a_id, []);
+        }
 
         if (!$result) {
             // Note: Model::delete returns void/null in the viewed code, so this check might always fail if interpreted as boolean. 

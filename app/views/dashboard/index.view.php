@@ -96,9 +96,9 @@
                     </div>
                     <div class="progress-container">
                         <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="stat-points-progress" style="width: 0%"></div>
+                            <div class="progress-bar-fill" id="stat-points-progress" style="width: <?= isset($data['total_points']) ? $data['total_points'] : '0' / 50 * 100 ?>%"></div>
                         </div>
-                        <div class="stat-sub" id="stat-points-sub">0 / 50</div>
+                        <div class="stat-sub" id="stat-points-sub"><?= isset($data['total_points']) ? $data['total_points'] : '0' ?> / 50</div>
                     </div>
                 </div>
             </div>

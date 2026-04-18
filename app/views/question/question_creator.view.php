@@ -31,6 +31,7 @@ include_once '../app/views/partials/header.view.php';
     </div>
 
 <script>
+ 
 document.getElementById('create-question-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -49,6 +50,7 @@ document.getElementById('create-question-form').addEventListener('submit', funct
     .then(response => response.json())
     .then(data => {
         if(data.status === 'success') {
+            console.log('<?= ROOT ?>/question/show?id=' + data.question_id);
             window.location.href = '<?= ROOT ?>/question/show?id=' + data.question_id;
         } else {
             alert('Error creating question: ' + (data.message || 'Unknown error'));

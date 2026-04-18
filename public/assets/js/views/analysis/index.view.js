@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="kpi-title">${def.title}</div>
                 
                 <div class="kpi-value">${def.format(data.count ?? data.score ?? data.fraction)}${def.unit}</div>
-                <div class="kpi-change ${changeClass}" style="${key === 'learning_consistency' ? '' : 'display: none;'}">
+                <div class="kpi-change ${changeClass}">
                     <span>${sign} ${Math.abs(data.change_percentage).toFixed(1)}%</span>
                     <span style="font-weight: 400; color: ${colorTextLight}; margin-left: 0.5rem;">vs. prior period</span>
                 </div>

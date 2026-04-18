@@ -33,4 +33,16 @@ class ProfileServices
 
         return ServiceResult::success();
     }
+
+    public function reset_password($user_id, $new_password)
+    {
+        $user_model = new User;
+        $result = $user_model->update($user_id, ['password' => password_hash($new_password, PASSWORD_DEFAULT)]);
+
+        if ($result === false) {
+            return ServiceResult::failure(["Unable to reset password."]);
+        }
+
+        return ServiceResult::success();
+    }
 }

@@ -47,12 +47,20 @@ body{
 {
     display: flex;
     flex-wrap: wrap;
+    /* padding-right: var(--space-sm); */
     /* flex-direction: column; */
 }
 
 .profile-section .expert-in .subjects .tile
 {
     margin:var(--space-xs) ;
+    margin-right: var(--space-sm);
+}
+
+.profile-section .expert-in .subjects .tag-pill
+{
+    /* margin:var(--space-xs) ; */
+    margin-right: var(--space-sm);
 }
 
 .profile-picture

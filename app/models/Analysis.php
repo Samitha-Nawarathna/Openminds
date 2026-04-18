@@ -802,51 +802,59 @@ class AnalyticsModel
         $weekly_raw = $this->getAllTimeMetricsRaw($user_id);
         $weekly_trends = $this->get52WeekActivityTrends($user_id);
         $subject_scores = $this->getTopSubjectScores($user_id);
-        $tag_usage = $this->getTopTagUsage(); // Note: Assumed system-wide in original code
-        
-        // NEW: Fetch Heatmap Data
+        $tag_usage = $this->getTopTagUsage(); 
         $activity_heatmap = $this->getUserActivityHeatmap($user_id);
 
-        // --- Consistency Calculation ---
-        $consistent_weeks = 0;
-        // The trends data is ordered DESC, so we take the first 7 (most recent)
-        foreach (array_slice($weekly_trends, 0, 7) as $week) {
-             $total_activity = $week['notes_created'] + $week['questions_asked'] + $week['exercises_attempted'];
-             if ($total_activity > 0) {
-                 $consistent_weeks++;
-             }
-        }
-        $consistency_lw = $consistent_weeks;
-        
-        // To calculate true change_percentage for consistency, you would need to calculate 
-        // the consistency score for the 7 weeks prior to the current 7.
-        // Mocking the consistency change based on the original request.
-        $consistency_change = 0.05; // 5% increase mock 
+        // --- 2. Calculate Weekly Trend Metrics (CW vs PW) ---
+        $cw_start = date('Y-m-d H:i:s', strtotime('-7 days'));
+        $pw_start = date('Y-m-d H:i:s', strtotime('-14 days'));
 
-        // --- 2. Format into Desired 'analyticsData' Structure ---
+        $sql_trends = "
+            SELECT 
+                SUM(CASE WHEN event_time >= :cw_start AND event_type = 'note_created' THEN 1 ELSE 0 END) AS notes_cw,
+                SUM(CASE WHEN event_time < :cw_start AND event_time >= :pw_start AND event_type = 'note_created' THEN 1 ELSE 0 END) AS notes_pw,
+                
+                COALESCE(AVG(CASE WHEN event_time >= :cw_start AND event_type = 'exercise_attempted' THEN CAST(JSON_EXTRACT(data, '$.score') AS DECIMAL(5, 2)) END), 0) AS score_cw,
+                COALESCE(AVG(CASE WHEN event_time < :cw_start AND event_time >= :pw_start AND event_type = 'exercise_attempted' THEN CAST(JSON_EXTRACT(data, '$.score') AS DECIMAL(5, 2)) END), 0) AS score_pw,
+                
+                (SELECT COUNT(*) FROM uservotequestion WHERE user_id = :user_id AND created_at >= :cw_start) +
+                (SELECT COUNT(*) FROM uservoteanswer WHERE user_id = :user_id AND created_at >= :cw_start) AS votes_cw,
+                
+                (SELECT COUNT(*) FROM uservotequestion WHERE user_id = :user_id AND created_at < :cw_start AND created_at >= :pw_start) +
+                (SELECT COUNT(*) FROM uservoteanswer WHERE user_id = :user_id AND created_at < :cw_start AND created_at >= :pw_start) AS votes_pw,
+
+                (SELECT COUNT(DISTINCT DATE(event_time)) FROM events WHERE user_id = :user_id AND event_time >= :cw_start) AS consistency_cw,
+                (SELECT COUNT(DISTINCT DATE(event_time)) FROM events WHERE user_id = :user_id AND event_time < :cw_start AND event_time >= :pw_start) AS consistency_pw
+            FROM events
+            WHERE user_id = :user_id AND event_time >= :pw_start;
+        ";
+
+        $trends = $this->get_row($sql_trends, ['user_id' => $user_id, 'cw_start' => $cw_start, 'pw_start' => $pw_start]);
+
+        // --- 3. Format into Desired 'analyticsData' Structure ---
         return [
             "overview" => [
                 "notes_created" => [
                     "count" => (int) ($weekly_raw['notes']['Total'] ?? 0),
-                    "change_percentage" => 0
+                    "change_percentage" => $this->calculateChangePercentage((float)($trends->notes_cw ?? 0), (float)($trends->notes_pw ?? 0))
                 ],
                 "average_exercise_score" => [
                     "score" => round(($weekly_raw['scores']['Total'] ?? 0), 1),
-                    "change_percentage" => 0
+                    "change_percentage" => $this->calculateChangePercentage((float)($trends->score_cw ?? 0), (float)($trends->score_pw ?? 0))
                 ],
                 "all_votes" => [
                     "count" => (int) ($weekly_raw['votes']['Total'] ?? 0),
-                    "change_percentage" => 0
+                    "change_percentage" => $this->calculateChangePercentage((float)($trends->votes_cw ?? 0), (float)($trends->votes_pw ?? 0))
                 ],
                 "learning_consistency" => [
-                    "fraction" => "{$consistency_lw}/7",
-                    "change_percentage" => $consistency_change
+                    "fraction" => ($trends->consistency_cw ?? 0) . "/7",
+                    "change_percentage" => $this->calculateChangePercentage((float)($trends->consistency_cw ?? 0), (float)($trends->consistency_pw ?? 0))
                 ]
             ],
-            "weekly_trends" => $weekly_trends, // Already returned oldest to newest
+            "weekly_trends" => $weekly_trends,
             "top_subjects" => $subject_scores,
             "top_tags" => $tag_usage,
-            "activity_heatmap" => $activity_heatmap // <--- ADDED HEATMAP DATA
+            "activity_heatmap" => $activity_heatmap 
         ];
     }
 

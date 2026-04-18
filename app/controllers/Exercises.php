@@ -365,6 +365,10 @@ class Exercises extends Controller
 
             $pdo->commit();
 
+            // Log Event
+            $event = new Event;
+            $event->log($current_user, $existing ? 'exercise_updated' : 'exercise_created', 'Exercise', $exercise_id, ['subject_id' => $subject_id]);
+
             http_response_code($existing ? 200 : 201);
             echo json_encode(['success' => true, 'message' => 'Exercise created successfully', 'id' => $exercise_id]);
             return;
@@ -660,7 +664,7 @@ class Exercises extends Controller
                 if ($latestAttempt) {
                     $average_score = (float)$latestAttempt['score'];
 
-                    $attemptAnswersStmt = $pdo->prepare("SELECT aa.question_id AS mapped_question_id, aa.user_response, q.title AS mapped_title FROM attempt_answer aa LEFT JOIN question q ON q.id = aa.question_id WHERE aa.attempt_id = :attempt_id");
+                    $attemptAnswersStmt = $pdo->prepare("SELECT question_id, user_response FROM attempt_answer WHERE attempt_id = :attempt_id");
                     $attemptAnswersStmt->execute([':attempt_id' => (int)$latestAttempt['id']]);
                     $attemptAnswers = $attemptAnswersStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -673,14 +677,9 @@ class Exercises extends Controller
                             }
                         }
 
-                        $mapped_title = (string)($row['mapped_title'] ?? '');
-                        $mapped_exercise_question_id = 0;
-                        if ($mapped_title !== '' && preg_match('/^Exercise\\s+' . preg_quote((string)$exercise_id, '/') . '\\s+-\\s+Q(\\d+)$/', $mapped_title, $matches)) {
-                            $mapped_exercise_question_id = (int)($matches[1] ?? 0);
-                        }
-
-                        if ($mapped_exercise_question_id > 0) {
-                            $selected_by_question[$mapped_exercise_question_id] = $selected_ids;
+                        $q_id = (int)($row['question_id'] ?? 0);
+                        if ($q_id > 0) {
+                            $selected_by_question[$q_id] = $selected_ids;
                         }
                     }
                 }
@@ -1609,37 +1608,6 @@ class Exercises extends Controller
             // Persist attempt and answers in one transaction
             $pdo->beginTransaction();
 
-            // Create question table entries for FK constraint (maps exercisequestion IDs to question table IDs)
-            $questionIdMap = [];  // exercisequestion.id => question.id
-            
-            foreach ($bundle['questions'] as $q) {
-                try {
-                    $exerciseQId = (int)$q['question_id'];  // question_id from bundle (which is exercisequestion.id)
-                    $qTitle = 'Exercise ' . $exercise_id . ' - Q' . $exerciseQId;  // Unique identifier
-                    
-                    // Check if this question mapping already exists
-                    $stmtCheck = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
-                    $stmtCheck->execute([':title' => $qTitle]);
-                    $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($existing) {
-                        $questionIdMap[$exerciseQId] = (int)$existing['id'];
-                    } else {
-                        // Create new question entry
-                        $stmtInsert = $pdo->prepare("INSERT INTO question (title, content, creator_id) VALUES (:title, :content, :creator_id)");
-                        $stmtInsert->execute([
-                            ':title' => $qTitle,
-                            ':content' => $q['prompt'],
-                            ':creator_id' => $current_user,
-                        ]);
-                        $questionIdMap[$exerciseQId] = (int)$pdo->lastInsertId();
-                    }
-                } catch (Exception $qError) {
-                    error_log('Error creating question mapping: ' . $qError->getMessage() . "\nQuestion data: " . json_encode($q));
-                    throw $qError;
-                }
-            }
-
             // Mark previous attempts as not latest
             $markOld = $pdo->prepare("UPDATE exercise_attempt SET latest = 0 WHERE exe_id = :exe_id AND u_id = :user_id AND latest = 1");
             $markOld->execute([':exe_id' => $exercise_id, ':user_id' => $current_user]);
@@ -1658,16 +1626,10 @@ class Exercises extends Controller
             foreach ($details as $detail) {
                 try {
                     $exerciseQId = (int)$detail['question_id'];  // exercisequestion.id
-                    $actualQuestionId = $questionIdMap[$exerciseQId] ?? null;  // Get mapped question.id
-                    
-                    if (!$actualQuestionId) {
-                        throw new Exception('No question mapping found for exercisequestion ID ' . $exerciseQId);
-                    }
-                    
                     $userResp = $userSelections[$exerciseQId] ?? [];
                     $answerStmt->execute([
                         ':attempt_id' => $attemptId,
-                        ':question_id' => $actualQuestionId,  // Use mapped question.id
+                        ':question_id' => $exerciseQId,  // Use exercisequestion.id directly
                         ':user_response' => json_encode($userResp),
                         ':is_correct' => $detail['user_score'] >= $detail['max_weight'] ? 1 : 0,
                         ':score_earned' => (float)$detail['user_score'],
@@ -1679,6 +1641,19 @@ class Exercises extends Controller
             }
 
             $pdo->commit();
+
+            // Log Event for Analytics
+            try {
+                $exercise_data = $bundle['exercise'];
+                $event = new Event;
+                $event->log($current_user, 'exercise_attempted', 'Exercise', $exercise_id, [
+                    'score' => (float)$totalScore,
+                    'max_score' => (float)$maxScore,
+                    'subject_id' => (int)($exercise_data['subject_id'] ?? 1)
+                ]);
+            } catch (Exception $e) {
+                error_log("Failed to log exercise_attempted event: " . $e->getMessage());
+            }
 
             $this->json_respond([
                 'success' => true,
@@ -1763,8 +1738,6 @@ class Exercises extends Controller
 
             $answerStmt = $pdo->prepare("SELECT id, answer_text, is_correct, question_id FROM exerciseanswer WHERE question_id = :question_id ORDER BY display_order ASC, id ASC");
             $attemptAnswerStmt = $pdo->prepare("SELECT user_response, is_correct, score_earned FROM attempt_answer WHERE attempt_id = :attempt_id AND question_id = :question_id LIMIT 1");
-            // Map exercisequestion.id to the related question.id created during submission
-            $questionMapStmt = $pdo->prepare("SELECT id FROM question WHERE title = :title LIMIT 1");
 
             $details = [];
             $userAnswers = [];
@@ -1776,18 +1749,9 @@ class Exercises extends Controller
                 $answerStmt->execute([':question_id' => $q['id']]);
                 $optionsRaw = $answerStmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Attempt answers are stored against question.id (not exercisequestion.id)
-                $mappedQuestionId = null;
-                $mapTitle = 'Exercise ' . $attempt['exe_id'] . ' - Q' . $q['id'];
-                $questionMapStmt->execute([':title' => $mapTitle]);
-                $mappedRow = $questionMapStmt->fetch(PDO::FETCH_ASSOC);
-                if ($mappedRow) {
-                    $mappedQuestionId = (int)$mappedRow['id'];
-                }
-
                 $attemptAnswerStmt->execute([
                     ':attempt_id' => $attempt_id,
-                    ':question_id' => $mappedQuestionId ?? 0
+                    ':question_id' => $q['id']
                 ]);
                 $attemptAnswer = $attemptAnswerStmt->fetch(PDO::FETCH_ASSOC);
 

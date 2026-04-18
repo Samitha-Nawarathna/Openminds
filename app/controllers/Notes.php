@@ -4,16 +4,18 @@ class Notes extends Controller
 {
     public function index()
     {
+        $user_id = $_SESSION['user_id'] ?? 0;
         
         $topics = new Topics();
         $params = [
+            'where' => ['creator_id' => $user_id],
             'order_by' => 'id',
             'order_dir' => 'DESC',
             'limit' => 10
         ];
         
         // Fetch pinned topics
-        $pinned_topics_rows = $topics->where(['pinned' => 1]);
+        $pinned_topics_rows = $topics->where(['pinned' => 1, 'creator_id' => $user_id]);
         $pinned_topic_names = [];
         $pinned_topic_ids = [];
 
@@ -170,6 +172,12 @@ class Notes extends Controller
             ]
         ];
 
+        // Log Note Viewed Event
+        $event = new Event;
+        $event->log($_SESSION['user_id'] ?? 0, 'note_viewed', 'Note', $note_id, [
+            'subject_id' => $note_data->subject_id ?? 1 // Logic to be refined if subject mapping exists
+        ]);
+
         $this->view('notes/view', $data);
     }
 
@@ -238,8 +246,17 @@ class Notes extends Controller
 
             //redirect to note view page
             // Log Event
+            // Resolve Subject ID from Experts table as fallback
+            // $experts = new Expert();
+            // $expert_data = $experts->first(['user_id' => $current_user_id]);
+            // $resolved_subject_id = $expert_data->subject_id ?? 1;
+
+            //resolve topic id 
+            $topic_data = $topics->first(['id' => $topic_id]);
+            $resolved_subject_id = $topic_data->subject_id ?? 1;
+
             $event = new Event;
-            $event->log($current_user_id, 'note_created', 'Note', $note_id, ['title' => $title, 'subject_id' => 1]); // Default subject ID or fetch from topic
+            $event->log($current_user_id, 'note_created', 'Note', $note_id, ['title' => $title, 'subject_id' => $resolved_subject_id]);
 
             header("Location: ".ROOT."/notes/view/" . $note_id);
 
@@ -277,6 +294,7 @@ class Notes extends Controller
             $note_model = new NoteModel;
             $note_tags_model = new NoteTags;
             $tags_model = new Tags;
+            $topic_model = new Topics;
                 
             //retrieve existing note
             $note = $note_model->first(['id' => $note_id]);
@@ -333,8 +351,12 @@ class Notes extends Controller
 
             // Redirect to the note view page after updating
             // Log Event
+
+            //resolve topic id 
+            $topic_data = $topic_model->first(['id' => $topic_id]);
+            $resolved_subject_id = $topic_data->subject_id ?? 1;
             $event = new Event;
-            $event->log($_SESSION['user_id'], 'note_updated', 'Note', $note_id, ['subject_id' => 1]);
+            $event->log($_SESSION['user_id'], 'note_updated', 'Note', $note_id, ['subject_id' => $resolved_subject_id]);
 
             header("Location: ".ROOT."/notes/view/" . $note_id . "?message=Note+updated+successfully");
 
@@ -732,6 +754,7 @@ class Notes extends Controller
             $params['where']['topic_id'] = $data['topic_id'];
         }
          // Add other filters as needed
+         
 
         $note_model = new NoteModel();
         $results = $note_model->filter_and_search($params);

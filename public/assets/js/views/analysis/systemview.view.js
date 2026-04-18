@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('kpi-active-profiles').textContent = kpis.total_active_profiles.toLocaleString();
 
       // Update System Health Score
-      document.getElementById('kpi-system-health').textContent = `${kpis.system_health_score.toFixed(1)}%`;
+    //   document.getElementById('kpi-system-health').textContent = `${kpis.system_health_score.toFixed(1)}%`;
   }
 
   // ========================================
