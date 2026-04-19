@@ -23,10 +23,11 @@ class Accountverification extends Controller
         $user_data = $_POST;
         $user_data['type'] = 'accountverification';
         // $_SESSION['user_data'] = $user_data;
+        $_SESSION['user_data'] = $user_data;
 
         $login_services = new LoginServices;
-        $login_services->update_session_user_data($user_data);
-        $user_data = $_SESSION['user_data'];
+        // $login_services->update_session_user_data($user_data);
+        // $user_data = $_SESSION['user_data'];
         
         $errors = $login_services->validate($user_data);
         // show($user_data);

@@ -30,7 +30,7 @@
             <span class="status-badge status-<?= htmlspecialchars($status) ?>"><?= htmlspecialchars($status_label) ?></span>
             <div class="mentor-actions">
                 <button id="hide-btn" class="btn-none" data-visibility="<?= htmlspecialchars($visibility) ?>"><?= htmlspecialchars($toggle_label) ?></button>
-                <button id="edit-btn" class="btn-blue">Edit Exercise</button>
+                <button id="edit-btn" class="btn-blue" style="display:none">Edit Exercise</button>
             </div>
         </div>
     </header>

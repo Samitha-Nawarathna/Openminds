@@ -317,7 +317,7 @@ class AnalyticsModel
                 q.title AS question,
                 a.chosen AS accepted,
                 COUNT(uva.a_id) AS votes,
-                CONCAT('/questions/', q.id) AS link
+                CONCAT('".ROOT."/question/show?id=', q.id) AS link
             FROM answer a
             JOIN question q ON a.q_id = q.id
             LEFT JOIN uservoteanswer uva ON a.id = uva.a_id 

@@ -701,9 +701,11 @@
                 <a href="<?=ROOT?>/analysis/insights" class="nav-link sub-link" data-tooltip="Insights & Recommendations">
                     <span class="nav-link-text">Insights & Recommendations</span>
                 </a>
+                <?php if ($nav_role === "admin"): ?>
                 <a href="<?=ROOT?>/analysis/systemview" class="nav-link sub-link" data-tooltip="System Overview">
                     <span class="nav-link-text">System Overview</span>
                 </a>
+                <?php endif; ?>
             </div>
             <a href="<?=ROOT?>/exercises" class="nav-link" data-tooltip="Exercise">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
