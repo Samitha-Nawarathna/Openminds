@@ -2,6 +2,7 @@
                <?php 
                
                $nav_role = $_SESSION['role'] ?? null;
+            //    show($nav_role);
 
             //    include_once '../app/views/partials/header.view.php';
 
@@ -719,7 +720,7 @@
             </div>
             
             
-            <?php if ($nav_role === "expert"): ?>
+            <?php if ($nav_role === "admin"): ?>
                 <div class="radmin-divider">
                     <div class="rnav-header">Admin Privileges</div>
                     <a href="<?=ROOT?>/expertrequestadmin" class="rnav-link" data-tooltip="Expert Requests (Admin)">
