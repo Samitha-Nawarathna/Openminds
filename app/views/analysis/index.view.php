@@ -15,7 +15,7 @@ include_once '../app/views/partials/header.view.php';
         <h1 class="main-header">Welcome Back!</h1>
             
 
-        <section class="overview-grid" id="overview-panel">
+        <section class="overview-grid   " id="overview-panel">
         </section>
 
         <div class="card">

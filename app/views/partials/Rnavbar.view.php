@@ -1,4 +1,7 @@
             
+               <head>                <script type="module" src="<?=ROOT?>/assets/js/views/analysis/index.view.js"></script>
+</head>
+               
                <?php 
                
                $nav_role = $_SESSION['role'] ?? null;
@@ -8,6 +11,7 @@
 
 
             //    include "C:\xampp\htdocs\Openminds\public\assets\css\analysis\systemview.view.css";
+
 
                if ($nav_role && $nav_role === "admin"){
                     echo '<li class="dropdown">
@@ -588,7 +592,7 @@
     /* Smaller square for target */
     .focus-square.target {
         width: 90px;
-        height: 90px;
+        height: 90px;   
     }
     .focus-square.target .focus-title {
         font-size: 0.7rem;
@@ -650,13 +654,13 @@
             </svg>
         </button>
     </div>   
-            
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
             <div class="rnav-section">
             <div class="rnav-header"><br>YOUR PROGRESS</div>
 
             <!-- kpi-cards -->
                     <section class="overview-grid" id="overview-panel">
-                <div class="kpi-card">
+                <!-- <div class="kpi-card">
                     <div class="kpi-title">Total Notes</div>
                     <div class="kpi-value" id="stat-notes">0</div>
                     <div class="kpi-change" id="change-notes"></div>
@@ -676,7 +680,7 @@
                     <div class="kpi-value" id="stat-consistency">0/0</div>
                     <div class="kpi-change" id="change-consistency"></div>
                 </div>
-            </div>
+            </div> -->
             </section>
             
             <div class="rnav-header" style="margin-top: 2rem;">FOCUS TIMER</div>

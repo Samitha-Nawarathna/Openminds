@@ -202,7 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     
     // 1. Open Modal
-    openModalBtn.addEventListener('click', openModal);
+    openModalBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+    });
 
     // 2. Close Modal
     closeModalBtn.addEventListener('click', closeModal);

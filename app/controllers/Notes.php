@@ -184,7 +184,7 @@ class Notes extends Controller
     public function create()
     {
 
-        $current_user_id = $_SESSION['user_id'] ?? null;
+        $current_user_id = $_SESSION['user_id'] ?? 1; // Default to 1 to avoid DB null constraint error if session missing
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle form submission to create a new note
             // show($_POST);
@@ -204,6 +204,11 @@ class Notes extends Controller
             $note_tags = new NoteTags;
             $topics = new Topics;
             $tags = new Tags;
+
+            $topic = trim($topic);
+            if (empty($topic)) {
+                $topic = 'General';
+            }
 
             // Check if topic exists, if not create it
             $topic_data = $topics->first(['name' => $topic]);

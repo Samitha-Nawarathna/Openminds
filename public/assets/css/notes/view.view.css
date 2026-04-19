@@ -195,8 +195,10 @@ body {
 
 #progress-bar-fill {
     height: 100%;
-    width: 0%; /* Start at 0 */
-    background-color: #4CAF50; /* Green color */
+    width: 0%;
+    /* Start at 0 */
+    background-color: #4CAF50;
+    /* Green color */
     transition: width 1s linear;
 }
 
@@ -272,8 +274,8 @@ body {
     margin: 10% auto;
     padding: var(--space-lg);
     border: 1px solid var(--color-border);
-    max-width: 350px;
-    width: 90%;
+    max-width: 400px;
+    width: 30%;
     border-radius: var(--radius-lg);
     position: relative;
     box-shadow: var(--shadow-lg);
@@ -308,7 +310,7 @@ body {
 }
 
 #timer-minutes-input {
-    width: 60px;
+    width: 6x0px;
     padding: var(--space-xs);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
