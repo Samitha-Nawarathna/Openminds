@@ -96,7 +96,7 @@
                     </div>
                     <div class="progress-container">
                         <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="stat-points-progress" style="width: <?= isset($data['total_points']) ? $data['total_points'] : '0' / 50 * 100 ?>%"></div>
+                            <div class="progress-bar-fill" id="stat-points-progress" style="width: <?= isset($data['total_points']) ? $data['total_points'] : '0' * 100 / 50 ?>%"></div>
                         </div>
                         <div class="stat-sub" id="stat-points-sub"><?= isset($data['total_points']) ? $data['total_points'] : '0' ?> / 50</div>
                     </div>
@@ -112,7 +112,7 @@
                     <div class="kpi-title">
                         Consistency (7 Days)
                     </div>
-                    <div class="kpi-value" id="stat-consistency">0/7</div>
+                    <div class="kpi-value" id="stat-consistency"><?= isset($data['consistency']) ? $data['consistency'] : '0' ?>/7</div>
                     <a href="<?=ROOT?>analysis" class="kpi-action-link">View Analysis <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                     </a>
                     <!-- Hidden Heatmap container if needed later: <div class="heatmap" id="heatmap-container"></div> -->

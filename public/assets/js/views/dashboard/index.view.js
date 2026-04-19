@@ -94,9 +94,15 @@ function createContentCard(item, url = ROOT + "notes/view") {
         `;
     }
 
+    // Fix the routing format. Certain modules use path variables while others rely on query parameters.
+    let finalHref = `${url}/?id=${item.id}`;
+    if (url.includes('announcements/view/') || url.includes('notes/view/')) {
+        finalHref = `${url}${item.id}`;
+    }
+
     return `
         <div class="" data-id=${item.id}>
-        <a href="${url}/?id=${item.id}" class="content-card no-style-link">
+        <a href="${finalHref}" class="content-card no-style-link">
             <div class="content-details">
                 <div class="content-title">${item.title}</div>
                 <div class="content-meta">${metaHtml}</div>

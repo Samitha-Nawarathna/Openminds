@@ -51,6 +51,27 @@ class Event
             'event_time'  => date("Y-m-d H:i:s")
         ];
 
-        return $this->insert($eventData);
+        $insertResult = $this->insert($eventData);
+
+        if ($insertResult) {
+            // Check user points and role to see if a promotion to mentor is needed
+            $userData = $this->query("SELECT id, points, role FROM user WHERE id = :id", [':id' => $user_id]);
+
+            if ($userData && !empty($userData)) {
+                $user = $userData[0];
+                if ($user->role == 1 && $user->points >= 50) {
+                    // Promote from student (1) to mentor (2)
+                    $this->query("UPDATE user SET role = 2 WHERE id = :id", [':id' => $user_id]);
+
+                    // Update session if the promoted user is currently logged in
+                    if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id) {
+                        $_SESSION['role'] = 'mentor';
+                        $_SESSION['promotion_notification'] = "Congratulations! You have been promoted to Mentor based on your contributions!";
+                    }
+                }
+            }
+        }
+
+        return $insertResult;
     }
 }

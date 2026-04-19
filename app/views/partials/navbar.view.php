@@ -989,3 +989,12 @@
         }
     });
 </script>
+
+<?php if (isset($_SESSION['promotion_notification'])): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        alert("<?= addslashes($_SESSION['promotion_notification']) ?>");
+    });
+</script>
+<?php unset($_SESSION['promotion_notification']); ?>
+<?php endif; ?>

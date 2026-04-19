@@ -33,10 +33,18 @@ class Dashboard extends Controller
         } catch (Exception $e) {
             $avg_marks = 0;
         }
+
+        $consistencyQuery = "SELECT COUNT(id) AS consistency FROM events WHERE user_id = :id AND date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+        try {
+            $consistency = $this->dashboardModel->executeQuery($consistencyQuery, ['id' => $userId])[0]->consistency ?? 0;
+        } catch (Exception $e) {
+            $consistency = 0;
+        }
         
         return $this->view('dashboard/index', [
             'total_points' => number_format((float)$points, 2),
-            'avg_marks' => $avg_marks
+            'avg_marks' => $avg_marks,
+            'consistency' => $consistency
         ]);
     }
 
