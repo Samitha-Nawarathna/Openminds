@@ -47,7 +47,7 @@
 
         <div class="input-group">
             <label for="modal-topic-input">Topic</label>
-            <input type="text" id="modal-topic-input" placeholder="Enter or select topic name">
+            <input type="text" id="modal-topic-input" placeholder="Enter or select topic name" value="<?= $data['title'] ?>">
         </div>
 
         <div class="input-group">

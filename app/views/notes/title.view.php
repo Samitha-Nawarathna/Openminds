@@ -69,7 +69,7 @@ include "../app/views/partials/focus_timer.php";
         <?php endif; ?>
 
         <div class="list-container" id="subjects-list">
-            <h3>Available Subjects</h3>
+            <h3>Available Topics</h3>
             <?php 
             // Initial render of topics using PHP
             foreach ($data["initial_load"]['topics'] as $topic) {

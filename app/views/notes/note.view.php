@@ -22,7 +22,7 @@
         <div class="filter-bar">
             <input type="text" id="note-filter-input" placeholder="write tag name and press enter">
             <button class="btn-filter" id="filter-btn">Filter</button> 
-            <a href="<?=ROOT?>/notes/create" class="btn-create">+ Create</a>
+            <a href="<?=ROOT?>/notes/create?title=<?php echo $data['browsing_topic_title']; ?>" class="btn-create">+ Create</a>
         </div>
 
         <?php if (!empty($data['pinned_notes'])): ?>

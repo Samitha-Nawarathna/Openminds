@@ -672,6 +672,9 @@
                 <a href="<?=ROOT?>/notes/shared_with_me" class="nav-link sub-link" data-tooltip="Shared with me">
                     <span class="nav-link-text">Shared with me</span>
                 </a>
+                <a href="<?=ROOT?>/notes/create" class="nav-link sub-link" data-tooltip="Create a Note">
+                    <span class="nav-link-text" style="color: var(--color-blue-500); font-weight: bold;">+ Create a Note</span>
+                </a>
             </div>
             
             <a href="<?=ROOT?>/question" class="nav-link" data-tooltip="Q & A">

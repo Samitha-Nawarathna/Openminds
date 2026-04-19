@@ -31,26 +31,26 @@ class Login extends Controller
         }
 
     
-        // $otp_service = new OtpServices;
-        // $is_generated = $otp_service->send_otp($_SESSION['user_data']);
+        $otp_service = new OtpServices;
+        $is_generated = $otp_service->send_otp($_SESSION['user_data']);
 
-        // if (!$is_generated)
-        // {
-        //     $this->view("login", [
-        //             "message" => "Error in OTP generation. Please try again!.",
-        //             "username" => $_POST["username"],
-        //             "password" => $_POST["password"],
-        //         ]
-        //     );
+        if (!$is_generated)
+        {
+            $this->view("login", [
+                    "message" => "Error in OTP generation. Please try again!.",
+                    "username" => $_POST["username"],
+                    "password" => $_POST["password"],
+                ]
+            );
 
-        //     return;
-        // }
+            return;
+        }
 
-        // header("Location: ".ROOT."otppage"); 
+        header("Location: ".ROOT."otppage"); 
 
                 // Temporary bypass OTP stage
-        $otp_service = new OtpServices;
-        $otp_service->process_forward($_SESSION['user_data']);
+        // $otp_service = new OtpServices;
+        // $otp_service->process_forward($_SESSION['user_data']);
 
     }
 }

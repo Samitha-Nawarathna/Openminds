@@ -87,6 +87,7 @@ function createContentCard(item, url = ROOT + "notes/view") {
     if (typeof item.id === "string" && item.id.startsWith('an-')) { // Check for 'an-' prefix
         return `
             <div class="content-card" style="display: block;">
+            
                 <div class="content-title" style="color: var(--color-text-dark);">${item.title}</div>
                 <div class="content-meta">${metaHtml}</div>
             </div>

@@ -30,27 +30,27 @@ class Register extends Controller
         $user_data = $_SESSION['user_data'];
         $_SESSION['user_data']['type'] = 'registration';
 
-        // $otp_service = new OtpServices;
-        // $is_generated = $otp_service->send_otp($_SESSION['user_data']);
+        $otp_service = new OtpServices;
+        $is_generated = $otp_service->send_otp($_SESSION['user_data']);
 
-        // if (!$is_generated)
-        // {
-        //     $this->view("register", [
-        //             "message" => "Error in OTP generation. Please try again!.",
-        //             "username" => $_POST["username"],
-        //             "password" => $_POST["password"],
-        //             "email" => $_POST["email"]
-        //         ]
-        //     );
+        if (!$is_generated)
+        {
+            $this->view("register", [
+                    "message" => "Error in OTP generation. Please try again!.",
+                    "username" => $_POST["username"],
+                    "password" => $_POST["password"],
+                    "email" => $_POST["email"]
+                ]
+            );
 
-        //     return;
-        // }
+            return;
+        }
 
-        // header("Location: ".ROOT."otppage");
+        header("Location: ".ROOT."otppage");
 
         // Temporary bypass OTP stage
-        $otp_service = new OtpServices;
-        $otp_service->process_forward($_SESSION['user_data']);
+        // $otp_service = new OtpServices;
+        // $otp_service->process_forward($_SESSION['user_data']);
 
     }
 }

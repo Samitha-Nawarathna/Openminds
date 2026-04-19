@@ -183,7 +183,6 @@ class Notes extends Controller
 
     public function create()
     {
-
         $current_user_id = $_SESSION['user_id'] ?? 1; // Default to 1 to avoid DB null constraint error if session missing
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Handle form submission to create a new note
@@ -271,6 +270,8 @@ class Notes extends Controller
             exit();
         }
 
+        $title = $_GET['title'] ?? '';
+
         $data = [
             'top_tags' => [
                 ['name' => 'Physics', 'count' => 12],
@@ -279,7 +280,8 @@ class Notes extends Controller
                 ['name' => 'design', 'count' => 3],
                 ['name' => 'Quantum Computing', 'count' => 7],
             ],
-            'form_action_url' => '/your-backend-controller/save-note'
+            'form_action_url' => '/your-backend-controller/save-note',
+            'title' => $title
         ];
 
         $this->view('notes/create', $data);

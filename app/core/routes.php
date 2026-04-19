@@ -144,6 +144,8 @@ App::post('announcements/api/admin/create', 'Announcements@api_admin_create');
 App::post('announcements/api/admin/edit/{id}', 'Announcements@api_admin_edit');
 
 App::get('announcements/view/{id}', 'Announcements@show');
+// App::get('announcements/view/?id={id}', 'Announcements@show');
+
 //api endpoint for delete a annoucement by admin.
 App::post('announcements/api/admin/delete/{id}', 'Announcements@api_admin_delete');
 //api endpoint for load annoucements for admin.
